@@ -10,8 +10,8 @@ import '../../../dashboard/data/repositories/dashboard_stats_repository.dart';
 import '../../../fasting/data/repositories/fasting_repository.dart';
 import '../../../nutrition/data/repositories/daily_nutrition_repository.dart';
 import '../../../weight/data/repositories/weight_repository.dart';
-import '../../ai_coach/data/services/gemini_service.dart';
-import '../../ai_coach/domain/models/ai_context_model.dart';
+import '../../../ai_coach/data/services/gemini_service.dart';
+import '../../../ai_coach/domain/models/ai_context_model.dart';
 import 'csv_generator.dart';
 import 'pdf_generator.dart';
 
