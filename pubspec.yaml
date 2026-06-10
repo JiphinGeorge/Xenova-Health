@@ -1,0 +1,114 @@
+name: xenova_health
+description: "LeanLog - Professional weight loss, nutrition, intermittent fasting, and fitness tracking"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # UI
+  cupertino_icons: any
+  fl_chart: ^1.2.0
+  cached_network_image: any
+  google_fonts: any
+
+  # State Management
+  flutter_riverpod: any
+  riverpod_annotation: any
+
+  # Routing
+  go_router: any
+
+  # Models & Serialization
+  freezed_annotation: any
+  json_annotation: any
+
+  # Firebase
+  firebase_core: any
+  firebase_auth: any
+  cloud_firestore: any
+  firebase_storage: any
+  firebase_messaging: any
+  firebase_analytics: any
+  firebase_crashlytics: any
+
+  # Auth Providers
+  google_sign_in: any
+  sign_in_with_apple: any
+
+  # Networking
+  dio: any
+
+  # Local Storage
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # Image
+  image_picker: any
+  image_cropper: any
+
+  # Barcode
+  mobile_scanner: any
+
+  # Notifications
+  flutter_local_notifications: ^22.0.0
+
+  # Connectivity
+  connectivity_plus: any
+
+  # Security
+  flutter_secure_storage: any
+
+  # Permissions
+  permission_handler: any
+
+  # Export
+  pdf: any
+  excel: any
+  csv: any
+  share_plus: any
+
+  # AI
+  google_generative_ai: ^0.4.7
+
+  # Utils
+  path_provider: any
+  uuid: any
+  intl: any
+  flutter_dotenv: ^6.0.1
+  timezone: ^0.11.0
+  flutter_markdown: ^0.7.7+1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Linting
+  flutter_lints: any
+
+  # Code Generation
+  build_runner: any
+  freezed: any
+  json_serializable: any
+  riverpod_generator: any
+  hive_generator: any
+
+  # Testing
+  mocktail: any
+  golden_toolkit: any
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  assets:
+    - .env
+    - assets/images/
+    - assets/icons/
+    - assets/data/

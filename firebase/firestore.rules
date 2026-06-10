@@ -1,0 +1,118 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ──────────────────────────────────────────────
+    // HELPER FUNCTIONS
+    // ──────────────────────────────────────────────
+
+    // Check if the request is from an authenticated user
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if the user owns this document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Check if the document has required fields
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // Validate timestamp is not in the future
+    function isValidTimestamp(field) {
+      return request.resource.data[field] is timestamp
+             && request.resource.data[field] <= request.time;
+    }
+
+    // ──────────────────────────────────────────────
+    // GLOBAL FOOD DATABASE (Read-only for users)
+    // ──────────────────────────────────────────────
+    match /food_database/{foodId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Admin-only via Firebase Console or Cloud Functions
+    }
+
+    // ──────────────────────────────────────────────
+    // USER PROFILES
+    // ──────────────────────────────────────────────
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+
+      // ── Weight Entries ──
+      match /weight_entries/{entryId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // ── Custom Foods ──
+      match /custom_foods/{foodId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // ── Meal Logs ──
+      match /meal_logs/{logId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // ── Daily Summaries ──
+      match /daily_summaries/{date} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // ── Fasting Sessions ──
+      match /fasting_sessions/{sessionId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // ── Body Measurements ──
+      match /body_measurements/{measurementId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // ── Progress Photos ──
+      match /progress_photos/{photoId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // ── Goals ──
+      match /goals/{goalId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // ── Achievements ──
+      match /achievements/{achievementId} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId);
+      }
+
+      // ── AI Conversations ──
+      match /ai_conversations/{conversationId} {
+        allow read, write: if isOwner(userId);
+
+        // ── AI Messages (subcollection) ──
+        match /messages/{messageId} {
+          allow read, write: if isOwner(userId);
+        }
+      }
+
+      // ── Settings ──
+      match /settings/{settingDoc} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // ── Stats ──
+      match /stats/{statDoc} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // ──────────────────────────────────────────────
+    // DENY ALL OTHER ACCESS
+    // ──────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

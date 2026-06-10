@@ -1,0 +1,70 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ──────────────────────────────────────────────
+    // HELPER FUNCTIONS
+    // ──────────────────────────────────────────────
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isUnderSizeLimit(maxSizeMB) {
+      return request.resource.size < maxSizeMB * 1024 * 1024;
+    }
+
+    // ──────────────────────────────────────────────
+    // USER PROFILE PICTURES
+    // ──────────────────────────────────────────────
+    match /users/{userId}/profile/{fileName} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId)
+                   && isImage()
+                   && isUnderSizeLimit(5); // Max 5 MB
+    }
+
+    // ──────────────────────────────────────────────
+    // PROGRESS PHOTOS
+    // ──────────────────────────────────────────────
+    match /users/{userId}/progress_photos/{fileName} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId)
+                   && isImage()
+                   && isUnderSizeLimit(10); // Max 10 MB
+    }
+
+    // ──────────────────────────────────────────────
+    // EXPORTED REPORTS
+    // ──────────────────────────────────────────────
+    match /users/{userId}/reports/{fileName} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId)
+                   && isUnderSizeLimit(25); // Max 25 MB
+    }
+
+    // ──────────────────────────────────────────────
+    // DATA EXPORTS
+    // ──────────────────────────────────────────────
+    match /users/{userId}/exports/{fileName} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId)
+                   && isUnderSizeLimit(50); // Max 50 MB
+    }
+
+    // ──────────────────────────────────────────────
+    // DENY ALL OTHER ACCESS
+    // ──────────────────────────────────────────────
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
