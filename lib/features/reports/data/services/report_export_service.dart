@@ -86,11 +86,9 @@ class ReportExportService {
     
     if (profile == null || stats == null) return null;
 
-    final recentSnapshot = latestReport?.snapshot;
-
-    // Build AI Summary if we have a snapshot
+    // Build AI Summary if we have a report
     String? aiSummary;
-    if (recentSnapshot != null) {
+    if (latestReport != null) {
       final contextModel = AIContextModel(
         contextVersion: '1.0',
         generatedAt: DateTime.now(),
@@ -99,13 +97,13 @@ class ReportExportService {
         heightCm: profile.heightCm,
         goalType: profile.primaryGoal?.name,
         healthScore: stats.healthScore?.overallHealthScore ?? 0.0,
-        consistencyScore: recentSnapshot.consistencyScore,
-        weightTrend: recentSnapshot.weightTrend,
+        consistencyScore: latestReport.consistencyScore,
+        weightTrend: latestReport.averageWeeklyWeightChange,
         nutritionMetrics: const {},
         fastingMetrics: const {},
         goalProgress: stats.goalProgress ?? 0.0,
-        proteinGoalMet: recentSnapshot.averageProtein > 100,
-        waterGoalMet: recentSnapshot.averageWater > 2000,
+        proteinGoalMet: latestReport.averageDailyProtein > 100,
+        waterGoalMet: latestReport.averageDailyWater > 2000,
         calorieTargetMet: true,
       );
       aiSummary = await _geminiService.generateWeeklySummary(contextModel);
@@ -114,7 +112,7 @@ class ReportExportService {
     final pdfBytes = await _pdfGenerator.generateFullHealthReport(
       userProfile: profile,
       dashboardStats: stats,
-      recentSnapshot: recentSnapshot,
+      recentSnapshot: latestReport,
       aiSummary: aiSummary,
     );
 
