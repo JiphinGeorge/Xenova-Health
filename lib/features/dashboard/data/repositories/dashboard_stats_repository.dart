@@ -28,6 +28,13 @@ class DashboardStatsRepository {
       return DashboardStatsModel.fromJson(doc.data()!);
     });
   }
+
+  /// Gets the dashboard stats overview document once.
+  Future<DashboardStatsModel?> getStats(String userId) async {
+    final doc = await _firestoreService.getDocument(_documentPath(userId));
+    if (!doc.exists) return null;
+    return DashboardStatsModel.fromJson(doc.data()!);
+  }
 }
 
 final dashboardStatsRepositoryProvider = Provider<DashboardStatsRepository>((

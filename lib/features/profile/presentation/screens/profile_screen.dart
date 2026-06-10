@@ -85,6 +85,13 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                         const Divider(height: 1),
                         ListTile(
+                          leading: const Icon(Icons.file_download_outlined),
+                          title: const Text('Export Data'),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => context.push(AppRoutes.exportData),
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
                           leading: const Icon(
                             Icons.logout,
                             color: AppColors.error,

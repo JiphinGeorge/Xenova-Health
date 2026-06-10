@@ -20,6 +20,7 @@ import '../../features/nutrition/presentation/screens/meal_builder_review_screen
 import '../../features/nutrition/domain/models/food_item_model.dart';
 import '../../features/analytics/presentation/screens/analytics_dashboard_screen.dart';
 import '../../features/ai_coach/presentation/screens/ai_coach_screen.dart';
+import '../../features/profile/presentation/screens/export_data_screen.dart';
 
 /// Route path constants.
 abstract final class AppRoutes {
@@ -47,8 +48,7 @@ abstract final class AppRoutes {
   static const String progressPhotos = '/progress-photos';
   static const String aiCoach = '/ai-coach';
   static const String reports = '/reports';
-  static const String reports = '/reports';
-  static const String exportData = '/export';
+  static const String exportData = '/export-data';
   static const String foodSearch = '/food-search';
   static const String foodDetails = '/food-details';
   static const String mealBuilderReview = '/meal-builder-review';
@@ -205,8 +205,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.exportData,
         name: 'exportData',
-        builder: (context, state) =>
-            const _PlaceholderScreen(title: 'Export Data'),
+        builder: (context, state) => const ExportDataScreen(),
       ),
       GoRoute(
         path: AppRoutes.foodSearch,

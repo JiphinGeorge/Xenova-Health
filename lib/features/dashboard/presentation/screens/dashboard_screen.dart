@@ -236,7 +236,7 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildWeightSnapshot(BuildContext context, WidgetRef ref) {

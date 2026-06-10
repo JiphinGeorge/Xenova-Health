@@ -3,8 +3,11 @@ import 'package:uuid/uuid.dart';
 
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../dashboard/data/repositories/dashboard_stats_repository.dart';
+import '../../../dashboard/domain/models/dashboard_stats_model.dart';
+import '../../../dashboard/domain/models/ai_usage_stats_model.dart';
 import '../../../profile/data/repositories/user_profile_repository.dart';
 import '../../data/repositories/chat_repository.dart';
+import '../../data/services/ai_rate_limiter_service.dart';
 import '../../data/services/gemini_service.dart';
 import '../../domain/models/ai_context_model.dart';
 import '../../domain/models/chat_message_model.dart';
@@ -38,7 +41,7 @@ class AICoachState {
 }
 
 class AICoachController extends StateNotifier<AICoachState> {
-  AICoachController(this._ref, this._chatRepo, this._geminiService)
+  AICoachController(this._ref, this._chatRepo, this._geminiService, this._rateLimiter)
       : super(AICoachState(messages: [])) {
     _loadHistory();
   }
@@ -46,6 +49,7 @@ class AICoachController extends StateNotifier<AICoachState> {
   final Ref _ref;
   final ChatRepository _chatRepo;
   final GeminiService _geminiService;
+  final AIRateLimiterService _rateLimiter;
 
   Future<void> _loadHistory() async {
     final user = _ref.read(authControllerProvider).value;
@@ -70,6 +74,14 @@ class AICoachController extends StateNotifier<AICoachState> {
   Future<void> sendMessage(String text) async {
     final user = _ref.read(authControllerProvider).value;
     if (user == null || text.trim().isEmpty) return;
+
+    final canRequest = await _rateLimiter.canMakeRequest(user.uid);
+    if (!canRequest) {
+      state = state.copyWith(
+        errorMessage: "You've reached your AI Coach limit for now. Please try again later.",
+      );
+      return;
+    }
 
     final userMessage = ChatMessageModel(
       id: const Uuid().v4(),
@@ -124,6 +136,8 @@ class AICoachController extends StateNotifier<AICoachState> {
       );
 
       await _chatRepo.addMessage(user.uid, assistantMessage);
+      await _rateLimiter.recordRequest(user.uid);
+      await _updateAiUsageStats(user.uid, assistantMessage.text.length, true, text);
 
     } catch (e) {
       state = state.copyWith(
@@ -131,7 +145,30 @@ class AICoachController extends StateNotifier<AICoachState> {
         partialResponse: '',
         errorMessage: "AI Coach is temporarily unavailable.",
       );
+      await _updateAiUsageStats(user.uid, 0, false, text);
     }
+  }
+
+  Future<void> _updateAiUsageStats(String userId, int responseLength, bool success, String prompt) async {
+    final statsRepo = _ref.read(dashboardStatsRepositoryProvider);
+    final stats = await statsRepo.getStats(userId);
+    if (stats == null) return;
+
+    final currentAi = stats.aiStats ?? const AiUsageStats();
+    
+    final newAiStats = currentAi.copyWith(
+      totalRequests: currentAi.totalRequests + 1,
+      successfulRequests: success ? currentAi.successfulRequests + 1 : currentAi.successfulRequests,
+      failedRequests: !success ? currentAi.failedRequests + 1 : currentAi.failedRequests,
+      lastRequest: DateTime.now(),
+      totalChats: currentAi.totalChats + 1, // simplified for now
+      averageResponseLength: currentAi.averageResponseLength == 0 
+          ? responseLength.toDouble() 
+          : (currentAi.averageResponseLength + responseLength) / 2,
+    );
+
+    final newStats = stats.copyWith(aiStats: newAiStats);
+    await statsRepo.updateStats(userId, newStats);
   }
 
   Future<AIContextModel> _buildAIContext(String userId) async {
@@ -170,5 +207,6 @@ final aiCoachControllerProvider = StateNotifierProvider<AICoachController, AICoa
     ref,
     ref.watch(chatRepositoryProvider),
     ref.watch(geminiServiceProvider),
+    ref.watch(aiRateLimiterServiceProvider),
   );
 });

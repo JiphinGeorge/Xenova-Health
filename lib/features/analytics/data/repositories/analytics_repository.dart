@@ -24,6 +24,20 @@ class AnalyticsRepository {
     return null;
   }
 
+  /// Gets the latest analytics report.
+  Future<AnalyticsReportModel?> getLatestReport(String userId) async {
+    final query = await _firestore
+        .collection('users/$userId/analytics')
+        .orderBy('generatedAt', descending: true)
+        .limit(1)
+        .get();
+
+    if (query.docs.isNotEmpty) {
+      return AnalyticsReportModel.fromJson(query.docs.first.data());
+    }
+    return null;
+  }
+
   /// Exports an analytics report to a specific format.
   /// Currently a placeholder abstraction for future implementation (Phase 9+).
   /// Supported formats could include 'pdf', 'csv', 'excel'.

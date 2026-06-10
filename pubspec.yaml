@@ -69,16 +69,16 @@ dependencies:
   permission_handler: any
 
   # Export
-  pdf: any
+  pdf: ^3.12.0
   excel: any
-  csv: any
-  share_plus: any
+  csv: ^6.0.0
+  share_plus: ^13.1.0
 
   # AI
   google_generative_ai: ^0.4.7
 
   # Utils
-  path_provider: any
+  path_provider: ^2.1.5
   uuid: any
   intl: any
   flutter_dotenv: ^6.0.1
