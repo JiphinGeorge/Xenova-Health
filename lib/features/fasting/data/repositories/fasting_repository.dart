@@ -70,6 +70,18 @@ class FastingRepository {
         .map((doc) => FastingSessionModel.fromJson(doc.data()))
         .toList();
   }
+
+  /// Gets all fasting sessions once (e.g. for CSV export).
+  Future<List<FastingSessionModel>> getSessionsOnce(String userId) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection(_collectionPath(userId))
+        .orderBy('startTime', descending: true)
+        .get();
+    
+    return snapshot.docs
+        .map((doc) => FastingSessionModel.fromJson(doc.data()))
+        .toList();
+  }
 }
 
 /// Provider for [FastingRepository].

@@ -52,6 +52,18 @@ class WeightRepository {
         });
   }
 
+  /// Gets all weight entries once.
+  Future<List<WeightEntryModel>> getEntriesOnce(String userId) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection(_collectionPath(userId))
+        .orderBy('date', descending: true)
+        .get();
+    
+    return snapshot.docs
+        .map((doc) => WeightEntryModel.fromJson(doc.data()))
+        .toList();
+  }
+
   /// Fetches all weight entries once (useful for CSV export).
   Future<List<WeightEntryModel>> getWeightEntries(String userId) async {
     final snapshot = await _firestoreService.getCollection(

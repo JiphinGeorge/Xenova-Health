@@ -2,16 +2,16 @@ import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
-import '../../../analytics/domain/models/analytics_snapshot_model.dart';
+import '../../../analytics/domain/models/analytics_report_model.dart';
 import '../../../dashboard/domain/models/dashboard_stats_model.dart';
-import '../../../profile/domain/models/user_profile_model.dart';
+import '../../../auth/domain/models/user_model.dart';
 
 class PdfGenerator {
   /// Generates a full health report PDF.
   Future<Uint8List> generateFullHealthReport({
-    required UserProfileModel userProfile,
+    required UserModel userProfile,
     required DashboardStatsModel dashboardStats,
-    AnalyticsSnapshot? recentSnapshot,
+    AnalyticsReportModel? recentSnapshot,
     String? aiSummary,
   }) async {
     final pdf = pw.Document();
@@ -52,7 +52,7 @@ class PdfGenerator {
                   children: [
                     pw.Text('Generated For: ${userProfile.displayName ?? "User"}', style: pw.TextStyle(font: titleFont)),
                     pw.Text('Date: ${DateTime.now().toIso8601String().split('T').first}', style: pw.TextStyle(font: bodyFont)),
-                    pw.Text('Goal: ${userProfile.goalType}', style: pw.TextStyle(font: bodyFont)),
+                    pw.Text('Goal: ${userProfile.primaryGoal?.name ?? "Maintain Weight"}', style: pw.TextStyle(font: bodyFont)),
                   ],
                 ),
                 if (dashboardStats.healthScore != null)
@@ -107,7 +107,7 @@ class PdfGenerator {
               pw.Text('Recent Period Metrics', style: pw.TextStyle(font: titleFont, fontSize: 14)),
               pw.SizedBox(height: 10),
               _buildDataCard('Consistency Score', '${recentSnapshot.consistencyScore.toInt()}/100', titleFont, bodyFont),
-              _buildDataCard('Fasting Rate', '${(recentSnapshot.fastingCompletionRate * 100).toStringAsFixed(1)}%', titleFont, bodyFont),
+              _buildDataCard('Fasting Rate', '${(recentSnapshot.fastCompletionRate * 100).toStringAsFixed(1)}%', titleFont, bodyFont),
             ],
 
             pw.SizedBox(height: 40),

@@ -5,7 +5,6 @@ import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../dashboard/data/repositories/dashboard_stats_repository.dart';
 import '../../../dashboard/domain/models/dashboard_stats_model.dart';
 import '../../../dashboard/domain/models/ai_usage_stats_model.dart';
-import '../../../profile/data/repositories/user_profile_repository.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/services/ai_rate_limiter_service.dart';
 import '../../data/services/gemini_service.dart';
@@ -174,21 +173,18 @@ class AICoachController extends StateNotifier<AICoachState> {
   Future<AIContextModel> _buildAIContext(String userId) async {
     // In a real app, we'd fetch the latest AnalyticsSnapshot here from the DB or a provider.
     // For MVP, we'll build a synthetic snapshot based on dashboard stats.
-    final profile = await _ref.read(userProfileRepositoryProvider).getProfile(userId);
+    final user = _ref.read(authControllerProvider).value;
     final stats = await _ref.read(dashboardStatsRepositoryProvider).getStats(userId);
 
-    int? age;
-    if (profile?.dateOfBirth != null) {
-      age = DateTime.now().year - profile!.dateOfBirth!.year;
-    }
+    int? age = user?.age;
 
     return AIContextModel(
       contextVersion: '1.0',
       generatedAt: DateTime.now(),
       ageRange: age,
-      gender: profile?.gender,
-      heightCm: profile?.heightCm,
-      goalType: profile?.goalType,
+      gender: user?.gender?.name,
+      heightCm: user?.heightCm,
+      goalType: user?.primaryGoal?.name,
       healthScore: stats?.healthScore?.overallHealthScore ?? 0.0,
       consistencyScore: 0.0, // Should come from Analytics Snapshot
       weightTrend: 0.0,

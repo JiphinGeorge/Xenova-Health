@@ -32,7 +32,7 @@ class CsvGenerator {
 
     for (final summary in summaries) {
       rows.add([
-        summary.date.toIso8601String().split('T').first,
+        summary.dateString.split('T').first,
         summary.totalCalories,
         summary.totalProtein,
         summary.totalCarbs,
