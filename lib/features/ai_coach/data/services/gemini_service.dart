@@ -5,6 +5,7 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 
 import '../../domain/models/ai_context_model.dart';
 import '../../domain/models/chat_message_model.dart';
+import '../../domain/prompts/ai_prompt_templates.dart';
 import 'health_advice_policy.dart';
 
 class GeminiService {
@@ -47,7 +48,12 @@ class GeminiService {
       Content('model', [TextPart('Acknowledged. I will use this context for future advice.')]),
     ];
 
-    for (final msg in history) {
+    // Optimization: Keep only the last 10 messages for context memory
+    final recentHistory = history.length > 10 
+        ? history.sublist(history.length - 10) 
+        : history;
+
+    for (final msg in recentHistory) {
       if (msg.messageType == ChatMessageType.user) {
         actualHistory.add(Content('user', [TextPart(msg.text)]));
       } else if (msg.messageType == ChatMessageType.assistant) {
@@ -56,6 +62,17 @@ class GeminiService {
     }
 
     return _model.startChat(history: actualHistory);
+  }
+
+  /// Generates a weekly summary directly.
+  Future<String?> generateWeeklySummary(AIContextModel contextSnapshot) async {
+    try {
+      final session = startChat(contextSnapshot, []);
+      final response = await session.sendMessage(Content.text(AiPromptTemplates.weeklySummary()));
+      return response.text;
+    } catch (e) {
+      return null;
+    }
   }
 
   /// Streams a response from Gemini.

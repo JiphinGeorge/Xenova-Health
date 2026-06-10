@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'ai_usage_stats_model.dart';
 import 'health_score_model.dart';
 
 part 'dashboard_stats_model.freezed.dart';
@@ -21,6 +22,9 @@ class DashboardStatsModel with _$DashboardStatsModel {
 
     // Health Score
     HealthScoreModel? healthScore,
+    
+    // AI Stats
+    AiUsageStats? aiStats,
   }) = _DashboardStatsModel;
 
   factory DashboardStatsModel.fromJson(Map<String, dynamic> json) =>

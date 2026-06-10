@@ -44,26 +44,41 @@ class DashboardScreen extends ConsumerWidget {
     final name = user?.displayName?.split(' ').first ?? 'Xenova';
 
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppDimensions.spacingLg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 1. Welcome Card
-              Text(
-                '${_getGreeting()},',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push(AppRoutes.aiCoach),
+        icon: const Icon(Icons.auto_awesome),
+        label: const Text('AI Coach'),
+      ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(dashboardStatsRepositoryProvider);
+          ref.invalidate(userProfileRepositoryProvider);
+        },
+        child: SafeArea(
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(AppDimensions.spacingLg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // 1. Welcome Card
+                Text(
+                  '${_getGreeting()},',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
-              Text(
-                name,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+                Text(
+                  name,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppDimensions.spacingXl),
+                const SizedBox(height: AppDimensions.spacingXl),
+
+                // Health Score Card
+                _buildHealthScoreCard(context, ref),
+                const SizedBox(height: AppDimensions.spacingXl),
 
               // 2. Weight Snapshot
               _buildWeightSnapshot(context, ref),
@@ -651,47 +666,6 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                     ),
                   ],
-                ),
-                floatingActionButton: FloatingActionButton.extended(
-                  onPressed: () => context.push(AppRoutes.aiCoach),
-                  icon: const Icon(Icons.auto_awesome),
-                  label: const Text('AI Coach'),
-                ),
-                body: RefreshIndicator(
-                  onRefresh: () async {
-                    ref.invalidate(dashboardStatsRepositoryProvider);
-                    ref.invalidate(userProfileRepositoryProvider);
-                  },
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(AppDimensions.spacingXl),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const SizedBox(height: AppDimensions.spacingXl),
-                        
-                        // 1. Greeting
-                        Text(
-                          _getGreeting(),
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: AppDimensions.spacingXs),
-                        Text(
-                          name,
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: AppDimensions.spacingXl),
-
-                        // Health Score
-                        _buildHealthScoreCard(context, ref),
-                        const SizedBox(height: AppDimensions.spacingXl),
-                      ],
-                    ),
-                  ),
                 ),
                 const SizedBox(height: AppDimensions.spacingLg),
                 Row(
