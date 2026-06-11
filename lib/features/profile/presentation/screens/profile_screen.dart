@@ -6,6 +6,7 @@ import '../../../../app/router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_dimensions.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../data/repositories/lifetime_stats_repository.dart';
 import '../widgets/profile_photo_picker.dart';
 
 /// Screen displaying the user's profile information and settings.
@@ -114,9 +115,130 @@ class ProfileScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
+                  const SizedBox(height: AppDimensions.spacingXl),
+                  Text(
+                    'Lifetime Stats',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: AppDimensions.spacingMd),
+                  _buildLifetimeStatsGrid(context, ref, user.uid),
+                  const SizedBox(height: 50),
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildLifetimeStatsGrid(BuildContext context, WidgetRef ref, String userId) {
+    final statsAsync = ref.watch(lifetimeStatsStreamProvider);
+
+    return statsAsync.when(
+      data: (stats) {
+        return GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: AppDimensions.spacingMd,
+          crossAxisSpacing: AppDimensions.spacingMd,
+          childAspectRatio: 1.5,
+          children: [
+            _LifetimeStatCard(
+              title: 'Weight Logs',
+              value: '${stats.totalWeightEntries}',
+              icon: Icons.monitor_weight_outlined,
+              color: Colors.orange,
+            ),
+            _LifetimeStatCard(
+              title: 'Meals Logged',
+              value: '${stats.totalMealsLogged}',
+              icon: Icons.restaurant_outlined,
+              color: Colors.blue,
+            ),
+            _LifetimeStatCard(
+              title: 'Fasts Completed',
+              value: '${stats.totalFastsCompleted}',
+              icon: Icons.timer_outlined,
+              color: Colors.purple,
+            ),
+            _LifetimeStatCard(
+              title: 'Progress Photos',
+              value: '${stats.totalProgressPhotos}',
+              icon: Icons.photo_camera_back_outlined,
+              color: Colors.green,
+            ),
+            _LifetimeStatCard(
+              title: 'AI Chats',
+              value: '${stats.totalAIChats}',
+              icon: Icons.auto_awesome,
+              color: Colors.cyan,
+            ),
+            _LifetimeStatCard(
+              title: 'Days Tracked',
+              value: '${stats.totalDaysTracked}',
+              icon: Icons.calendar_today_outlined,
+              color: Colors.amber,
+            ),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, st) => const SizedBox.shrink(),
+    );
+  }
+}
+
+class _LifetimeStatCard extends StatelessWidget {
+  const _LifetimeStatCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
+
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppDimensions.spacingMd),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(width: AppDimensions.spacingXs),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

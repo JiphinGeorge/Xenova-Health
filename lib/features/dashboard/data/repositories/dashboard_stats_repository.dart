@@ -50,5 +50,5 @@ final dashboardStatsStreamProvider = StreamProvider<DashboardStatsModel?>((
 ) {
   final user = ref.watch(authControllerProvider).value;
   if (user == null) return const Stream.empty();
-  return ref.watch(dashboardStatsRepositoryProvider).watchStats(user.id);
+  return ref.watch(dashboardStatsRepositoryProvider).watchStats(user.uid);
 });

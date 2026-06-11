@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../profile/data/repositories/lifetime_stats_repository.dart';
+import '../../../profile/domain/models/lifetime_stats_model.dart';
 import '../../data/repositories/achievement_repository.dart';
 import '../../domain/config/achievement_config.dart';
 import '../../domain/models/achievement_model.dart';
@@ -27,7 +29,67 @@ class AchievementEngineService {
     if (_cachedAchievements == null || _cachedUserLevel == null) {
       _cachedAchievements = await _repo.getUnlockedAchievements(userId);
       _cachedUserLevel = await _repo.getUserLevel(userId);
+
+      // Sync stats just in case
+      final totalUnlocked = _cachedAchievements!.where((a) => a.isUnlocked).length;
+      final totalAvailable = AchievementConfig.predefinedAchievements.length;
+      final completionPercent = totalAvailable > 0 
+          ? ((totalUnlocked / totalAvailable) * 100) 
+          : 0.0;
+          
+      if (_cachedUserLevel!.totalAchievementsUnlocked != totalUnlocked ||
+          _cachedUserLevel!.totalAchievementsAvailable != totalAvailable) {
+        _cachedUserLevel = _cachedUserLevel!.copyWith(
+          totalAchievementsUnlocked: totalUnlocked,
+          totalAchievementsAvailable: totalAvailable,
+          completionPercentage: completionPercent,
+        );
+        await _repo.saveUserLevel(_cachedUserLevel!);
+      }
     }
+  }
+
+  /// Helper to increment lifetime statistics in users/{uid}/stats/lifetime
+  Future<void> _incrementLifetimeStat(
+    String userId, {
+    int weightEntries = 0,
+    int mealsLogged = 0,
+    int fastsCompleted = 0,
+    int progressPhotos = 0,
+    int aiChats = 0,
+  }) async {
+    final repo = _ref.read(lifetimeStatsRepositoryProvider);
+    var stats = await repo.getStats(userId);
+    
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    
+    bool isNewDay = false;
+    if (stats.lastTrackedDay == null) {
+      isNewDay = true;
+    } else {
+      final lastDay = DateTime(
+        stats.lastTrackedDay!.year,
+        stats.lastTrackedDay!.month,
+        stats.lastTrackedDay!.day,
+      );
+      if (today.difference(lastDay).inDays >= 1) {
+        isNewDay = true;
+      }
+    }
+    
+    stats = stats.copyWith(
+      totalWeightEntries: stats.totalWeightEntries + weightEntries,
+      totalMealsLogged: stats.totalMealsLogged + mealsLogged,
+      totalFastsCompleted: stats.totalFastsCompleted + fastsCompleted,
+      totalProgressPhotos: stats.totalProgressPhotos + progressPhotos,
+      totalAIChats: stats.totalAIChats + aiChats,
+      totalDaysTracked: stats.totalDaysTracked + (isNewDay ? 1 : 0),
+      lastTrackedDay: now,
+      updatedAt: now,
+    );
+    
+    await repo.saveStats(userId, stats);
   }
 
   /// Entry point for weight events
@@ -35,6 +97,9 @@ class AchievementEngineService {
     final user = _ref.read(authControllerProvider).value;
     if (user == null) return;
     await _init(user.uid);
+
+    // Track lifetime stats
+    await _incrementLifetimeStat(user.uid, weightEntries: 1);
 
     // Give XP for the entry
     await _addXp(user.uid, 5); // General weight log XP
@@ -63,6 +128,9 @@ class AchievementEngineService {
     if (user == null) return;
     await _init(user.uid);
 
+    // Track lifetime stats
+    await _incrementLifetimeStat(user.uid, fastsCompleted: 1);
+
     await _addXp(user.uid, 5); // Completed fast XP
     await _checkAndUnlock(user.uid, 'fasting_first_fast');
 
@@ -81,6 +149,9 @@ class AchievementEngineService {
     if (user == null) return;
     await _init(user.uid);
 
+    // Track lifetime stats
+    await _incrementLifetimeStat(user.uid, mealsLogged: 1);
+
     await _addXp(user.uid, 2); // Meal logged XP
     await _checkAndUnlock(user.uid, 'nutrition_first_meal');
   }
@@ -90,6 +161,9 @@ class AchievementEngineService {
     final user = _ref.read(authControllerProvider).value;
     if (user == null) return;
     await _init(user.uid);
+
+    // Track lifetime stats
+    await _incrementLifetimeStat(user.uid, progressPhotos: 1);
 
     await _addXp(user.uid, 10);
     await _checkAndUnlock(user.uid, 'photos_first_photo');
@@ -108,6 +182,8 @@ class AchievementEngineService {
       await _addXp(user.uid, 5);
       await _checkAndUnlock(user.uid, 'ai_coach_weekly_summary');
     } else {
+      // Track lifetime stats for chats
+      await _incrementLifetimeStat(user.uid, aiChats: 1);
       await _addXp(user.uid, 1);
       await _checkAndUnlock(user.uid, 'ai_coach_first_chat');
     }
@@ -118,6 +194,9 @@ class AchievementEngineService {
     final user = _ref.read(authControllerProvider).value;
     if (user == null) return;
     await _init(user.uid);
+
+    // Track login activity in lifetime stats
+    await _incrementLifetimeStat(user.uid);
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -207,6 +286,19 @@ class AchievementEngineService {
         rarity: def.rarity,
       ));
 
+      // Update level statistics before adding XP
+      final totalUnlocked = _cachedAchievements!.where((a) => a.isUnlocked).length;
+      final totalAvailable = AchievementConfig.predefinedAchievements.length;
+      final completionPercent = totalAvailable > 0 
+          ? ((totalUnlocked / totalAvailable) * 100) 
+          : 0.0;
+
+      _cachedUserLevel = _cachedUserLevel!.copyWith(
+        totalAchievementsUnlocked: totalUnlocked,
+        totalAchievementsAvailable: totalAvailable,
+        completionPercentage: completionPercent,
+      );
+
       await _addXp(userId, def.xpReward);
     }
   }
@@ -242,3 +334,4 @@ class AchievementEngineService {
 final achievementEngineProvider = Provider<AchievementEngineService>((ref) {
   return AchievementEngineService(ref, ref.watch(achievementRepositoryProvider));
 });
+

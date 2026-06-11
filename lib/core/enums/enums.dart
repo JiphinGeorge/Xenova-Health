@@ -7,3 +7,4 @@ export 'gender.dart';
 export 'meal_type.dart';
 export 'primary_goal.dart';
 export 'weight_entry_source.dart';
+export 'coach_tone.dart';

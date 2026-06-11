@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_dimensions.dart';
 import '../../../../core/widgets/goal_progress_ring.dart';
@@ -52,7 +53,7 @@ class DashboardScreen extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(dashboardStatsRepositoryProvider);
-          ref.invalidate(userProfileRepositoryProvider);
+          ref.invalidate(authControllerProvider);
         },
         child: SafeArea(
           child: SingleChildScrollView(

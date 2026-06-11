@@ -13,6 +13,9 @@ class UserLevelModel with _$UserLevelModel {
     @Default(0) int currentLoginStreak,
     @Default(0) int longestLoginStreak,
     DateTime? lastLoginDate,
+    @Default(0) int totalAchievementsUnlocked,
+    @Default(0) int totalAchievementsAvailable,
+    @Default(0.0) double completionPercentage,
   }) = _UserLevelModel;
 
   factory UserLevelModel.fromJson(Map<String, dynamic> json) =>

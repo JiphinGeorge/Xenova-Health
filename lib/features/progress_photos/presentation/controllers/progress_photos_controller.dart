@@ -111,6 +111,33 @@ class ProgressPhotosController extends AsyncNotifier<void> {
       rethrow;
     }
   }
+
+  /// Deletes all progress photos for the current user.
+  Future<void> deleteAllPhotos() async {
+    state = const AsyncLoading();
+    try {
+      final user = ref.read(authControllerProvider).value;
+      if (user == null) throw Exception('User not logged in');
+
+      final photos = ref.read(progressPhotosStreamProvider).value ?? [];
+      final storageRepo = ref.read(storageRepositoryProvider);
+      final repository = ref.read(progressPhotoRepositoryProvider);
+
+      for (final photo in photos) {
+        try {
+          await storageRepo.deleteFile(photo.photoUrl);
+        } catch (_) {
+          // Ignore storage deletion errors to continue deleting metadata
+        }
+        await repository.deletePhoto(user.uid, photo.id);
+      }
+
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    }
+  }
 }
 
 /// Provider for [ProgressPhotosController].

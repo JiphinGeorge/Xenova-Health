@@ -12,6 +12,7 @@ import '../../features/gamification/presentation/screens/achievements_dashboard_
 import '../../features/fasting/presentation/screens/fasting_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_wizard_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/profile/presentation/screens/settings_screen.dart';
 import '../../features/progress_photos/presentation/screens/progress_photos_screen.dart';
 import '../../features/shell/presentation/app_shell.dart';
 import '../../features/weight/presentation/screens/weight_screen.dart';
@@ -175,8 +176,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.settings,
         name: 'settings',
-        builder: (context, state) =>
-            const _PlaceholderScreen(title: 'Settings'),
+        builder: (context, state) => const SettingsScreen(),
       ),
       GoRoute(
         path: AppRoutes.achievements,

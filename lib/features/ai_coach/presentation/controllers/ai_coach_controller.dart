@@ -200,6 +200,20 @@ class AICoachController extends StateNotifier<AICoachState> {
       calorieTargetMet: false,
     );
   }
+
+  Future<void> clearChatHistory() async {
+    final user = _ref.read(authControllerProvider).value;
+    if (user != null) {
+      await _chatRepo.clearHistory(user.uid);
+      final greeting = ChatMessageModel(
+        id: const Uuid().v4(),
+        messageType: ChatMessageType.assistant,
+        text: "Hi! I'm your Xenova Health AI Coach. How can I help you reach your goals today?",
+        timestamp: DateTime.now(),
+      );
+      state = AICoachState(messages: [greeting]);
+    }
+  }
 }
 
 final aiCoachControllerProvider = StateNotifierProvider<AICoachController, AICoachState>((ref) {
