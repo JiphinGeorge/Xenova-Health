@@ -8,7 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_dimensions.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
-import '../../progress_photos/presentation/controllers/progress_photos_controller.dart';
+import '../../../progress_photos/presentation/controllers/progress_photos_controller.dart';
 import '../controllers/profile_photo_controller.dart';
 
 /// A reusable avatar widget that supports picking and displaying a profile photo.

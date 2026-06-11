@@ -1,6 +1,5 @@
 import 'package:csv/csv.dart';
 
-import '../../../dashboard/domain/models/dashboard_stats_model.dart';
 import '../../../fasting/domain/models/fasting_session_model.dart';
 import '../../../nutrition/domain/models/daily_nutrition_summary_model.dart';
 import '../../../weight/domain/models/weight_entry_model.dart';
@@ -17,7 +16,7 @@ class CsvGenerator {
         entry.date.toIso8601String(),
         entry.weight,
         entry.note ?? '',
-        entry.source ?? 'manual',
+        entry.source,
       ]);
     }
 

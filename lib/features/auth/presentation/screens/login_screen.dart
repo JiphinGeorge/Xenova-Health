@@ -70,11 +70,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo/Brand Placeholder
-                  const Icon(
-                    Icons.monitor_heart_rounded,
-                    size: 80,
-                    color: AppColors.primary,
+                  // App Logo
+                  Image.asset(
+                    'assets/images/app_logo.png',
+                    height: 100,
                   ),
                   const SizedBox(height: AppDimensions.spacingXl),
                   Text(

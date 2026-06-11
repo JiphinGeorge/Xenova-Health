@@ -5,7 +5,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../analytics/data/repositories/analytics_repository.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
-import '../../../auth/domain/models/user_model.dart';
+
 import '../../../dashboard/data/repositories/dashboard_stats_repository.dart';
 import '../../../fasting/data/repositories/fasting_repository.dart';
 import '../../../nutrition/data/repositories/daily_nutrition_repository.dart';
@@ -21,7 +21,6 @@ class ReportExportService {
     this._ref,
     this._statsRepo,
     this._weightRepo,
-    this._nutritionRepo,
     this._fastingRepo,
     this._analyticsRepo,
     this._geminiService,
@@ -30,7 +29,6 @@ class ReportExportService {
   final Ref _ref;
   final DashboardStatsRepository _statsRepo;
   final WeightRepository _weightRepo;
-  final DailyNutritionRepository _nutritionRepo;
   final FastingRepository _fastingRepo;
   final AnalyticsRepository _analyticsRepo;
   final GeminiService _geminiService;
@@ -102,7 +100,7 @@ class ReportExportService {
         weightTrend: latestReport.averageWeeklyWeightChange,
         nutritionMetrics: const {},
         fastingMetrics: const {},
-        goalProgress: stats.goalProgress ?? 0.0,
+        goalProgress: stats.goalProgress,
         proteinGoalMet: latestReport.averageDailyProtein > 100,
         waterGoalMet: latestReport.averageDailyWater > 2000,
         calorieTargetMet: true,
@@ -133,7 +131,6 @@ final reportExportServiceProvider = Provider<ReportExportService>((ref) {
     ref,
     ref.watch(dashboardStatsRepositoryProvider),
     ref.watch(weightRepositoryProvider),
-    ref.watch(dailyNutritionRepositoryProvider),
     ref.watch(fastingRepositoryProvider),
     ref.watch(analyticsRepositoryProvider),
     ref.watch(geminiServiceProvider),

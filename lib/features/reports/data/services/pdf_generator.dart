@@ -99,8 +99,8 @@ class PdfGenerator {
             pw.Text('Analytics Data', style: pw.TextStyle(font: titleFont, fontSize: 18)),
             pw.SizedBox(height: 10),
             
-            _buildDataCard('Current Weight', '${dashboardStats.currentWeight ?? "-"} kg', titleFont, bodyFont),
-            _buildDataCard('Goal Progress', '${((dashboardStats.goalProgress ?? 0) * 100).toStringAsFixed(1)}%', titleFont, bodyFont),
+            _buildDataCard('Current Weight', '${dashboardStats.currentWeight} kg', titleFont, bodyFont),
+            _buildDataCard('Goal Progress', '${(dashboardStats.goalProgress * 100).toStringAsFixed(1)}%', titleFont, bodyFont),
             
             if (recentSnapshot != null) ...[
               pw.SizedBox(height: 20),

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../auth/domain/models/user_model.dart';
+
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../../core/analytics/analytics_service.dart';
 import '../../../gamification/application/services/achievement_engine_service.dart';
@@ -60,7 +60,7 @@ class ProgressPhotosController extends AsyncNotifier<void> {
       final storageRepo = ref.read(storageRepositoryProvider);
 
       ref.read(progressPhotoUploadStateProvider.notifier).state = 
-          const UploadState(status: UploadStatus.uploading, progress: 0.0);
+          const UploadState(status: UploadStatus.uploading);
 
       final result = await storageRepo.uploadProgressPhoto(
         userId: user.uid,
@@ -99,12 +99,12 @@ class ProgressPhotosController extends AsyncNotifier<void> {
       ref.read(progressPhotoUploadStateProvider.notifier).state = 
           const UploadState(status: UploadStatus.completed, progress: 1.0);
 
-      ref.read(analyticsServiceProvider).logPhotoUploaded();
+      await ref.read(analyticsServiceProvider).logPhotoUploaded();
 
       state = const AsyncData(null);
     } catch (e, st) {
       ref.read(progressPhotoUploadStateProvider.notifier).state = 
-          const UploadState(status: UploadStatus.failed, progress: 0.0);
+          const UploadState(status: UploadStatus.failed);
       state = AsyncError(e, st);
       rethrow;
     }
