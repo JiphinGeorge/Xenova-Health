@@ -108,36 +108,53 @@ class _ProgressPhotosScreenState extends ConsumerState<ProgressPhotosScreen> {
         data: (photos) {
           if (photos.isEmpty) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.photo_camera_back,
-                    size: 80,
-                    color: AppColors.primary.withValues(alpha: 0.3),
-                  ),
-                  const SizedBox(height: AppDimensions.spacingLg),
-                  Text(
-                    'Capture your first transformation photo.',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.headlineSmall?.copyWith(fontSize: 20),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppDimensions.spacingXs),
-                  Text(
-                    'Track your visual progress over time.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+              child: Padding(
+                padding: const EdgeInsets.all(AppDimensions.spacingXl),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(AppDimensions.spacingXl),
+                      decoration: BoxDecoration(
+                        color: AppColors.primarySurface,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.photo_library_outlined,
+                        size: 80,
+                        color: AppColors.primary,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: AppDimensions.spacingXl),
-                  ElevatedButton.icon(
-                    onPressed: _showAddDialog,
-                    icon: const Icon(Icons.add_a_photo),
-                    label: const Text('Log Progress'),
-                  ),
-                ],
+                    const SizedBox(height: AppDimensions.spacingXl),
+                    Text(
+                      'No progress photos yet.',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppDimensions.spacingSm),
+                    Text(
+                      'Start tracking your transformation journey visually.',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppDimensions.spacingXxl),
+                    FilledButton.icon(
+                      onPressed: _showAddDialog,
+                      icon: const Icon(Icons.add_a_photo),
+                      label: const Text('Upload Progress Photo'),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimensions.spacingXl,
+                          vertical: AppDimensions.spacingMd,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }

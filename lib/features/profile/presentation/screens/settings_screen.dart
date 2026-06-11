@@ -482,6 +482,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               validationWord: 'DELETE',
                               onConfirm: () async {
                                 await ref.read(aiCoachControllerProvider.notifier).clearChatHistory();
+                                if (!mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('Chat history cleared.')),
                                 );
@@ -524,6 +525,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             validationWord: 'DELETE',
                             onConfirm: () async {
                               await ref.read(progressPhotosControllerProvider.notifier).deleteAllPhotos();
+                              if (!mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('All progress photos deleted.')),
                                 );
@@ -543,6 +545,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             validationWord: 'CLEAR',
                             onConfirm: () async {
                               await ref.read(settingsControllerProvider.notifier).clearLocalCache();
+                              if (!mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('Local cache cleared.')),
                                 );
@@ -569,18 +572,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     child: Column(
                       children: [
                         appInfoAsync.when(
-                          data: (info) => Column(
+                          data: (dynamic info) => Column(
                             children: [
-                              _buildAboutRow('Version', info.version),
-                              _buildDivider(),
-                              _buildAboutRow('Build Number', info.buildNumber),
-                              _buildDivider(),
-                              _buildAboutRow('Environment', info.environment),
-                              _buildDivider(),
+                              _buildAboutRow('Version', info.version as String),
+                              const Divider(height: 1),
+                              _buildAboutRow('Build Number', info.buildNumber as String),
+                              const Divider(height: 1),
+                              _buildAboutRow('Environment', info.environment as String),
+                              const Divider(height: 1),
                               _buildAboutRow('Flutter Version', '3.x'),
-                              _buildDivider(),
+                              const Divider(height: 1),
                               _buildAboutRow('Backend', 'Firebase'),
-                              _buildDivider(),
+                              const Divider(height: 1),
                               _buildAboutRow('AI', 'Gemini Enabled'),
                             ],
                           ),

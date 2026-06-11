@@ -86,26 +86,29 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
           _StatRow('Weight Change', '${report.weightChange > 0 ? '+' : ''}${report.weightChange.toStringAsFixed(1)} kg'),
           _StatRow('Avg. Weekly Change', '${report.averageWeeklyWeightChange > 0 ? '+' : ''}${report.averageWeeklyWeightChange.toStringAsFixed(2)} kg/wk'),
           const SizedBox(height: AppDimensions.spacingLg),
-          // Weight Line Chart placeholder (would use real trend array in production)
-          SizedBox(
-            height: 200,
-            child: LineChart(
-              LineChartData(
-                gridData: const FlGridData(show: false),
-                titlesData: const FlTitlesData(show: false),
-                borderData: FlBorderData(show: false),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: const [FlSpot(0, 80), FlSpot(1, 79), FlSpot(2, 78.5), FlSpot(3, 78)],
-                    isCurved: true,
-                    color: Colors.deepPurpleAccent,
-                    barWidth: 4,
-                    dotData: const FlDotData(show: false),
-                  ),
-                ],
+          // Weight Line Chart
+          if (report.weightTrendArray.isNotEmpty)
+            SizedBox(
+              height: 200,
+              child: LineChart(
+                LineChartData(
+                  gridData: const FlGridData(show: false),
+                  titlesData: const FlTitlesData(show: false),
+                  borderData: FlBorderData(show: false),
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: report.weightTrendArray.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value)).toList(),
+                      isCurved: true,
+                      color: Colors.deepPurpleAccent,
+                      barWidth: 4,
+                      dotData: const FlDotData(show: false),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ),
+            )
+          else
+            const Center(child: Text('Not enough weight data for chart.', style: TextStyle(color: Colors.grey))),
           const SizedBox(height: AppDimensions.spacingXxl),
 
           // 3. Nutrition Analytics
@@ -114,22 +117,26 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
           _StatRow('Avg. Daily Protein', '${report.averageDailyProtein.toStringAsFixed(0)} g'),
           _StatRow('Avg. Daily Water', '${report.averageDailyWater} ml'),
           const SizedBox(height: AppDimensions.spacingLg),
-          // Nutrition Bar Chart placeholder
-          SizedBox(
-            height: 200,
-            child: BarChart(
-              BarChartData(
-                gridData: const FlGridData(show: false),
-                titlesData: const FlTitlesData(show: false),
-                borderData: FlBorderData(show: false),
-                barGroups: [
-                  BarChartGroupData(x: 0, barRods: [BarChartRodData(toY: 2000, color: Colors.blue)]),
-                  BarChartGroupData(x: 1, barRods: [BarChartRodData(toY: 1800, color: Colors.blue)]),
-                  BarChartGroupData(x: 2, barRods: [BarChartRodData(toY: 2200, color: Colors.blue)]),
-                ],
+          // Nutrition Bar Chart
+          if (report.calorieTrendArray.isNotEmpty)
+            SizedBox(
+              height: 200,
+              child: BarChart(
+                BarChartData(
+                  gridData: const FlGridData(show: false),
+                  titlesData: const FlTitlesData(show: false),
+                  borderData: FlBorderData(show: false),
+                  barGroups: report.calorieTrendArray.asMap().entries.map((e) {
+                    return BarChartGroupData(
+                      x: e.key,
+                      barRods: [BarChartRodData(toY: e.value, color: Colors.blue)],
+                    );
+                  }).toList(),
+                ),
               ),
-            ),
-          ),
+            )
+          else
+            const Center(child: Text('Not enough nutrition data for chart.', style: TextStyle(color: Colors.grey))),
           const SizedBox(height: AppDimensions.spacingXxl),
 
           // 4. Fasting Analytics

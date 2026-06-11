@@ -40,10 +40,7 @@ Future<void> main() async {
   );
 
   // ─── Initialize App Check ───
-  await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidAppCheckProvider.playIntegrity,
-    appleProvider: AppleAppCheckProvider.deviceCheck,
-  );
+  await FirebaseAppCheck.instance.activate();
 
   // ─── Initialize Crashlytics ───
   final crashlytics = CrashlyticsService()..initialize();

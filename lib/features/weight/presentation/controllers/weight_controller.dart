@@ -209,7 +209,7 @@ class WeightController extends AsyncNotifier<void> {
 
       state = const AsyncData(null);
 
-      ref.read(analyticsServiceProvider).logWeightLogged(weight: weight);
+      await ref.read(analyticsServiceProvider).logWeightLogged(weight: weight);
       _checkAchievements(weight, user.targetWeightKg);
     } on Exception catch (e, st) {
       state = AsyncError(e, st);

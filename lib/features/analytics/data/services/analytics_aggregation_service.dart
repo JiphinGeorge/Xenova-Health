@@ -82,6 +82,11 @@ class AnalyticsAggregationService {
     // Simple goal progress (mocked logic for now, could be dynamic)
     double goalProgressPct = weightChange < 0 ? 0.8 : 0.4; // Ex: Losing weight = good progress
 
+    // Extract arrays for charts
+    final weightTrendArray = weightLogs.map((l) => l.weight).toList().reversed.toList();
+    final calorieTrendArray = nutritionLogs.map((l) => l.totalCalories.toDouble()).toList();
+    final proteinTrendArray = nutritionLogs.map((l) => l.totalProtein.toDouble()).toList();
+
     final report = AnalyticsReportModel(
       id: reportId,
       userId: userId,
@@ -98,6 +103,9 @@ class AnalyticsAggregationService {
       fastCompletionRate: fastCompletionRate,
       consistencyScore: consistencyScore,
       goalProgressPercentage: goalProgressPct,
+      weightTrendArray: weightTrendArray,
+      calorieTrendArray: calorieTrendArray,
+      proteinTrendArray: proteinTrendArray,
       generatedAt: DateTime.now(),
     );
 
