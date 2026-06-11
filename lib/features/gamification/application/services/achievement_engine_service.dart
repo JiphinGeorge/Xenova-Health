@@ -9,6 +9,7 @@ import '../../data/repositories/achievement_repository.dart';
 import '../../domain/config/achievement_config.dart';
 import '../../domain/models/achievement_model.dart';
 import '../../domain/models/user_level_model.dart';
+import '../../../../core/analytics/analytics_service.dart';
 
 import '../../presentation/widgets/celebration_overlay.dart';
 
@@ -280,6 +281,8 @@ class AchievementEngineService {
     if (isNowUnlocked) {
       debugPrint('[GAMIFICATION] Unlocked Achievement: ${def.title}');
       
+      _ref.read(analyticsServiceProvider).logAchievementUnlocked(achievementId: def.id);
+
       _eventController.add(GamificationEvent(
         title: 'Achievement Unlocked!',
         message: def.title,
