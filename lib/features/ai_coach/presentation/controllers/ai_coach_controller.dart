@@ -56,6 +56,7 @@ class AICoachController extends StateNotifier<AICoachState> {
     final user = _ref.read(authControllerProvider).value;
     if (user != null) {
       await _chatRepo.init();
+      await _rateLimiter.init();
       final history = _chatRepo.getHistory(user.uid);
       if (history.isEmpty) {
         // Add a friendly greeting if no history

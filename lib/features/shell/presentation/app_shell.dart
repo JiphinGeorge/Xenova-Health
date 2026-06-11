@@ -76,35 +76,45 @@ class _BottomNavBar extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _NavItem(
-                icon: Icons.dashboard_rounded,
-                label: 'Dashboard',
-                isSelected: currentIndex == 0,
-                onTap: () => onTap(0),
+              Expanded(
+                child: _NavItem(
+                  icon: Icons.dashboard_rounded,
+                  label: 'Dashboard',
+                  isSelected: currentIndex == 0,
+                  onTap: () => onTap(0),
+                ),
               ),
-              _NavItem(
-                icon: Icons.monitor_weight_rounded,
-                label: 'Weight',
-                isSelected: currentIndex == 1,
-                onTap: () => onTap(1),
+              Expanded(
+                child: _NavItem(
+                  icon: Icons.monitor_weight_rounded,
+                  label: 'Weight',
+                  isSelected: currentIndex == 1,
+                  onTap: () => onTap(1),
+                ),
               ),
-              _NavItem(
-                icon: Icons.restaurant_rounded,
-                label: 'Nutrition',
-                isSelected: currentIndex == 2,
-                onTap: () => onTap(2),
+              Expanded(
+                child: _NavItem(
+                  icon: Icons.restaurant_rounded,
+                  label: 'Nutrition',
+                  isSelected: currentIndex == 2,
+                  onTap: () => onTap(2),
+                ),
               ),
-              _NavItem(
-                icon: Icons.timer_rounded,
-                label: 'Fasting',
-                isSelected: currentIndex == 3,
-                onTap: () => onTap(3),
+              Expanded(
+                child: _NavItem(
+                  icon: Icons.timer_rounded,
+                  label: 'Fasting',
+                  isSelected: currentIndex == 3,
+                  onTap: () => onTap(3),
+                ),
               ),
-              _NavItem(
-                icon: Icons.person_rounded,
-                label: 'Profile',
-                isSelected: currentIndex == 4,
-                onTap: () => onTap(4),
+              Expanded(
+                child: _NavItem(
+                  icon: Icons.person_rounded,
+                  label: 'Profile',
+                  isSelected: currentIndex == 4,
+                  onTap: () => onTap(4),
+                ),
               ),
             ],
           ),
@@ -134,7 +144,7 @@ class _NavItem extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.primary.withValues(alpha: 0.12)
