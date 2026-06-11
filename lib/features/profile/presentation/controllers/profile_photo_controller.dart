@@ -34,32 +34,34 @@ class ProfilePhotoController extends AsyncNotifier<void> {
       }
 
       // Crop image to a square
-      final cropper = ImageCropper();
-      final croppedFile = await cropper.cropImage(
-        sourcePath: pickedFile.path,
-        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-        uiSettings: [
-          AndroidUiSettings(
-            toolbarTitle: 'Crop Profile Photo',
-            toolbarColor: AppColors.primary,
-            toolbarWidgetColor: Colors.white,
-            initAspectRatio: CropAspectRatioPreset.square,
-            lockAspectRatio: true,
-          ),
-          IOSUiSettings(
-            title: 'Crop Profile Photo',
-            aspectRatioLockEnabled: true,
-            resetAspectRatioEnabled: false,
-          ),
-        ],
-      );
-
-      if (croppedFile == null) {
-        state = const AsyncData(null);
-        return;
+      CroppedFile? croppedFile;
+      try {
+        croppedFile = await ImageCropper().cropImage(
+          sourcePath: pickedFile.path,
+          aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+          uiSettings: [
+            AndroidUiSettings(
+              toolbarTitle: 'Crop Profile Photo',
+              toolbarColor: AppColors.primary,
+              toolbarWidgetColor: Colors.white,
+              initAspectRatio: CropAspectRatioPreset.square,
+              lockAspectRatio: true,
+            ),
+            IOSUiSettings(
+              title: 'Crop Profile Photo',
+              aspectRatioLockEnabled: true,
+              resetAspectRatioEnabled: false,
+            ),
+          ],
+        );
+      } catch (e) {
+        // Fallback: skip cropping, use the picked image directly
+        croppedFile = null;
       }
 
-      final file = File(croppedFile.path);
+      final file = croppedFile != null
+          ? File(croppedFile.path)
+          : File(pickedFile.path);
 
       final user = ref.read(authControllerProvider).value;
       if (user == null) throw Exception('User not logged in');

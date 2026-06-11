@@ -1,1 +1,42 @@
-{"firestore":{"rules":"firestore.rules"},"flutter":{"platforms":{"android":{"default":{"projectId":"xenova-health","appId":"1:150380062161:android:40635356f1d30e135f2cf0","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"xenova-health","configurations":{"android":"1:150380062161:android:dae9412e9e2d2f175f2cf0","ios":"1:150380062161:ios:7a8716d13945f8815f2cf0"}},"lib/firebase_options_staging.dart":{"projectId":"xenova-health","configurations":{"android":"1:150380062161:android:911899495466f5835f2cf0","ios":"1:150380062161:ios:7a8716d13945f8815f2cf0"}},"lib/firebase_options_dev.dart":{"projectId":"xenova-health","configurations":{"android":"1:150380062161:android:40635356f1d30e135f2cf0","ios":"1:150380062161:ios:7a8716d13945f8815f2cf0"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "xenova-health",
+          "appId": "1:150380062161:android:40635356f1d30e135f2cf0",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "xenova-health",
+          "configurations": {
+            "android": "1:150380062161:android:dae9412e9e2d2f175f2cf0",
+            "ios": "1:150380062161:ios:7a8716d13945f8815f2cf0"
+          }
+        },
+        "lib/firebase_options_staging.dart": {
+          "projectId": "xenova-health",
+          "configurations": {
+            "android": "1:150380062161:android:911899495466f5835f2cf0",
+            "ios": "1:150380062161:ios:7a8716d13945f8815f2cf0"
+          }
+        },
+        "lib/firebase_options_dev.dart": {
+          "projectId": "xenova-health",
+          "configurations": {
+            "android": "1:150380062161:android:40635356f1d30e135f2cf0",
+            "ios": "1:150380062161:ios:7a8716d13945f8815f2cf0"
+          }
+        }
+      }
+    }
+  }
+}

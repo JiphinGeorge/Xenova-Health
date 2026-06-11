@@ -16,13 +16,13 @@ class FoodDatabaseRepository {
 
   /// Watches global foods based on a query
   Stream<List<FoodItemModel>> searchGlobalFoods(String query) {
-    // Simple prefix search for demo purposes.
-    // In production, Algolia or Meilisearch is recommended.
-    final upperQuery = query.toUpperCase();
+    // Case-insensitive prefix search using a lowercased 'searchName' field.
+    // Falls back to 'name' field for data without searchName.
+    final lowerQuery = query.toLowerCase();
     return _firestore
         .collection(_globalFoodsPath())
-        .where('name', isGreaterThanOrEqualTo: query)
-        .where('name', isLessThanOrEqualTo: '$query\\uf8ff')
+        .where('searchName', isGreaterThanOrEqualTo: lowerQuery)
+        .where('searchName', isLessThanOrEqualTo: '$lowerQuery\uf8ff')
         .limit(20)
         .snapshots()
         .map(
@@ -62,15 +62,27 @@ class FoodDatabaseRepository {
 
   /// Seeds the global food database with common foods if it's empty
   Future<void> seedGlobalDatabase() async {
-    final collection = _firestore.collection(_globalFoodsPath());
-    final snapshot = await collection.limit(1).get();
+    try {
+      final collection = _firestore.collection(_globalFoodsPath());
+      
+      // Check if already seeded with searchName field
+      final snapshot = await collection.limit(1).get();
+      if (snapshot.docs.isNotEmpty) {
+        final firstDoc = snapshot.docs.first.data();
+        if (firstDoc.containsKey('searchName')) {
+          // Already seeded with searchName
+          return;
+        }
+        // Old data without searchName — delete and reseed
+        final allDocs = await collection.get();
+        final deleteBatch = _firestore.batch();
+        for (final doc in allDocs.docs) {
+          deleteBatch.delete(doc.reference);
+        }
+        await deleteBatch.commit();
+      }
 
-    if (snapshot.docs.isNotEmpty) {
-      // Database already seeded
-      return;
-    }
-
-    final batch = _firestore.batch();
+      final batch = _firestore.batch();
 
     final foods = [
       // Proteins
@@ -336,10 +348,15 @@ class FoodDatabaseRepository {
 
     for (final food in foods) {
       final docRef = collection.doc(food.id);
-      batch.set(docRef, food.toJson());
+      final data = food.toJson();
+      data['searchName'] = food.name.toLowerCase();
+      batch.set(docRef, data);
     }
 
     await batch.commit();
+    } catch (e) {
+      print('Food database seed error: $e');
+    }
   }
 }
 

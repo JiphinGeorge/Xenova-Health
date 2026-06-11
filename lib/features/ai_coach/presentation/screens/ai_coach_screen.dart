@@ -57,9 +57,23 @@ class _AICoachScreenState extends ConsumerState<AICoachScreen> {
       }
     });
 
+  bool _shouldShowWelcome(AICoachState state) {
+    // Show welcome when there are no user messages (only the auto-greeting or empty)
+    return state.messages.where((m) => m.messageType == ChatMessageType.user).isEmpty;
+  }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('AI Coach'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'New Chat',
+            onPressed: () {
+              ref.read(aiCoachControllerProvider.notifier).clearChatHistory();
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -76,28 +90,194 @@ class _AICoachScreenState extends ConsumerState<AICoachScreen> {
             ),
           
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(AppDimensions.spacingMd),
-              itemCount: state.messages.length + (state.isTyping ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == state.messages.length) {
-                  return _buildAssistantMessage(state.partialResponse, isTyping: true);
-                }
-                final msg = state.messages[index];
-                if (msg.messageType == ChatMessageType.user) {
-                  return _buildUserMessage(msg.text);
-                } else {
-                  return _buildAssistantMessage(msg.text);
-                }
-              },
-            ),
+            child: _shouldShowWelcome(state)
+                ? _buildWelcomeSection()
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(AppDimensions.spacingMd),
+                    itemCount: state.messages.length + (state.isTyping ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == state.messages.length) {
+                        return _buildAssistantMessage(state.partialResponse, isTyping: true);
+                      }
+                      final msg = state.messages[index];
+                      if (msg.messageType == ChatMessageType.user) {
+                        return _buildUserMessage(msg.text);
+                      } else {
+                        return _buildAssistantMessage(msg.text);
+                      }
+                    },
+                  ),
           ),
           
-          if (state.messages.length <= 1)
+          if (!_shouldShowWelcome(state) && state.messages.length <= 3)
             _buildQuickActions(),
 
           _buildInputArea(state.isTyping),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWelcomeSection() {
+    final suggestions = [
+      _SuggestionItem(
+        icon: Icons.trending_down_rounded,
+        title: 'Analyze my progress',
+        subtitle: 'Get insights on your weight trend',
+        prompt: 'Analyze my weight trend and tell me how I\'m doing',
+      ),
+      _SuggestionItem(
+        icon: Icons.restaurant_menu_rounded,
+        title: 'Meal suggestions',
+        subtitle: 'Get personalized meal ideas',
+        prompt: 'Suggest a high-protein, low-calorie meal plan for today',
+      ),
+      _SuggestionItem(
+        icon: Icons.timer_rounded,
+        title: 'Fasting tips',
+        subtitle: 'Optimize your fasting routine',
+        prompt: 'Analyze my fasting consistency and suggest improvements',
+      ),
+      _SuggestionItem(
+        icon: Icons.emoji_events_rounded,
+        title: 'Weekly review',
+        subtitle: 'See what to improve this week',
+        prompt: 'What should I improve this week based on my data?',
+      ),
+    ];
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppDimensions.spacingLg),
+      child: Column(
+        children: [
+          const SizedBox(height: 24),
+
+          // AI Icon
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary,
+                  AppColors.primary.withValues(alpha: 0.7),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.3),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.auto_awesome_rounded,
+              color: Colors.white,
+              size: 36,
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Greeting
+          Text(
+            'Hi! I\'m your AI Health Coach',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+            textAlign: TextAlign.center,
+          ),
+
+          const SizedBox(height: 8),
+
+          Text(
+            'I can analyze your health data, suggest meals,\nand help you reach your goals faster.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  height: 1.5,
+                ),
+            textAlign: TextAlign.center,
+          ),
+
+          const SizedBox(height: 28),
+
+          // "Try asking" label
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Try asking',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Suggestion cards
+          ...suggestions.map((s) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Material(
+              color: isDark
+                  ? Theme.of(context).colorScheme.surfaceContainerHighest
+                  : Theme.of(context).colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () => _sendMessage(s.prompt),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(s.icon, color: AppColors.primary, size: 20),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              s.title,
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              s.subtitle,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 14,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          )),
         ],
       ),
     );
@@ -201,4 +381,18 @@ class _AICoachScreenState extends ConsumerState<AICoachScreen> {
       ),
     );
   }
+}
+
+class _SuggestionItem {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String prompt;
+
+  const _SuggestionItem({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.prompt,
+  });
 }
