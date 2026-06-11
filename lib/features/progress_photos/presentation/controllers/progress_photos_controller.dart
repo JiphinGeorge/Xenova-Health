@@ -12,6 +12,22 @@ import '../../../../core/storage/data/storage_provider.dart';
 import '../../data/repositories/progress_photo_repository.dart';
 import '../../domain/models/progress_photo_model.dart';
 
+enum UploadStatus { pending, uploading, completed, failed }
+
+class UploadState {
+  final UploadStatus status;
+  final double progress;
+  
+  const UploadState({
+    required this.status,
+    this.progress = 0.0,
+  });
+}
+
+final progressPhotoUploadStateProvider = StateProvider<UploadState>((ref) {
+  return const UploadState(status: UploadStatus.pending);
+});
+
 /// Stream of the current user's progress photos.
 final progressPhotosStreamProvider = StreamProvider<List<ProgressPhotoModel>>((
   ref,
@@ -42,11 +58,20 @@ class ProgressPhotosController extends AsyncNotifier<void> {
       final photoId = const Uuid().v4();
       final storageRepo = ref.read(storageRepositoryProvider);
 
-      final photoUrl = await storageRepo.uploadProgressPhoto(
+      ref.read(progressPhotoUploadStateProvider.notifier).state = 
+          const UploadState(status: UploadStatus.uploading, progress: 0.0);
+
+      final result = await storageRepo.uploadProgressPhoto(
         userId: user.uid,
         photoId: photoId,
         image: image,
+        onProgress: (progress) {
+          ref.read(progressPhotoUploadStateProvider.notifier).state = 
+              UploadState(status: UploadStatus.uploading, progress: progress);
+        },
       );
+      final photoUrl = result.$1;
+      final thumbnailUrl = result.$2;
 
       final bytes = await image.readAsBytes();
       final decodedImage = await decodeImageFromList(bytes);
@@ -55,6 +80,7 @@ class ProgressPhotosController extends AsyncNotifier<void> {
         id: photoId,
         userId: user.uid,
         photoUrl: photoUrl,
+        thumbnailUrl: thumbnailUrl,
         weightAtTime: weight,
         date: DateTime.now(),
         note: note,
@@ -69,8 +95,13 @@ class ProgressPhotosController extends AsyncNotifier<void> {
       // Trigger achievement hooks asynchronously
       _checkMilestones(photo);
 
+      ref.read(progressPhotoUploadStateProvider.notifier).state = 
+          const UploadState(status: UploadStatus.completed, progress: 1.0);
+
       state = const AsyncData(null);
     } catch (e, st) {
+      ref.read(progressPhotoUploadStateProvider.notifier).state = 
+          const UploadState(status: UploadStatus.failed, progress: 0.0);
       state = AsyncError(e, st);
       rethrow;
     }
@@ -101,6 +132,9 @@ class ProgressPhotosController extends AsyncNotifier<void> {
 
       final storageRepo = ref.read(storageRepositoryProvider);
       await storageRepo.deleteFile(photo.photoUrl);
+      if (photo.thumbnailUrl != null) {
+        await storageRepo.deleteFile(photo.thumbnailUrl!);
+      }
 
       final repository = ref.read(progressPhotoRepositoryProvider);
       await repository.deletePhoto(user.uid, photo.id);
@@ -126,6 +160,9 @@ class ProgressPhotosController extends AsyncNotifier<void> {
       for (final photo in photos) {
         try {
           await storageRepo.deleteFile(photo.photoUrl);
+          if (photo.thumbnailUrl != null) {
+            await storageRepo.deleteFile(photo.thumbnailUrl!);
+          }
         } catch (_) {
           // Ignore storage deletion errors to continue deleting metadata
         }

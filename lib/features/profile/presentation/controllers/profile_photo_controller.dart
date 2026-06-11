@@ -9,6 +9,11 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/storage/data/storage_provider.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../progress_photos/presentation/controllers/progress_photos_controller.dart';
+
+final profilePhotoUploadStateProvider = StateProvider<UploadState>((ref) {
+  return const UploadState(status: UploadStatus.pending);
+});
 
 /// Controller for managing the user's profile photo.
 class ProfilePhotoController extends AsyncNotifier<void> {
@@ -57,10 +62,17 @@ class ProfilePhotoController extends AsyncNotifier<void> {
       final user = ref.read(authControllerProvider).value;
       if (user == null) throw Exception('User not logged in');
 
+      ref.read(profilePhotoUploadStateProvider.notifier).state = 
+          const UploadState(status: UploadStatus.uploading, progress: 0.0);
+
       final storageRepo = ref.read(storageRepositoryProvider);
       final photoUrl = await storageRepo.uploadProfilePhoto(
         userId: user.uid,
         image: file,
+        onProgress: (progress) {
+          ref.read(profilePhotoUploadStateProvider.notifier).state = 
+              UploadState(status: UploadStatus.uploading, progress: progress);
+        },
       );
 
       // Update UserModel
@@ -69,8 +81,13 @@ class ProfilePhotoController extends AsyncNotifier<void> {
           .read(authControllerProvider.notifier)
           .saveUserProfile(updatedUser);
 
+      ref.read(profilePhotoUploadStateProvider.notifier).state = 
+          const UploadState(status: UploadStatus.completed, progress: 1.0);
+
       state = const AsyncData(null);
     } on Exception catch (e, st) {
+      ref.read(profilePhotoUploadStateProvider.notifier).state = 
+          const UploadState(status: UploadStatus.failed, progress: 0.0);
       state = AsyncError(e, st);
     }
   }

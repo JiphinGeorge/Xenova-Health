@@ -34,6 +34,7 @@ class LocalStorageRepositoryImpl implements StorageRepository {
   Future<String> uploadProfilePhoto({
     required String userId,
     required File image,
+    void Function(double progress)? onProgress,
   }) async {
     final storageDir = await _getStorageDirectory();
     final profileDir = Directory('${storageDir.path}/profile_photos/$userId');
@@ -43,14 +44,16 @@ class LocalStorageRepositoryImpl implements StorageRepository {
 
     final ext = image.path.split('.').last;
     final savedFile = await image.copy('${profileDir.path}/avatar.$ext');
+    if (onProgress != null) onProgress(1.0);
     return 'file://${savedFile.path}';
   }
 
   @override
-  Future<String> uploadProgressPhoto({
+  Future<(String, String)> uploadProgressPhoto({
     required String userId,
     required String photoId,
     required File image,
+    void Function(double progress)? onProgress,
   }) async {
     final storageDir = await _getStorageDirectory();
     final progressDir = Directory('${storageDir.path}/progress_photos/$userId');
@@ -59,8 +62,11 @@ class LocalStorageRepositoryImpl implements StorageRepository {
     }
 
     final ext = image.path.split('.').last;
-    final savedFile = await image.copy('${progressDir.path}/$photoId.$ext');
-    return 'file://${savedFile.path}';
+    final originalFile = await image.copy('${progressDir.path}/$photoId.$ext');
+    final thumbnailFile = await image.copy('${progressDir.path}/${photoId}_thumb.$ext');
+    
+    if (onProgress != null) onProgress(1.0);
+    return ('file://${originalFile.path}', 'file://${thumbnailFile.path}');
   }
 
   @override

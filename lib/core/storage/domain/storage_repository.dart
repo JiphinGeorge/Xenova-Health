@@ -9,13 +9,15 @@ abstract interface class StorageRepository {
   Future<String> uploadProfilePhoto({
     required String userId,
     required File image,
+    void Function(double progress)? onProgress,
   });
 
-  /// Uploads a progress photo and returns the resulting URI.
-  Future<String> uploadProgressPhoto({
+  /// Uploads a progress photo and returns a record containing (originalUrl, thumbnailUrl).
+  Future<(String, String)> uploadProgressPhoto({
     required String userId,
     required String photoId,
     required File image,
+    void Function(double progress)? onProgress,
   });
 
   /// Deletes a file at the specified URI.
