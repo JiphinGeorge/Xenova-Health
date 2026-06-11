@@ -274,7 +274,6 @@ class NotificationsScreen extends ConsumerWidget {
         content: const Text('Are you sure you want to delete all your notifications? This action cannot be undone.'),
         actions: [
           TextButton(
-            onSelected: null,
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),

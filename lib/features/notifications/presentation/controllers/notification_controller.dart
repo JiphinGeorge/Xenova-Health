@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../data/repositories/notification_repository.dart';
-import '../domain/models/notification_model.dart';
+import '../../data/repositories/notification_repository.dart';
+import '../../domain/models/notification_model.dart';
 
 final notificationControllerProvider =
     AsyncNotifierProvider<NotificationController, List<NotificationModel>>(

@@ -47,8 +47,8 @@ class NutritionController extends StateNotifier<AsyncValue<void>> {
       
       // Analytics Hook
       _ref.read(analyticsServiceProvider).logMealLogged(
-        mealType: mealLog.mealType.name,
-        calories: mealLog.totalCalories,
+        mealType: mealLog.mealType,
+        calories: mealLog.totalCalories.toInt(),
       );
 
       state = const AsyncData(null);

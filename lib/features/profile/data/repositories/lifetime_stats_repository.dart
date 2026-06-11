@@ -13,9 +13,9 @@ class LifetimeStatsRepository {
   String _documentPath(String userId) => 'users/$userId/stats/lifetime';
 
   Future<LifetimeStatsModel> getStats(String userId) async {
-    final doc = await _firestoreService.getDocument(path: _documentPath(userId));
-    if (doc != null) {
-      return LifetimeStatsModel.fromJson(doc);
+    final doc = await _firestoreService.getDocument(_documentPath(userId));
+    if (doc.exists && doc.data() != null) {
+      return LifetimeStatsModel.fromJson(doc.data()!);
     }
     return LifetimeStatsModel(
       createdAt: DateTime.now(),

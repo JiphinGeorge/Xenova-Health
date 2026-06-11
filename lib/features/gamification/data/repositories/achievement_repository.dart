@@ -36,9 +36,9 @@ class AchievementRepository {
 
   /// Fetches the user's level and XP details
   Future<UserLevelModel> getUserLevel(String userId) async {
-    final doc = await _firestoreService.getDocument(path: _userLevelPath(userId));
-    if (doc != null) {
-      return UserLevelModel.fromJson(doc);
+    final doc = await _firestoreService.getDocument(_userLevelPath(userId));
+    if (doc.exists && doc.data() != null) {
+      return UserLevelModel.fromJson(doc.data()!);
     }
     return UserLevelModel(userId: userId);
   }

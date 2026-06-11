@@ -120,7 +120,7 @@ class FastingController extends StateNotifier<AsyncValue<void>> {
 
         int streak = currentStats?.currentFastingStreak ?? 0;
         int longest = currentStats?.longestFastingStreak ?? 0;
-        final lastDate = currentStats?.lastFastDate;
+        final lastDate = currentStats?.lastFastCompletedAt;
 
         final today = DateTime(endTime.year, endTime.month, endTime.day);
 
@@ -144,13 +144,13 @@ class FastingController extends StateNotifier<AsyncValue<void>> {
             currentStats.copyWith(
               currentFastingStreak: streak,
               longestFastingStreak: longest,
-              lastFastDate: today,
+              lastFastCompletedAt: today,
             ),
           );
         }
 
         // Gamification Hook
-        _ref.read(achievementEngineProvider).processFastingEvent(streak, updated.elapsedDuration.inHours);
+        _ref.read(achievementEngineProvider).processFastingEvent(streak, updated.actualDurationHours?.toInt() ?? 0);
       }
 
       // Cancel pending completion and reminder notifications

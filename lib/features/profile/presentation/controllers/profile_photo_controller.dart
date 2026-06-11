@@ -9,7 +9,9 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/storage/data/storage_provider.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
-import '../../progress_photos/presentation/controllers/progress_photos_controller.dart';
+import '../../../progress_photos/presentation/controllers/progress_photos_controller.dart';
+
+
 
 final profilePhotoUploadStateProvider = StateProvider<UploadState>((ref) {
   return const UploadState(status: UploadStatus.pending);

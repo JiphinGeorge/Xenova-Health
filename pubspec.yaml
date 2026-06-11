@@ -88,6 +88,7 @@ dependencies:
   flutter_image_compress: ^2.4.0
   package_info_plus: ^10.1.0
   firebase_app_check: ^0.4.4+2
+  timeago: ^3.7.1
 
 dev_dependencies:
   flutter_test:

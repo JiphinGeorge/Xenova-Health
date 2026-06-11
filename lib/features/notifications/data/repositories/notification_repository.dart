@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../auth/presentation/controllers/auth_controller.dart';
-import '../domain/models/notification_model.dart';
+import '../../domain/models/notification_model.dart';
 
 final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
   final userAsync = ref.watch(authControllerProvider);

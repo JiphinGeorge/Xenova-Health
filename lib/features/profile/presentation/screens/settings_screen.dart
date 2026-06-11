@@ -5,15 +5,14 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_dimensions.dart';
+import '../../../../core/config/app_info.dart';
 import '../../../../core/enums/enums.dart';
 import '../../../ai_coach/presentation/controllers/ai_coach_controller.dart';
 import '../../../auth/domain/models/user_model.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
-import '../../../core/config/app_info.dart';
-import '../../../core/storage/data/storage_provider.dart';
-import '../../../gamification/presentation/controllers/achievements_controller.dart';
-import '../../../progress_photos/presentation/controllers/progress_photos_controller.dart';
+
 import '../controllers/settings_controller.dart';
+import '../../../progress_photos/presentation/controllers/progress_photos_controller.dart';
 import '../widgets/profile_photo_picker.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -259,7 +258,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           items: ActivityLevel.values.map((level) {
                             return DropdownMenuItem(
                               value: level,
-                              child: Text(level.displayName),
+                              child: Text(level.name.toUpperCase()),
                             );
                           }).toList(),
                           onChanged: (level) {
@@ -281,7 +280,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           items: DietType.values.map((diet) {
                             return DropdownMenuItem(
                               value: diet,
-                              child: Text(diet.displayName),
+                              child: Text(diet.name.toUpperCase()),
                             );
                           }).toList(),
                           onChanged: (diet) {
