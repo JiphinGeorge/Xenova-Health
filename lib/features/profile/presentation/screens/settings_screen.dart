@@ -583,7 +583,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               const Divider(height: 1),
                               _buildAboutRow('Backend', 'Firebase'),
                               const Divider(height: 1),
-                              _buildAboutRow('AI', 'Gemini Enabled'),
+                              _buildAboutRow('AI', 'ChatGPT Enabled'),
                             ],
                           ),
                           loading: () => const Padding(
@@ -610,7 +610,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           trailing: const Icon(Icons.open_in_new),
                           onTap: () => _showMockDocument(
                             'Terms of Service',
-                            'By using Xenova Health and the Gemini AI coach, you agree that information provided is educational and supportive only. It does not constitute medical diagnosis or certified clinical advice. Consult medical professionals before making major lifestyle adjustments.',
+                            'By using Xenova Health and the ChatGPT AI coach, you agree that information provided is educational and supportive only. It does not constitute medical diagnosis or certified clinical advice. Consult medical professionals before making major lifestyle adjustments.',
                           ),
                         ),
                       ],

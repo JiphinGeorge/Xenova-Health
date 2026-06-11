@@ -75,7 +75,6 @@ dependencies:
   share_plus: ^13.1.0
 
   # AI
-  google_generative_ai: ^0.4.7
 
   # Utils
   path_provider: ^2.1.5
@@ -89,6 +88,7 @@ dependencies:
   package_info_plus: ^10.1.0
   firebase_app_check: ^0.4.4+2
   timeago: ^3.7.1
+  dart_openai: ^6.1.1
 
 dev_dependencies:
   flutter_test:

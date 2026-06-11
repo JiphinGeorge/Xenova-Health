@@ -10,7 +10,7 @@ import '../../../dashboard/data/repositories/dashboard_stats_repository.dart';
 import '../../../fasting/data/repositories/fasting_repository.dart';
 import '../../../nutrition/data/repositories/daily_nutrition_repository.dart';
 import '../../../weight/data/repositories/weight_repository.dart';
-import '../../../ai_coach/data/services/gemini_service.dart';
+import '../../../ai_coach/data/services/openai_service.dart';
 import '../../../ai_coach/domain/models/ai_context_model.dart';
 import '../../../gamification/application/services/achievement_engine_service.dart';
 import 'csv_generator.dart';
@@ -23,7 +23,7 @@ class ReportExportService {
     this._weightRepo,
     this._fastingRepo,
     this._analyticsRepo,
-    this._geminiService,
+    this._openAIService,
   );
 
   final Ref _ref;
@@ -31,7 +31,7 @@ class ReportExportService {
   final WeightRepository _weightRepo;
   final FastingRepository _fastingRepo;
   final AnalyticsRepository _analyticsRepo;
-  final GeminiService _geminiService;
+  final OpenAIService _openAIService;
 
   final CsvGenerator _csvGenerator = CsvGenerator();
   final PdfGenerator _pdfGenerator = PdfGenerator();
@@ -105,7 +105,7 @@ class ReportExportService {
         waterGoalMet: latestReport.averageDailyWater > 2000,
         calorieTargetMet: true,
       );
-      aiSummary = await _geminiService.generateWeeklySummary(contextModel);
+      aiSummary = await _openAIService.generateWeeklySummary(contextModel);
       if (aiSummary != null && aiSummary.isNotEmpty) {
         // Gamification Hook
         _ref.read(achievementEngineProvider).processAiCoachEvent(true);
@@ -133,6 +133,6 @@ final reportExportServiceProvider = Provider<ReportExportService>((ref) {
     ref.watch(weightRepositoryProvider),
     ref.watch(fastingRepositoryProvider),
     ref.watch(analyticsRepositoryProvider),
-    ref.watch(geminiServiceProvider),
+    ref.watch(openAIServiceProvider),
   );
 });

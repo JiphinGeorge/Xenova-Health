@@ -7,7 +7,7 @@ import '../../../dashboard/domain/models/dashboard_stats_model.dart';
 import '../../../dashboard/domain/models/ai_usage_stats_model.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/services/ai_rate_limiter_service.dart';
-import '../../data/services/gemini_service.dart';
+import '../../data/services/openai_service.dart';
 import '../../domain/models/ai_context_model.dart';
 import '../../domain/models/chat_message_model.dart';
 import '../../../../core/analytics/analytics_service.dart';
@@ -42,14 +42,14 @@ class AICoachState {
 }
 
 class AICoachController extends StateNotifier<AICoachState> {
-  AICoachController(this._ref, this._chatRepo, this._geminiService, this._rateLimiter)
+  AICoachController(this._ref, this._chatRepo, this._openAIService, this._rateLimiter)
       : super(AICoachState(messages: [])) {
     _loadHistory();
   }
 
   final Ref _ref;
   final ChatRepository _chatRepo;
-  final GeminiService _geminiService;
+  final OpenAIService _openAIService;
   final AIRateLimiterService _rateLimiter;
 
   Future<void> _loadHistory() async {
@@ -108,11 +108,11 @@ class AICoachController extends StateNotifier<AICoachState> {
       // 1. Build Context Model
       final contextModel = await _buildAIContext(user.uid);
 
-      // 2. Start Gemini Session
-      final session = _geminiService.startChat(contextModel, state.messages);
+      // 2. Build History for OpenAI
+      final history = _openAIService.buildHistory(contextModel, state.messages);
 
       // 3. Stream Response
-      final stream = _geminiService.sendMessageStream(session, text);
+      final stream = _openAIService.sendMessageStream(history, text);
 
       await for (final chunk in stream) {
         state = state.copyWith(
@@ -230,7 +230,7 @@ final aiCoachControllerProvider = StateNotifierProvider<AICoachController, AICoa
   return AICoachController(
     ref,
     ref.watch(chatRepositoryProvider),
-    ref.watch(geminiServiceProvider),
+    ref.watch(openAIServiceProvider),
     ref.watch(aiRateLimiterServiceProvider),
   );
 });
