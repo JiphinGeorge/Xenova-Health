@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../auth/domain/models/user_model.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../../core/analytics/analytics_service.dart';
 import '../../../gamification/application/services/achievement_engine_service.dart';
 import '../../../../core/storage/data/storage_provider.dart';
 import '../../data/repositories/progress_photo_repository.dart';
@@ -97,6 +98,8 @@ class ProgressPhotosController extends AsyncNotifier<void> {
 
       ref.read(progressPhotoUploadStateProvider.notifier).state = 
           const UploadState(status: UploadStatus.completed, progress: 1.0);
+
+      ref.read(analyticsServiceProvider).logPhotoUploaded();
 
       state = const AsyncData(null);
     } catch (e, st) {
