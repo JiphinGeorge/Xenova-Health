@@ -1,0 +1,66 @@
+name: Build Android (Staging)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build APK and AAB
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Validate Firebase Options
+        run: |
+          if [ ! -f "lib/firebase_options.dart" ]; then
+            echo "Error: lib/firebase_options.dart not found! Firebase configuration missing."
+            exit 1
+          fi
+
+      - name: Inject Environment Secrets
+        run: |
+          mkdir -p assets/env
+          echo "ENVIRONMENT=Staging" > assets/env/staging.env
+          echo "USDA_API_KEY=${{ secrets.USDA_API_KEY }}" >> assets/env/staging.env
+          echo "USDA_BASE_URL=https://api.nal.usda.gov/fdc/v1" >> assets/env/staging.env
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY_STAGING }}" >> assets/env/staging.env
+          echo "USE_FIREBASE_STORAGE=true" >> assets/env/staging.env
+
+      - name: Build APK (Staging)
+        run: flutter build apk --flavor staging --release
+
+      - name: Build AAB (Staging)
+        run: flutter build appbundle --flavor staging --release
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-staging-release.apk
+          path: build/app/outputs/flutter-apk/app-staging-release.apk
+
+      - name: Upload AAB Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-staging-release.aab
+          path: build/app/outputs/bundle/stagingRelease/app-staging-release.aab

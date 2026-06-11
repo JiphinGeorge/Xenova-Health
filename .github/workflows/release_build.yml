@@ -1,0 +1,64 @@
+name: Release Build (Production)
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build_release:
+    name: Build Production AAB
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Validate Firebase Options
+        run: |
+          if [ ! -f "lib/firebase_options.dart" ]; then
+            echo "Error: lib/firebase_options.dart not found! Firebase configuration missing."
+            exit 1
+          fi
+
+      - name: Inject Environment Secrets
+        run: |
+          mkdir -p assets/env
+          echo "ENVIRONMENT=Production" > assets/env/prod.env
+          echo "USDA_API_KEY=${{ secrets.USDA_API_KEY }}" >> assets/env/prod.env
+          echo "USDA_BASE_URL=https://api.nal.usda.gov/fdc/v1" >> assets/env/prod.env
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY_PROD }}" >> assets/env/prod.env
+          echo "USE_FIREBASE_STORAGE=true" >> assets/env/prod.env
+
+      - name: Setup Keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+          echo "storeFile=upload-keystore.jks" > android/key.properties
+          echo "storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/key.properties
+          echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/key.properties
+
+      - name: Build AAB (Production)
+        run: flutter build appbundle --flavor prod --release
+
+      - name: Upload Production AAB Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-prod-release.aab
+          path: build/app/outputs/bundle/prodRelease/app-prod-release.aab

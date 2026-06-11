@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'app/app.dart';
 import 'core/firebase/crashlytics_service.dart';
@@ -16,8 +17,17 @@ import 'core/services/hive_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ─── Load Environment Variables ───
-  await dotenv.load();
+  // ─── Determine Environment & Load .env ───
+  final packageInfo = await PackageInfo.fromPlatform();
+  String envFile = 'assets/env/prod.env'; // Default to prod
+  
+  if (packageInfo.packageName.endsWith('.dev')) {
+    envFile = 'assets/env/dev.env';
+  } else if (packageInfo.packageName.endsWith('.staging')) {
+    envFile = 'assets/env/staging.env';
+  }
+  
+  await dotenv.load(fileName: envFile);
 
   // ─── Initialize Firebase ───
   await Firebase.initializeApp(

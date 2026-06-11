@@ -1,0 +1,55 @@
+name: Production Release Checklist
+
+on:
+  workflow_dispatch:
+
+jobs:
+  checklist:
+    name: Verify Release Readiness
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Check Analyze
+        run: flutter analyze
+
+      - name: Check Tests
+        run: flutter test
+
+      - name: Check Firebase Options
+        run: |
+          if [ ! -f "lib/firebase_options.dart" ]; then
+            echo "Error: lib/firebase_options.dart missing!"
+            exit 1
+          fi
+
+      - name: Check Environment Template
+        run: |
+          if [ ! -f "assets/env/prod.env" ]; then
+            echo "Warning: assets/env/prod.env template missing! Ensure CI can inject it."
+            # We exit 0 because CI injects it, but we can verify at least dev.env exists
+            if [ ! -f "assets/env/dev.env" ]; then
+              echo "Error: No env files found in assets/env!"
+              exit 1
+            fi
+          fi
+
+      - name: Readiness Summary
+        run: |
+          echo "✅ Analyze Passed"
+          echo "✅ Tests Passed"
+          echo "✅ Firebase Config Present"
+          echo "✅ Environment Assets Configured"
+          echo "Remember to increment App Version in pubspec.yaml before tagging release!"
