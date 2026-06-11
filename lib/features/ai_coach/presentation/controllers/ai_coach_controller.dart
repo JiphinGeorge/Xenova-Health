@@ -10,6 +10,7 @@ import '../../data/services/ai_rate_limiter_service.dart';
 import '../../data/services/gemini_service.dart';
 import '../../domain/models/ai_context_model.dart';
 import '../../domain/models/chat_message_model.dart';
+import '../../../../core/analytics/analytics_service.dart';
 import '../../../gamification/application/services/achievement_engine_service.dart';
 
 class AICoachState {
@@ -89,6 +90,8 @@ class AICoachController extends StateNotifier<AICoachState> {
       text: text,
       timestamp: DateTime.now(),
     );
+
+    _ref.read(analyticsServiceProvider).logAiChatStarted();
 
     // Optimistic UI update
     final updatedMessages = List<ChatMessageModel>.from(state.messages)..add(userMessage);
