@@ -11,7 +11,6 @@ import 'core/firebase/crashlytics_service.dart';
 import 'core/services/hive_service.dart';
 
 /// Entry point for the Xenova Health application.
-///
 /// Initializes Firebase, Hive, Crashlytics, environment variables,
 /// and wraps the app in [ProviderScope] for Riverpod DI.
 Future<void> main() async {
