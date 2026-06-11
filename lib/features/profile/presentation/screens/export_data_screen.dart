@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_dimensions.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../reports/data/services/report_export_service.dart';
+import '../../../../core/analytics/analytics_service.dart';
 
 class ExportDataScreen extends ConsumerStatefulWidget {
   const ExportDataScreen({super.key});
@@ -35,6 +36,10 @@ class _ExportDataScreenState extends ConsumerState<ExportDataScreen> {
     try {
       final exportService = ref.read(reportExportServiceProvider);
       await exportService.exportAndShare(user.uid, _selectedDataType, _selectedFormat);
+      
+      if (mounted) {
+        ref.read(analyticsServiceProvider).logReportExported(format: _selectedFormat);
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
