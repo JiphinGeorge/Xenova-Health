@@ -15,9 +15,17 @@ class DashboardStatsRepository {
 
   /// Updates the dashboard stats overview document.
   Future<void> updateStats(String userId, DashboardStatsModel stats) async {
+    final Map<String, dynamic> data = stats.toJson();
+    if (stats.aiStats != null) {
+      data['aiStats'] = stats.aiStats!.toJson();
+    }
+    if (stats.healthScore != null) {
+      data['healthScore'] = stats.healthScore!.toJson();
+    }
+
     await _firestoreService.setDocument(
       path: _documentPath(userId),
-      data: stats.toJson(),
+      data: data,
     );
   }
 

@@ -1,7 +1,7 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dart_openai/dart_openai.dart';
 
 import '../../domain/models/ai_context_model.dart';
 import '../../domain/models/chat_message_model.dart';
@@ -9,19 +9,31 @@ import '../../domain/prompts/ai_prompt_templates.dart';
 import 'health_advice_policy.dart';
 
 class OpenAIService {
+  late final String _apiKey;
+  final String _baseUrl = 'https://api.groq.com/openai/v1';
+  final String _model = 'llama-3.3-70b-versatile';
+  late final Dio _dio;
+
   OpenAIService() {
-    final apiKey = dotenv.env['OPENAI_API_KEY'];
-    if (apiKey == null || apiKey.isEmpty || apiKey == 'YOUR_OPENAI_API_KEY_HERE') {
-      throw Exception('OpenAI API key not found in .env');
+    final apiKey = dotenv.env['GROQ_API_KEY'];
+    if (apiKey == null || apiKey.isEmpty) {
+      throw Exception('GROQ_API_KEY not found in .env');
     }
-    
-    OpenAI.apiKey = apiKey;
+    _apiKey = apiKey;
+    _dio = Dio(BaseOptions(
+      baseUrl: _baseUrl,
+      headers: {
+        'Authorization': 'Bearer $_apiKey',
+        'Content-Type': 'application/json',
+      },
+      responseType: ResponseType.stream,
+    ));
   }
 
-  /// Builds the chat history for OpenAI.
-  List<OpenAIChatCompletionChoiceMessageModel> buildHistory(AIContextModel contextSnapshot, List<ChatMessageModel> history) {
+  /// Builds chat messages list for the API.
+  List<Map<String, String>> buildHistory(AIContextModel contextSnapshot, List<ChatMessageModel> history) {
     final contextJson = jsonEncode(contextSnapshot.toJson());
-    
+
     final systemMessage = '''
 ${HealthAdvicePolicy.systemInstruction}
 
@@ -29,80 +41,100 @@ SYSTEM CONTEXT (DO NOT DISCLOSE RAW JSON TO USER):
 $contextJson
 ''';
 
-    final actualHistory = <OpenAIChatCompletionChoiceMessageModel>[
-      OpenAIChatCompletionChoiceMessageModel(
-        content: [OpenAIChatCompletionChoiceMessageContentItemModel.text(systemMessage)],
-        role: OpenAIChatMessageRole.system,
-      ),
+    final messages = <Map<String, String>>[
+      {'role': 'system', 'content': systemMessage},
     ];
 
-    // Optimization: Keep only the last 10 messages for context memory
-    final recentHistory = history.length > 10 
-        ? history.sublist(history.length - 10) 
+    final recentHistory = history.length > 10
+        ? history.sublist(history.length - 10)
         : history;
 
     for (final msg in recentHistory) {
       if (msg.messageType == ChatMessageType.user) {
-        actualHistory.add(
-          OpenAIChatCompletionChoiceMessageModel(
-            content: [OpenAIChatCompletionChoiceMessageContentItemModel.text(msg.text)],
-            role: OpenAIChatMessageRole.user,
-          ),
-        );
+        messages.add({'role': 'user', 'content': msg.text});
       } else if (msg.messageType == ChatMessageType.assistant) {
-        actualHistory.add(
-          OpenAIChatCompletionChoiceMessageModel(
-            content: [OpenAIChatCompletionChoiceMessageContentItemModel.text(msg.text)],
-            role: OpenAIChatMessageRole.assistant,
-          ),
-        );
+        messages.add({'role': 'assistant', 'content': msg.text});
       }
     }
 
-    return actualHistory;
+    return messages;
   }
 
-  /// Generates a weekly summary directly.
+  /// Generates a weekly summary (non-streaming).
   Future<String?> generateWeeklySummary(AIContextModel contextSnapshot) async {
     try {
-      final history = buildHistory(contextSnapshot, []);
-      history.add(
-        OpenAIChatCompletionChoiceMessageModel(
-          content: [OpenAIChatCompletionChoiceMessageContentItemModel.text(AiPromptTemplates.weeklySummary())],
-          role: OpenAIChatMessageRole.user,
-        ),
+      final messages = buildHistory(contextSnapshot, []);
+      messages.add({'role': 'user', 'content': AiPromptTemplates.weeklySummary()});
+
+      final response = await Dio().post(
+        '$_baseUrl/chat/completions',
+        options: Options(headers: {
+          'Authorization': 'Bearer $_apiKey',
+          'Content-Type': 'application/json',
+        }),
+        data: jsonEncode({
+          'model': _model,
+          'messages': messages,
+          'stream': false,
+        }),
       );
 
-      final response = await OpenAI.instance.chat.create(
-        model: "gpt-4o-mini",
-        messages: history,
-      );
-
-      return response.choices.first.message.content?.first.text;
+      return response.data['choices'][0]['message']['content'] as String?;
     } catch (e) {
+      print('Weekly summary error: $e');
       return null;
     }
   }
 
-  /// Streams a response from OpenAI.
-  Stream<String> sendMessageStream(List<OpenAIChatCompletionChoiceMessageModel> history, String message) async* {
-    history.add(
-      OpenAIChatCompletionChoiceMessageModel(
-        content: [OpenAIChatCompletionChoiceMessageContentItemModel.text(message)],
-        role: OpenAIChatMessageRole.user,
-      ),
-    );
+  /// Streams a response from Groq.
+  Stream<String> sendMessageStream(List<Map<String, String>> history, String message) async* {
+    history.add({'role': 'user', 'content': message});
 
-    final responseStream = OpenAI.instance.chat.createStream(
-      model: "gpt-4o-mini",
-      messages: history,
-    );
+    try {
+      final response = await _dio.post(
+        '/chat/completions',
+        data: jsonEncode({
+          'model': _model,
+          'messages': history,
+          'stream': true,
+        }),
+      );
 
-    await for (final chunk in responseStream) {
-      final content = chunk.choices.first.delta.content;
-      if (content != null && content.isNotEmpty) {
-        yield content.first?.text ?? "";
+      final stream = response.data.stream as Stream<List<int>>;
+      String buffer = '';
+
+      await for (final chunk in stream) {
+        buffer += utf8.decode(chunk);
+
+        // SSE format: each event is "data: {...}\n\n"
+        while (buffer.contains('\n')) {
+          final newlineIndex = buffer.indexOf('\n');
+          final line = buffer.substring(0, newlineIndex).trim();
+          buffer = buffer.substring(newlineIndex + 1);
+
+          if (line.isEmpty) continue;
+          if (line == 'data: [DONE]') return;
+          if (!line.startsWith('data: ')) continue;
+
+          try {
+            final jsonStr = line.substring(6); // Remove "data: "
+            final json = jsonDecode(jsonStr) as Map<String, dynamic>;
+            final choices = json['choices'] as List<dynamic>;
+            if (choices.isNotEmpty) {
+              final delta = choices[0]['delta'] as Map<String, dynamic>;
+              final content = delta['content'] as String?;
+              if (content != null && content.isNotEmpty) {
+                yield content;
+              }
+            }
+          } catch (_) {
+            // Skip malformed JSON chunks
+          }
+        }
       }
+    } catch (e) {
+      print('AI Coach Stream Error: $e');
+      rethrow;
     }
   }
 }

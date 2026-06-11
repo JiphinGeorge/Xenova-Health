@@ -8,12 +8,27 @@ import '../../../../core/widgets/error_widget.dart';
 import '../../../../core/widgets/loading_indicator.dart';
 import '../../domain/models/daily_nutrition_summary_model.dart';
 import '../controllers/nutrition_controller.dart';
+import '../../data/repositories/food_database_repository.dart';
 
-class NutritionDashboardScreen extends ConsumerWidget {
+class NutritionDashboardScreen extends ConsumerStatefulWidget {
   const NutritionDashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NutritionDashboardScreen> createState() => _NutritionDashboardScreenState();
+}
+
+class _NutritionDashboardScreenState extends ConsumerState<NutritionDashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Ensure the global food database is seeded for search
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(foodDatabaseRepositoryProvider).seedGlobalDatabase();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final summaryAsync = ref.watch(dailyNutritionSummaryStreamProvider);
     final mealsAsync = ref.watch(dailyMealLogsStreamProvider);
     final selectedDate = ref.watch(selectedDateProvider);
