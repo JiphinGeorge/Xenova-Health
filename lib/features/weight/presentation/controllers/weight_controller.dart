@@ -8,6 +8,7 @@ import '../../../../features/dashboard/data/repositories/dashboard_stats_reposit
 import '../../../../features/dashboard/domain/models/dashboard_stats_model.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../gamification/application/services/achievement_engine_service.dart';
+import '../../../../core/analytics/analytics_service.dart';
 import '../../data/repositories/weight_repository.dart';
 import '../../domain/models/weight_entry_model.dart';
 import '../../domain/models/weight_metrics.dart';
@@ -208,6 +209,7 @@ class WeightController extends AsyncNotifier<void> {
 
       state = const AsyncData(null);
 
+      ref.read(analyticsServiceProvider).logWeightLogged(weight: weight);
       _checkAchievements(weight, user.targetWeightKg);
     } on Exception catch (e, st) {
       state = AsyncError(e, st);
