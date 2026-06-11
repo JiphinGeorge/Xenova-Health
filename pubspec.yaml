@@ -15,7 +15,7 @@ dependencies:
   # UI
   cupertino_icons: any
   fl_chart: ^1.2.0
-  cached_network_image: any
+  cached_network_image: ^3.4.1
   google_fonts: any
 
   # State Management
@@ -85,6 +85,7 @@ dependencies:
   timezone: ^0.11.0
   flutter_markdown: ^0.7.7+1
   confetti: ^0.8.0
+  flutter_image_compress: ^2.4.0
 
 dev_dependencies:
   flutter_test:
@@ -103,6 +104,8 @@ dev_dependencies:
   # Testing
   mocktail: any
   golden_toolkit: any
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.4
 
 flutter:
   uses-material-design: true
@@ -113,3 +116,14 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/data/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/app_logo.png"
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/images/app_logo.png
+  android: true
+  ios: true
