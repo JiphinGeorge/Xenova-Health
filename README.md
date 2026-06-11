@@ -223,6 +223,4 @@ Xenova uses a highly optimized NoSQL structure in **Firestore**:
 ## 👨‍💻 Contributors
 
 **Jiphin George**  
-*MCA Student*  
-Mar Athanasius College of Engineering (MACE)  
 [GitHub Profile](https://github.com/JiphinGeorge)
