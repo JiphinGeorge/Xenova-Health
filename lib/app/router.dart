@@ -24,6 +24,7 @@ import '../../features/nutrition/domain/models/food_item_model.dart';
 import '../../features/analytics/presentation/screens/analytics_dashboard_screen.dart';
 import '../../features/ai_coach/presentation/screens/ai_coach_screen.dart';
 import '../../features/profile/presentation/screens/export_data_screen.dart';
+import '../../features/notifications/presentation/screens/notifications_screen.dart';
 
 /// Route path constants.
 abstract final class AppRoutes {
@@ -57,6 +58,7 @@ abstract final class AppRoutes {
   static const String mealBuilderReview = '/meal-builder-review';
   static const String barcodeScanner = '/barcode-scanner';
   static const String achievements = '/achievements';
+  static const String notifications = '/notifications';
 }
 
 /// GoRouter navigation keys for nested navigation.
@@ -182,6 +184,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.achievements,
         name: 'achievements',
         builder: (context, state) => const AchievementsDashboardScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        name: 'notifications',
+        builder: (context, state) => const NotificationsScreen(),
       ),
       GoRoute(
         path: AppRoutes.mealLog,

@@ -14,6 +14,7 @@ import '../../../weight/presentation/controllers/weight_controller.dart';
 import '../../../weight/presentation/widgets/add_weight_dialog.dart';
 import '../../data/repositories/dashboard_stats_repository.dart';
 import '../../../nutrition/presentation/controllers/nutrition_controller.dart';
+import '../../../notifications/presentation/controllers/notification_controller.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -62,18 +63,68 @@ class DashboardScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // 1. Welcome Card
-                Text(
-                  '${_getGreeting()},',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                Text(
-                  name,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                // 1. Welcome Card & Notification Bell
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${_getGreeting()},',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        Text(
+                          name,
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final unreadCount = ref.watch(notificationControllerProvider.notifier).unreadCount;
+                        final hasUnread = unreadCount > 0;
+                        
+                        return Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            IconButton(
+                              onPressed: () => context.push(AppRoutes.notifications),
+                              icon: Icon(
+                                hasUnread ? Icons.notifications_active : Icons.notifications_none,
+                                color: hasUnread ? AppColors.error : Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            if (hasUnread)
+                              Positioned(
+                                right: 6,
+                                top: 6,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.error,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Text(
+                                    unreadCount > 9 ? '9+' : unreadCount.toString(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      height: 1,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
                 ),
                 const SizedBox(height: AppDimensions.spacingXl),
 
