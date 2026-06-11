@@ -201,6 +201,9 @@ class AchievementsDashboardScreen extends ConsumerWidget {
           ),
         ),
       ),
+    ];
+  }
+
   Widget _buildCompletionStatsCard(BuildContext context, UserLevelModel level) {
     return Card(
       elevation: 2,
