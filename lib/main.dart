@@ -9,6 +9,9 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'app/app.dart';
 import 'core/firebase/crashlytics_service.dart';
 import 'core/services/hive_service.dart';
+import 'firebase_options.dart' as prod_options;
+import 'firebase_options_dev.dart' as dev_options;
+import 'firebase_options_staging.dart' as staging_options;
 
 /// Entry point for the Xenova Health application.
 /// Initializes Firebase, Hive, Crashlytics, environment variables,
@@ -19,19 +22,21 @@ Future<void> main() async {
   // ─── Determine Environment & Load .env ───
   final packageInfo = await PackageInfo.fromPlatform();
   String envFile = 'assets/env/prod.env'; // Default to prod
+  FirebaseOptions firebaseOptions = prod_options.DefaultFirebaseOptions.currentPlatform;
   
   if (packageInfo.packageName.endsWith('.dev')) {
     envFile = 'assets/env/dev.env';
+    firebaseOptions = dev_options.DefaultFirebaseOptions.currentPlatform;
   } else if (packageInfo.packageName.endsWith('.staging')) {
     envFile = 'assets/env/staging.env';
+    firebaseOptions = staging_options.DefaultFirebaseOptions.currentPlatform;
   }
   
   await dotenv.load(fileName: envFile);
 
   // ─── Initialize Firebase ───
   await Firebase.initializeApp(
-    // options: DefaultFirebaseOptions.currentPlatform,
-    // TODO(firebase): Uncomment above after running `flutterfire configure`
+    options: firebaseOptions,
   );
 
   // ─── Initialize App Check ───
