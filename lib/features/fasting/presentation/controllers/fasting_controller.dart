@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/enums/enums.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/analytics/analytics_service.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../dashboard/data/repositories/dashboard_stats_repository.dart';
 import '../../../gamification/application/services/achievement_engine_service.dart';
@@ -37,6 +38,7 @@ class FastingController extends StateNotifier<AsyncValue<void>> {
       );
 
       await _ref.read(fastingRepositoryProvider).saveFastingSession(session);
+      _ref.read(analyticsServiceProvider).logFastStarted(duration: plan.displayName);
 
       // Show Started notification immediately
       await _ref
@@ -109,6 +111,7 @@ class FastingController extends StateNotifier<AsyncValue<void>> {
       );
 
       await _ref.read(fastingRepositoryProvider).updateFastingSession(updated);
+      _ref.read(analyticsServiceProvider).logFastCompleted(durationMinutes: durationMinutes);
 
       if (completed) {
         final statsRepo = _ref.read(dashboardStatsRepositoryProvider);

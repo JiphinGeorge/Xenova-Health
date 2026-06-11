@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../../core/analytics/analytics_service.dart';
 import '../../../gamification/application/services/achievement_engine_service.dart';
 import '../../data/repositories/daily_nutrition_repository.dart';
 import '../../data/repositories/meal_log_repository.dart';
@@ -43,6 +44,12 @@ class NutritionController extends StateNotifier<AsyncValue<void>> {
 
       // Gamification Hook
       _ref.read(achievementEngineProvider).processNutritionEvent();
+      
+      // Analytics Hook
+      _ref.read(analyticsServiceProvider).logMealLogged(
+        mealType: mealLog.mealType.name,
+        calories: mealLog.totalCalories,
+      );
 
       state = const AsyncData(null);
     } catch (e, st) {
