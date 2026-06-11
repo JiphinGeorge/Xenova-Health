@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -88,6 +89,8 @@ class ProfilePhotoPicker extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).value;
+    final uploadState = ref.watch(profilePhotoUploadStateProvider);
+    final isUploading = uploadState.status == UploadStatus.uploading;
     final photoState = ref.watch(profilePhotoControllerProvider);
     final isLoading = photoState.isLoading;
 
@@ -97,7 +100,7 @@ class ProfilePhotoPicker extends ConsumerWidget {
     ImageProvider? imageProvider;
     if (hasPhoto) {
       if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
-        imageProvider = NetworkImage(photoUrl);
+        imageProvider = CachedNetworkImageProvider(photoUrl);
       } else if (photoUrl.startsWith('file://')) {
         // Strip the file:// prefix for the local File object
         imageProvider = FileImage(File(photoUrl.replaceFirst('file://', '')));
@@ -130,8 +133,11 @@ class ProfilePhotoPicker extends ConsumerWidget {
                   shape: BoxShape.circle,
                   color: Colors.black.withValues(alpha: 0.4),
                 ),
-                child: const Center(
-                  child: CircularProgressIndicator(color: Colors.white),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    value: isUploading && uploadState.progress > 0 ? uploadState.progress : null,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -61,6 +62,7 @@ class _ProgressPhotosScreenState extends ConsumerState<ProgressPhotosScreen> {
   @override
   Widget build(BuildContext context) {
     final photosAsync = ref.watch(progressPhotosStreamProvider);
+    final uploadState = ref.watch(progressPhotoUploadStateProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -140,9 +142,33 @@ class _ProgressPhotosScreenState extends ConsumerState<ProgressPhotosScreen> {
             );
           }
 
-          return _isGridView
+          final content = _isGridView
               ? _buildGridView(photos)
               : _buildTimelineView(photos);
+              
+          return Column(
+            children: [
+              if (uploadState.status == UploadStatus.uploading)
+                LinearProgressIndicator(value: uploadState.progress),
+              if (uploadState.status == UploadStatus.failed)
+                Container(
+                  color: AppColors.error.withValues(alpha: 0.1),
+                  padding: const EdgeInsets.all(8),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error, color: AppColors.error),
+                      const SizedBox(width: 8),
+                      const Expanded(child: Text('Upload failed. Please try again.')),
+                      TextButton(
+                        onPressed: _showAddDialog,
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              Expanded(child: content),
+            ],
+          );
         },
         loading: () => const Center(child: XenovaLoadingIndicator()),
         error: (e, st) =>
@@ -226,9 +252,11 @@ class _PhotoCard extends ConsumerWidget {
   final VoidCallback? onTap;
 
   ImageProvider _getImageProvider() {
-    if (photo.photoUrl.startsWith('http://') ||
+    if (photo.thumbnailUrl != null && photo.thumbnailUrl!.startsWith('http')) {
+      return CachedNetworkImageProvider(photo.thumbnailUrl!);
+    } else if (photo.photoUrl.startsWith('http://') ||
         photo.photoUrl.startsWith('https://')) {
-      return NetworkImage(photo.photoUrl);
+      return CachedNetworkImageProvider(photo.photoUrl);
     } else if (photo.photoUrl.startsWith('file://')) {
       return FileImage(File(photo.photoUrl.replaceFirst('file://', '')));
     }
@@ -369,7 +397,7 @@ class _TimelineCard extends ConsumerWidget {
   ImageProvider _getImageProvider() {
     if (photo.photoUrl.startsWith('http://') ||
         photo.photoUrl.startsWith('https://')) {
-      return NetworkImage(photo.photoUrl);
+      return CachedNetworkImageProvider(photo.photoUrl);
     } else if (photo.photoUrl.startsWith('file://')) {
       return FileImage(File(photo.photoUrl.replaceFirst('file://', '')));
     }

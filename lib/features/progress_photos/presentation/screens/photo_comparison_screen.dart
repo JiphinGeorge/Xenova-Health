@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -65,7 +66,7 @@ class _PhotoComparisonScreenState extends State<PhotoComparisonScreen> {
   ImageProvider _getImageProvider(ProgressPhotoModel photo) {
     if (photo.photoUrl.startsWith('http://') ||
         photo.photoUrl.startsWith('https://')) {
-      return NetworkImage(photo.photoUrl);
+      return CachedNetworkImageProvider(photo.photoUrl);
     } else if (photo.photoUrl.startsWith('file://')) {
       return FileImage(File(photo.photoUrl.replaceFirst('file://', '')));
     }
