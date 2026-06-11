@@ -1,3 +1,4 @@
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,6 +23,12 @@ Future<void> main() async {
   await Firebase.initializeApp(
     // options: DefaultFirebaseOptions.currentPlatform,
     // TODO(firebase): Uncomment above after running `flutterfire configure`
+  );
+
+  // ─── Initialize App Check ───
+  await FirebaseAppCheck.instance.activate(
+    androidProvider: AndroidProvider.playIntegrity,
+    appleProvider: AppleProvider.deviceCheck,
   );
 
   // ─── Initialize Crashlytics ───
