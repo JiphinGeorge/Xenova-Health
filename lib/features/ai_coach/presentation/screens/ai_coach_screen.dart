@@ -104,19 +104,19 @@ class _AICoachScreenState extends ConsumerState<AICoachScreen> {
   }
 
   Widget _buildQuickActions() {
-    return SizedBox(
-      height: 50,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingMd),
-        itemCount: _quickActions.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          return ActionChip(
-            label: Text(_quickActions[index]),
-            onPressed: () => _sendMessage(_quickActions[index]),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingMd, vertical: AppDimensions.spacingSm),
+      child: Row(
+        children: _quickActions.map((action) {
+          return Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: ActionChip(
+              label: Text(action),
+              onPressed: () => _sendMessage(action),
+            ),
           );
-        },
+        }).toList(),
       ),
     );
   }

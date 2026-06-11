@@ -145,11 +145,18 @@ class AICoachController extends StateNotifier<AICoachState> {
       // Gamification Hook
       _ref.read(achievementEngineProvider).processAiCoachEvent(false);
 
-    } catch (e) {
+    } catch (e, stack) {
+      print('AI Coach Error: $e\n$stack');
+      
+      String errorMsg = "AI Coach is temporarily unavailable.";
+      if (e.toString().contains("User location is not supported")) {
+        errorMsg = "Gemini API is not available in your region. Please connect to a VPN to use the AI Coach.";
+      }
+
       state = state.copyWith(
         isTyping: false,
         partialResponse: '',
-        errorMessage: "AI Coach is temporarily unavailable.",
+        errorMessage: errorMsg,
       );
       await _updateAiUsageStats(user.uid, 0, false, text);
     }
