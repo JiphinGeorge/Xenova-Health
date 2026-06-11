@@ -660,7 +660,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 size: 14,
                 color: enabled
                     ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                    : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
               ),
               const SizedBox(width: 4),
               Text(
@@ -668,7 +668,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 style: TextStyle(
                   color: enabled
                       ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                      : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                   fontWeight: FontWeight.w500,
                   decoration: enabled ? TextDecoration.none : TextDecoration.lineThrough,
                 ),
