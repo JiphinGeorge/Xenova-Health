@@ -10,6 +10,7 @@ import '../../data/services/ai_rate_limiter_service.dart';
 import '../../data/services/gemini_service.dart';
 import '../../domain/models/ai_context_model.dart';
 import '../../domain/models/chat_message_model.dart';
+import '../../../gamification/application/services/achievement_engine_service.dart';
 
 class AICoachState {
   final List<ChatMessageModel> messages;
@@ -137,6 +138,9 @@ class AICoachController extends StateNotifier<AICoachState> {
       await _chatRepo.addMessage(user.uid, assistantMessage);
       await _rateLimiter.recordRequest(user.uid);
       await _updateAiUsageStats(user.uid, assistantMessage.text.length, true, text);
+
+      // Gamification Hook
+      _ref.read(achievementEngineProvider).processAiCoachEvent(false);
 
     } catch (e) {
       state = state.copyWith(

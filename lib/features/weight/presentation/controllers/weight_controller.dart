@@ -7,6 +7,7 @@ import '../../../../core/enums/enums.dart';
 import '../../../../features/dashboard/data/repositories/dashboard_stats_repository.dart';
 import '../../../../features/dashboard/domain/models/dashboard_stats_model.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../gamification/application/services/achievement_engine_service.dart';
 import '../../data/repositories/weight_repository.dart';
 import '../../domain/models/weight_entry_model.dart';
 import '../../domain/models/weight_metrics.dart';
@@ -247,25 +248,7 @@ class WeightController extends AsyncNotifier<void> {
 
   /// Evaluates and triggers future achievement UI hooks.
   void _checkAchievements(double currentWeight, double? targetWeight) {
-    final metrics = ref.read(weightMetricsProvider);
-    final lost = metrics.weightLost ?? 0.0;
-
-    // Future Achievement Hooks
-    if (lost >= 10.0) {
-      // emit('lost_10kg');
-    } else if (lost >= 5.0) {
-      // emit('lost_5kg');
-    } else if (lost >= 1.0) {
-      // emit('lost_1kg');
-    }
-
-    if (targetWeight != null && currentWeight <= targetWeight) {
-      // emit('reached_goal');
-    }
-
-    if (metrics.startWeight == null) {
-      // emit('first_entry');
-    }
+    ref.read(achievementEngineProvider).processWeightEvent(currentWeight);
   }
 }
 

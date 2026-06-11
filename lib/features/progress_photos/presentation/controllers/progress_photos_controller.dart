@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../../core/storage/data/storage_provider.dart';
+import '../../../auth/domain/models/user_model.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../gamification/application/services/achievement_engine_service.dart';
+import '../../../../core/storage/data/storage_provider.dart';
 import '../../data/repositories/progress_photo_repository.dart';
 import '../../domain/models/progress_photo_model.dart';
 
@@ -75,27 +77,18 @@ class ProgressPhotosController extends AsyncNotifier<void> {
   }
 
   void _checkMilestones(ProgressPhotoModel newPhoto) {
-    // Wait for the stream to update and check the history.
-    // In a real app this might use an EventBus or dedicated AchievementService.
     Future.delayed(const Duration(seconds: 1), () {
       final photos = ref.read(progressPhotosStreamProvider).value ?? [];
 
       if (photos.isEmpty || photos.length == 1) {
-        debugPrint('[ACHIEVEMENT] First Progress Photo!');
+        ref.read(achievementEngineProvider).processProgressPhotoEvent(1);
         return;
       }
 
-      final firstPhoto =
-          photos.last; // Ordered newest first usually, so last is oldest.
+      final firstPhoto = photos.last; // Ordered newest first usually
       final daysDiff = newPhoto.date.difference(firstPhoto.date).inDays;
 
-      if (daysDiff >= 30 && daysDiff < 32) {
-        debugPrint('[ACHIEVEMENT] 30 Day Progress!');
-      } else if (daysDiff >= 60 && daysDiff < 62) {
-        debugPrint('[ACHIEVEMENT] 60 Day Progress!');
-      } else if (daysDiff >= 90 && daysDiff < 92) {
-        debugPrint('[ACHIEVEMENT] 90 Day Progress!');
-      }
+      ref.read(achievementEngineProvider).processProgressPhotoEvent(daysDiff);
     });
   }
 

@@ -64,6 +64,13 @@ class ProfileScreen extends ConsumerWidget {
                     child: Column(
                       children: [
                         ListTile(
+                          leading: const Icon(Icons.emoji_events),
+                          title: const Text('Achievements & Level'),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => context.push(AppRoutes.achievements),
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
                           leading: const Icon(Icons.photo_camera_back),
                           title: const Text('Progress Photos'),
                           trailing: const Icon(Icons.chevron_right),

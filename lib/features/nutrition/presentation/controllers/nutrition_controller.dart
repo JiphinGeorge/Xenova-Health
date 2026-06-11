@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../gamification/application/services/achievement_engine_service.dart';
 import '../../data/repositories/daily_nutrition_repository.dart';
 import '../../data/repositories/meal_log_repository.dart';
 import '../../domain/models/daily_nutrition_summary_model.dart';
@@ -39,6 +40,9 @@ class NutritionController extends StateNotifier<AsyncValue<void>> {
             sugar: mealLog.totalSugar,
             sodium: mealLog.totalSodium,
           );
+
+      // Gamification Hook
+      _ref.read(achievementEngineProvider).processNutritionEvent();
 
       state = const AsyncData(null);
     } catch (e, st) {

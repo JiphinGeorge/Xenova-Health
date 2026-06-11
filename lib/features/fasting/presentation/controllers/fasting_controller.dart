@@ -4,8 +4,9 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/enums/enums.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
-import '../../../dashboard/data/repositories/dashboard_stats_repository.dart';
-import '../../data/repositories/fasting_repository.dart';
+import '../../dashboard/data/repositories/dashboard_stats_repository.dart';
+import '../../gamification/application/services/achievement_engine_service.dart';
+import '../data/repositories/fasting_repository.dart';
 import '../../domain/models/fasting_session_model.dart';
 
 /// Controller for managing Intermittent Fasting operations.
@@ -144,6 +145,9 @@ class FastingController extends StateNotifier<AsyncValue<void>> {
             ),
           );
         }
+
+        // Gamification Hook
+        _ref.read(achievementEngineProvider).processFastingEvent(streak, updated.elapsedDuration.inHours);
       }
 
       // Cancel pending completion and reminder notifications

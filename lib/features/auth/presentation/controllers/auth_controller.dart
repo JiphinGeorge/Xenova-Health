@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/providers.dart';
 import '../../domain/models/user_model.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../../gamification/application/services/achievement_engine_service.dart';
 
 /// Controller managing the global authentication state.
 class AuthController extends AsyncNotifier<UserModel?> {
@@ -17,6 +18,10 @@ class AuthController extends AsyncNotifier<UserModel?> {
     // Subscribe to auth state changes from repository
     final sub = _repository.authStateChanges.listen((user) {
       state = AsyncData(user);
+      if (user != null) {
+        // Gamification Hook for daily logins
+        ref.read(achievementEngineProvider).processLoginEvent();
+      }
     });
 
     ref.onDispose(sub.cancel);

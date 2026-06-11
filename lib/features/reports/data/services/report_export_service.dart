@@ -12,6 +12,7 @@ import '../../../nutrition/data/repositories/daily_nutrition_repository.dart';
 import '../../../weight/data/repositories/weight_repository.dart';
 import '../../../ai_coach/data/services/gemini_service.dart';
 import '../../../ai_coach/domain/models/ai_context_model.dart';
+import '../../../gamification/application/services/achievement_engine_service.dart';
 import 'csv_generator.dart';
 import 'pdf_generator.dart';
 
@@ -107,6 +108,10 @@ class ReportExportService {
         calorieTargetMet: true,
       );
       aiSummary = await _geminiService.generateWeeklySummary(contextModel);
+      if (aiSummary != null && aiSummary.isNotEmpty) {
+        // Gamification Hook
+        _ref.read(achievementEngineProvider).processAiCoachEvent(true);
+      }
     }
 
     final pdfBytes = await _pdfGenerator.generateFullHealthReport(

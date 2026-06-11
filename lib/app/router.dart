@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/controllers/auth_controller.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/gamification/presentation/screens/achievements_dashboard_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
+import '../../features/gamification/presentation/screens/achievements_dashboard_screen.dart';
 import '../../features/fasting/presentation/screens/fasting_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_wizard_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
@@ -53,6 +55,7 @@ abstract final class AppRoutes {
   static const String foodDetails = '/food-details';
   static const String mealBuilderReview = '/meal-builder-review';
   static const String barcodeScanner = '/barcode-scanner';
+  static const String achievements = '/achievements';
 }
 
 /// GoRouter navigation keys for nested navigation.
@@ -174,6 +177,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'settings',
         builder: (context, state) =>
             const _PlaceholderScreen(title: 'Settings'),
+      ),
+      GoRoute(
+        path: AppRoutes.achievements,
+        name: 'achievements',
+        builder: (context, state) => const AchievementsDashboardScreen(),
       ),
       GoRoute(
         path: AppRoutes.mealLog,

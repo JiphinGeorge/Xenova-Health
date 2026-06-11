@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../features/gamification/application/services/achievement_engine_service.dart';
+import '../features/gamification/presentation/widgets/celebration_overlay.dart';
 import '../l10n/app_localizations.dart';
 import 'router.dart';
 import 'theme/app_theme.dart';
@@ -20,6 +22,14 @@ class XenovaHealthApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Xenova Health',
       debugShowCheckedModeBanner: false,
+
+      // ─── Global Overlays ───
+      builder: (context, child) {
+        return CelebrationOverlay(
+          eventStream: ref.watch(achievementEngineProvider).eventStream,
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
 
       // ─── Theme ───
       theme: AppTheme.light,
