@@ -64,6 +64,8 @@ class _AddWeightDialogState extends ConsumerState<AddWeightDialog> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    
+    final nav = Navigator.of(context);
 
     final weight = double.tryParse(_weightController.text);
     if (weight == null) return;
@@ -87,7 +89,9 @@ class _AddWeightDialogState extends ConsumerState<AddWeightDialog> {
               date: _selectedDate,
             );
       }
-      if (mounted) Navigator.pop(context);
+      if (mounted) {
+        nav.pop();
+      }
     } on Exception catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
