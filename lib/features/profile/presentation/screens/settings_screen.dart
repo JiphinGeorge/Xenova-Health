@@ -9,6 +9,9 @@ import '../../../../core/enums/enums.dart';
 import '../../../ai_coach/presentation/controllers/ai_coach_controller.dart';
 import '../../../auth/domain/models/user_model.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../core/config/app_info.dart';
+import '../../../core/storage/data/storage_provider.dart';
+import '../../../gamification/presentation/controllers/achievements_controller.dart';
 import '../../../progress_photos/presentation/controllers/progress_photos_controller.dart';
 import '../controllers/settings_controller.dart';
 import '../widgets/profile_photo_picker.dart';
@@ -161,6 +164,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final userAsync = ref.watch(authControllerProvider);
     final settings = ref.watch(settingsControllerProvider);
+    final appInfoAsync = ref.watch(appInfoProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -564,12 +568,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     padding: const EdgeInsets.all(AppDimensions.spacingLg),
                     child: Column(
                       children: [
-                        _buildAboutRow('Version', '1.0.0'),
-                        const Divider(),
-                        _buildAboutRow('Build Number', '12'),
-                        const Divider(),
-                        _buildAboutRow('Environment', 'Development'),
-                        const Divider(),
+                        appInfoAsync.when(
+                          data: (info) => Column(
+                            children: [
+                              _buildAboutRow('Version', info.version),
+                              _buildDivider(),
+                              _buildAboutRow('Build Number', info.buildNumber),
+                              _buildDivider(),
+                              _buildAboutRow('Environment', info.environment),
+                              _buildDivider(),
+                              _buildAboutRow('Flutter Version', '3.x'),
+                              _buildDivider(),
+                              _buildAboutRow('Backend', 'Firebase'),
+                              _buildDivider(),
+                              _buildAboutRow('AI', 'Gemini Enabled'),
+                            ],
+                          ),
+                          loading: () => const Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+                          error: (err, _) => Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Text('Error loading info: $err', style: const TextStyle(color: AppColors.error)),
+                          ),
+                        ),
                         ListTile(
                           title: const Text('Privacy Policy'),
                           contentPadding: EdgeInsets.zero,
