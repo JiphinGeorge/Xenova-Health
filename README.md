@@ -16,8 +16,6 @@
 
 ![GitHub Visitor's Badge](https://komarev.com/ghpvc/?username=JiphinGeorge&label=Profile%20Views&color=0e75b6&style=flat)
 <br/>
-<img src="https://github-readme-stats.vercel.app/api?username=JiphinGeorge&show_icons=true&theme=radical" alt="GitHub Stats" width="400"/>
-<img src="https://github-readme-streak-stats.herokuapp.com/?user=JiphinGeorge&theme=radical" alt="GitHub Streak" width="400"/>
 
 </div>
 
