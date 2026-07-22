@@ -14,9 +14,6 @@
 
 <br/>
 
-![GitHub Visitor's Badge](https://komarev.com/ghpvc/?username=JiphinGeorge&label=Profile%20Views&color=0e75b6&style=flat)
-<br/>
-
 </div>
 
 ---
