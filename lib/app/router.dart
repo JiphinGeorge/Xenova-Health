@@ -8,7 +8,6 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/gamification/presentation/screens/achievements_dashboard_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
-import '../../features/gamification/presentation/screens/achievements_dashboard_screen.dart';
 import '../../features/fasting/presentation/screens/fasting_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_wizard_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';

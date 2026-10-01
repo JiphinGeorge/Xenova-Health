@@ -9,7 +9,6 @@ import '../../../../app/theme/app_dimensions.dart';
 import '../../../../core/widgets/error_widget.dart';
 import '../../../../core/widgets/loading_indicator.dart';
 import '../../domain/models/progress_photo_model.dart';
-import '../../domain/models/progress_photo_model.dart';
 import '../controllers/progress_photos_controller.dart';
 import '../widgets/add_progress_photo_dialog.dart';
 import 'photo_comparison_screen.dart';

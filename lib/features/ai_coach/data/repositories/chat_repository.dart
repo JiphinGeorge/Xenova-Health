@@ -21,7 +21,7 @@ class ChatRepository {
     if (jsonStr == null) return [];
 
     try {
-      final List<dynamic> decoded = jsonDecode(jsonStr);
+      final List<dynamic> decoded = jsonDecode(jsonStr) as List<dynamic>;
       return decoded.map((e) => ChatMessageModel.fromJson(e as Map<String, dynamic>)).toList();
     } catch (e) {
       return [];

@@ -7,6 +7,9 @@ analyzer:
     - "**/*.gr.dart"
     - "lib/generated/**"
     - "test/.test_coverage.dart"
+    - build/**
+    - android/**
+    - ios/**
   errors:
     invalid_annotation_target: ignore
     missing_required_param: error
@@ -23,7 +26,6 @@ linter:
     - avoid_empty_else
     - avoid_print
     - avoid_relative_lib_imports
-    - avoid_returning_null_for_future
     - avoid_slow_async_io
     - avoid_type_to_string
     - cancel_subscriptions
@@ -52,7 +54,6 @@ linter:
     - avoid_redundant_argument_values
     - avoid_renaming_method_parameters
     - avoid_return_types_on_setters
-    - avoid_returning_null
     - avoid_returning_this
     - avoid_setters_without_getters
     - avoid_shadowing_type_parameters
@@ -83,7 +84,6 @@ linter:
     - omit_local_variable_types
     - only_throw_errors
     - overridden_fields
-    - package_api_docs
     - parameter_assignments
     - prefer_adjacent_string_concatenation
     - prefer_asserts_in_initializer_lists
@@ -95,7 +95,6 @@ linter:
     - prefer_const_literals_to_create_immutables
     - prefer_constructors_over_static_methods
     - prefer_contains
-    - prefer_equal_for_default_values
     - prefer_final_fields
     - prefer_final_in_for_each
     - prefer_final_locals

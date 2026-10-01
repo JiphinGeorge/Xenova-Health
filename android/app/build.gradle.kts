@@ -11,7 +11,7 @@ plugins {
 
 android {
     namespace = "com.xenovahealth.xenova_health"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

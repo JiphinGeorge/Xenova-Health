@@ -8,7 +8,6 @@ import '../../../auth/presentation/controllers/auth_controller.dart';
 
 import '../../../dashboard/data/repositories/dashboard_stats_repository.dart';
 import '../../../fasting/data/repositories/fasting_repository.dart';
-import '../../../nutrition/data/repositories/daily_nutrition_repository.dart';
 import '../../../weight/data/repositories/weight_repository.dart';
 import '../../../ai_coach/data/services/openai_service.dart';
 import '../../../ai_coach/domain/models/ai_context_model.dart';

@@ -22,7 +22,7 @@ class SettingsController extends StateNotifier<SettingsState> {
     final jsonStr = box.get('settings_data') as String?;
     if (jsonStr != null) {
       try {
-        final Map<String, dynamic> decoded = jsonDecode(jsonStr);
+        final Map<String, dynamic> decoded = jsonDecode(jsonStr) as Map<String, dynamic>;
         state = SettingsState.fromJson(decoded);
         return;
       } catch (_) {

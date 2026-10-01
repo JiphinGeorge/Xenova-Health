@@ -21,7 +21,7 @@ class AIRateLimiterService {
 
     if (jsonStr != null) {
       try {
-        final List<dynamic> decoded = jsonDecode(jsonStr);
+        final List<dynamic> decoded = jsonDecode(jsonStr) as List<dynamic>;
         timestamps = decoded.map((e) => DateTime.parse(e as String)).toList();
       } catch (_) {}
     }
@@ -53,7 +53,7 @@ class AIRateLimiterService {
 
     if (jsonStr != null) {
       try {
-        final List<dynamic> decoded = jsonDecode(jsonStr);
+        final List<dynamic> decoded = jsonDecode(jsonStr) as List<dynamic>;
         timestamps = decoded.map((e) => DateTime.parse(e as String)).toList();
       } catch (_) {}
     }
