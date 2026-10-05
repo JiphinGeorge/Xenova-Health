@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../dashboard/data/repositories/dashboard_stats_repository.dart';
 import '../../../fasting/data/repositories/fasting_repository.dart';
 import '../../../nutrition/data/repositories/daily_nutrition_repository.dart';
 import '../../../weight/data/repositories/weight_repository.dart';
@@ -13,13 +12,11 @@ class AnalyticsAggregationService {
     this._weightRepo,
     this._nutritionRepo,
     this._fastingRepo,
-    this._dashboardRepo,
   );
 
   final WeightRepository _weightRepo;
   final DailyNutritionRepository _nutritionRepo;
   final FastingRepository _fastingRepo;
-  final DashboardStatsRepository _dashboardRepo;
 
   /// Generates a time-bound analytics report.
   Future<AnalyticsReportModel> generateReport({
@@ -109,41 +106,7 @@ class AnalyticsAggregationService {
       generatedAt: DateTime.now(),
     );
 
-    // 3. Save Summary Snapshot for AI Coach and Overview
-    final snapshot = AnalyticsSnapshot(
-      weightMetrics: {
-        'weightChange': weightChange,
-        'consistency': weightConsistency,
-      },
-      nutritionMetrics: {
-        'averageCalories': avgCals,
-        'averageProtein': avgProtein,
-        'consistency': nutritionConsistency,
-      },
-      fastingMetrics: {
-        'averageDuration': avgFastDuration,
-        'completionRate': fastCompletionRate,
-      },
-      goalMetrics: {
-        'progressPercentage': goalProgressPct,
-      },
-      consistencyMetrics: {
-        'overallScore': consistencyScore,
-      },
-      recommendations: [
-        if (weightConsistency < 0.5) "Improve weight logging consistency.",
-        if (avgProtein < 100) "Increase protein intake.",
-        if (avgWater < 2000) "Increase daily water intake."
-      ],
-      snapshotVersion: '1.0',
-      generatedAt: DateTime.now(),
-      lastUpdated: DateTime.now(),
-    );
-
-    // Normally we'd save this snapshot inside the user's dashboard stats doc
-    // _dashboardRepo.updateAnalyticsSnapshot(userId, snapshot);
-    // Left as future implementation detail to prevent bloated overview doc
-    
+    // 3. Optional: Summary Snapshot for AI Coach and Overview (reserved for future overview sync)
     return report;
   }
 }
@@ -153,6 +116,5 @@ final analyticsAggregationServiceProvider = Provider<AnalyticsAggregationService
     ref.watch(weightRepositoryProvider),
     ref.watch(dailyNutritionRepositoryProvider),
     ref.watch(fastingRepositoryProvider),
-    ref.watch(dashboardStatsRepositoryProvider),
   );
 });

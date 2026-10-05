@@ -267,7 +267,7 @@ class NotificationsScreen extends ConsumerWidget {
   }
 
   void _showClearAllDialog(BuildContext context, WidgetRef ref) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear All Notifications'),

@@ -3,7 +3,6 @@ import 'package:uuid/uuid.dart';
 
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../dashboard/data/repositories/dashboard_stats_repository.dart';
-import '../../../dashboard/domain/models/dashboard_stats_model.dart';
 import '../../../dashboard/domain/models/ai_usage_stats_model.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/services/ai_rate_limiter_service.dart';

@@ -132,7 +132,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _selectTime(
     BuildContext context,
     TimeOfDay initialTime,
-    Function(TimeOfDay) onTimeSelected,
+    void Function(TimeOfDay) onTimeSelected,
   ) async {
     final picked = await showTimePicker(
       context: context,

@@ -66,7 +66,7 @@ $contextJson
       final messages = buildHistory(contextSnapshot, []);
       messages.add({'role': 'user', 'content': AiPromptTemplates.weeklySummary()});
 
-      final response = await Dio().post(
+      final response = await Dio().post<Map<String, dynamic>>(
         '$_baseUrl/chat/completions',
         options: Options(headers: {
           'Authorization': 'Bearer $_apiKey',
@@ -91,7 +91,7 @@ $contextJson
     history.add({'role': 'user', 'content': message});
 
     try {
-      final response = await _dio.post(
+      final response = await _dio.post<ResponseBody>(
         '/chat/completions',
         data: jsonEncode({
           'model': _model,

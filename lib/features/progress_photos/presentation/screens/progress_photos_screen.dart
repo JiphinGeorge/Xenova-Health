@@ -74,7 +74,7 @@ class _ProgressPhotosScreenState extends ConsumerState<ProgressPhotosScreen> {
                       final list = _selectedPhotos.toList();
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
+                        MaterialPageRoute<void>(
                           builder: (_) => PhotoComparisonScreen(
                             photo1: list[0],
                             photo2: list[1],

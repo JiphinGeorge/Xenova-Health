@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../profile/data/repositories/lifetime_stats_repository.dart';
-import '../../../profile/domain/models/lifetime_stats_model.dart';
 import '../../data/repositories/achievement_repository.dart';
 import '../../domain/config/achievement_config.dart';
 import '../../domain/models/achievement_model.dart';
