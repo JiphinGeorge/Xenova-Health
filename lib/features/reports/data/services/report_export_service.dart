@@ -11,6 +11,8 @@ import '../../../fasting/data/repositories/fasting_repository.dart';
 import '../../../weight/data/repositories/weight_repository.dart';
 import '../../../ai_coach/data/services/openai_service.dart';
 import '../../../ai_coach/domain/models/ai_context_model.dart';
+import '../../../dashboard/domain/models/dashboard_stats_model.dart';
+import '../../../dashboard/presentation/controllers/health_score_provider.dart';
 import '../../../gamification/application/services/achievement_engine_service.dart';
 import 'csv_generator.dart';
 import 'pdf_generator.dart';
