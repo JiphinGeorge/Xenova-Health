@@ -215,7 +215,52 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add to ${builderState.mealType}'),
+        title: PopupMenuButton<String>(
+          tooltip: 'Change meal category',
+          onSelected: (mealType) {
+            ref.read(mealLoggingProvider.notifier).setMealType(mealType);
+          },
+          itemBuilder: (context) => [
+            'Breakfast',
+            'Lunch',
+            'Dinner',
+            'Snack',
+          ].map((type) {
+            final isCurrent =
+                builderState.mealType.toLowerCase() == type.toLowerCase();
+            return PopupMenuItem(
+              value: type,
+              child: Row(
+                children: [
+                  Text(
+                    type,
+                    style: TextStyle(
+                      fontWeight:
+                          isCurrent ? FontWeight.bold : FontWeight.normal,
+                      color: isCurrent ? AppColors.primary : null,
+                    ),
+                  ),
+                  if (isCurrent) ...[
+                    const Spacer(),
+                    const Icon(Icons.check, size: 18, color: AppColors.primary),
+                  ],
+                ],
+              ),
+            );
+          }).toList(),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  'Add to ${builderState.mealType}',
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const Icon(Icons.arrow_drop_down, size: 22),
+            ],
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.post_add_outlined),
@@ -224,37 +269,81 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(64),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppDimensions.spacingMd,
-              vertical: 8,
-            ),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search foods (chicken, oats, eggs, rice...)',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          ref.read(foodSearchQueryProvider.notifier).state = '';
-                        },
-                      )
-                    : null,
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-                  borderSide: BorderSide.none,
+          preferredSize: const Size.fromHeight(114),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.spacingMd,
+                  vertical: 4,
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search foods (chicken, oats, eggs, rice...)',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchController.clear();
+                              ref.read(foodSearchQueryProvider.notifier).state =
+                                  '';
+                            },
+                          )
+                        : null,
+                    filled: true,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.radiusLg),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  onChanged: (val) {
+                    ref.read(foodSearchQueryProvider.notifier).state = val;
+                    setState(() {});
+                  },
                 ),
               ),
-              onChanged: (val) {
-                ref.read(foodSearchQueryProvider.notifier).state = val;
-                setState(() {});
-              },
-            ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.spacingMd,
+                  vertical: 4,
+                ),
+                child: Row(
+                  children: [
+                    'Breakfast',
+                    'Lunch',
+                    'Dinner',
+                    'Snack',
+                  ].map((type) {
+                    final isSelected = builderState.mealType.toLowerCase() ==
+                        type.toLowerCase();
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(type),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) {
+                            ref
+                                .read(mealLoggingProvider.notifier)
+                                .setMealType(type);
+                          }
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
           ),
         ),
       ),

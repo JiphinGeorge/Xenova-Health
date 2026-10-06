@@ -48,12 +48,12 @@ class NutritionController extends StateNotifier<AsyncValue<void>> {
 
       // 4. Gamification Hook (safe)
       try {
-        _ref.read(achievementEngineProvider).processNutritionEvent();
+        await _ref.read(achievementEngineProvider).processNutritionEvent();
       } catch (_) {}
 
       // 5. Analytics Hook (safe)
       try {
-        _ref.read(analyticsServiceProvider).logMealLogged(
+        await _ref.read(analyticsServiceProvider).logMealLogged(
           mealType: mealLog.mealType,
           calories: mealLog.totalCalories.toInt(),
         );

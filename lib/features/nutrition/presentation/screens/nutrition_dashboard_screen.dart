@@ -100,6 +100,12 @@ class _NutritionDashboardScreenState
     );
   }
 
+  void _openAddFoodFlow(BuildContext context) {
+    final recommendedMeal = MealLoggingController.getMealTypeForTime();
+    ref.read(mealLoggingProvider.notifier).setMealType(recommendedMeal);
+    context.push('/food-search');
+  }
+
   @override
   Widget build(BuildContext context) {
     final summaryAsync = ref.watch(dailyNutritionSummaryStreamProvider);
@@ -114,10 +120,7 @@ class _NutritionDashboardScreenState
           IconButton(
             icon: const Icon(Icons.add_circle_outline),
             tooltip: 'Log Food',
-            onPressed: () {
-              ref.read(mealLoggingProvider.notifier).setMealType('Breakfast');
-              context.push('/food-search');
-            },
+            onPressed: () => _openAddFoodFlow(context),
           ),
           IconButton(
             icon: const Icon(Icons.calendar_today),
@@ -271,10 +274,7 @@ class _NutritionDashboardScreenState
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          ref.read(mealLoggingProvider.notifier).setMealType('Breakfast');
-          context.push('/food-search');
-        },
+        onPressed: () => _openAddFoodFlow(context),
         icon: const Icon(Icons.add),
         label: const Text('Add Food'),
       ),

@@ -13,8 +13,8 @@ class MealBuilderState {
 
   MealBuilderState({
     this.items = const [],
-    this.mealType = 'Breakfast',
-  });
+    String? mealType,
+  }) : mealType = mealType ?? MealLoggingController.getMealTypeForTime();
 
   MealBuilderState copyWith({
     List<MealItemModel>? items,
@@ -43,9 +43,36 @@ class MealLoggingController extends StateNotifier<MealBuilderState> {
 
   final Ref _ref;
 
+  /// Returns the recommended meal category based on local time.
+  /// 4 AM - 11 AM: Breakfast
+  /// 11 AM - 4 PM: Lunch
+  /// 4 PM - 7 PM: Snack
+  /// 7 PM - 11 PM: Dinner
+  /// 11 PM - 4 AM: Snack
+  static String getMealTypeForTime([DateTime? time]) {
+    final now = (time ?? DateTime.now()).toLocal();
+    final hour = now.hour;
+    if (hour >= 4 && hour < 11) {
+      return 'Breakfast';
+    } else if (hour >= 11 && hour < 16) {
+      return 'Lunch';
+    } else if (hour >= 16 && hour < 19) {
+      return 'Snack';
+    } else if (hour >= 19 && hour < 23) {
+      return 'Dinner';
+    } else {
+      return 'Snack';
+    }
+  }
+
   /// Sets the meal category (Breakfast, Lunch, Dinner, Snack)
   void setMealType(String mealType) {
     state = state.copyWith(mealType: mealType);
+  }
+
+  /// Resets meal category to current time-of-day recommendation.
+  void setMealTypeFromCurrentTime() {
+    setMealType(getMealTypeForTime());
   }
 
   /// Adds a food item to the current meal being built.
