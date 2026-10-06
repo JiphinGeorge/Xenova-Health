@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../dashboard/data/repositories/dashboard_stats_repository.dart';
 import '../../../dashboard/domain/models/ai_usage_stats_model.dart';
+import '../../../dashboard/presentation/controllers/health_score_provider.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/services/ai_rate_limiter_service.dart';
 import '../../data/services/openai_service.dart';
@@ -199,7 +200,8 @@ class AICoachController extends StateNotifier<AICoachState> {
       gender: user?.gender?.name,
       heightCm: user?.heightCm,
       goalType: user?.primaryGoal?.name,
-      healthScore: stats?.healthScore?.overallHealthScore ?? 0.0,
+      healthScore: stats?.healthScore?.overallHealthScore ??
+          _ref.read(healthScoreProvider).overallHealthScore,
       consistencyScore: 0.0, // Should come from Analytics Snapshot
       weightTrend: 0.0,
       nutritionMetrics: {},
