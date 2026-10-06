@@ -10,6 +10,7 @@ import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../../core/analytics/analytics_service.dart';
 import '../../../gamification/application/services/achievement_engine_service.dart';
 import '../../../../core/storage/data/storage_provider.dart';
+import '../../../profile/data/repositories/lifetime_stats_repository.dart';
 import '../../data/repositories/progress_photo_repository.dart';
 import '../../domain/models/progress_photo_model.dart';
 

@@ -82,13 +82,20 @@ class LocalStorageRepositoryImpl implements StorageRepository {
 
   @override
   Future<void> deleteFile(String pathOrUri) async {
-    if (!pathOrUri.startsWith('file://')) return;
+    String path = pathOrUri;
+    if (path.startsWith('file://')) {
+      try {
+        path = Uri.parse(pathOrUri).toFilePath();
+      } catch (_) {
+        path = pathOrUri.replaceFirst('file://', '');
+      }
+    }
 
-    final path = pathOrUri.replaceFirst('file://', '');
     final file = File(path);
-
     if (await file.exists()) {
-      await file.delete();
+      try {
+        await file.delete();
+      } catch (_) {}
     }
   }
 }

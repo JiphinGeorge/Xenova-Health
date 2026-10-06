@@ -5,117 +5,59 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_dimensions.dart';
+import '../../../../core/enums/activity_level.dart';
+import '../../../../core/enums/diet_type.dart';
+import '../../../../core/enums/fasting_plan.dart';
+import '../../../../core/enums/gender.dart';
+import '../../../../core/enums/primary_goal.dart';
+import '../../../auth/domain/models/user_model.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../data/repositories/lifetime_stats_repository.dart';
 import '../widgets/profile_photo_picker.dart';
 
-/// Screen displaying the user's profile information and settings.
+/// Screen displaying the user's profile information, vitals, lifetime stats, and settings.
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authControllerProvider).value;
+    final userAsync = ref.watch(authControllerProvider);
+    final user = userAsync.value;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Settings',
             onPressed: () => context.push(AppRoutes.settings),
           ),
         ],
       ),
       body: user == null
-          ? const Center(child: CircularProgressIndicator())
+          ? _buildGuestOrLoading(context, ref, userAsync.isLoading)
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(AppDimensions.spacingXl),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.spacingLg,
+                vertical: AppDimensions.spacingMd,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: AppDimensions.spacingXl),
-                  const Center(child: ProfilePhotoPicker(radius: 64)),
+                  // 1. Profile Avatar & Name Section
+                  _buildHeader(context, ref, user),
                   const SizedBox(height: AppDimensions.spacingLg),
-                  Text(
-                    user.displayName ?? 'User',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppDimensions.spacingXs),
-                  Text(
-                    user.email,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppDimensions.spacing3xl),
 
-                  Card(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        AppDimensions.radiusLg,
-                      ),
-                      side: BorderSide(color: Theme.of(context).dividerColor),
-                    ),
-                    child: Column(
-                      children: [
-                        ListTile(
-                          leading: const Icon(Icons.emoji_events),
-                          title: const Text('Achievements & Level'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => context.push(AppRoutes.achievements),
-                        ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(Icons.photo_camera_back),
-                          title: const Text('Progress Photos'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => context.push(AppRoutes.progressPhotos),
-                        ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(Icons.account_circle_outlined),
-                          title: const Text('Account Details'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () {},
-                        ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(Icons.bar_chart),
-                          title: const Text('Analytics'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => context.push(AppRoutes.reports),
-                        ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(Icons.file_download_outlined),
-                          title: const Text('Export Data'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => context.push(AppRoutes.exportData),
-                        ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(
-                            Icons.logout,
-                            color: AppColors.error,
-                          ),
-                          title: const Text(
-                            'Sign Out',
-                            style: TextStyle(color: AppColors.error),
-                          ),
-                          onTap: () {
-                            ref.read(authControllerProvider.notifier).signOut();
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
+                  // 2. Health Vitals Card
+                  _buildVitalsCard(context, ref, user),
+                  const SizedBox(height: AppDimensions.spacingLg),
+
+                  // 3. Navigation List Card
+                  _buildMenuCard(context, ref, user),
                   const SizedBox(height: AppDimensions.spacingXl),
+
+                  // 4. Lifetime Stats Grid
                   Text(
                     'Lifetime Stats',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -131,7 +73,298 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildLifetimeStatsGrid(BuildContext context, WidgetRef ref, String userId) {
+  Widget _buildGuestOrLoading(
+    BuildContext context,
+    WidgetRef ref,
+    bool isLoading,
+  ) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimensions.spacingXl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.account_circle, size: 80, color: Colors.grey),
+            const SizedBox(height: AppDimensions.spacingMd),
+            const Text(
+              'No active profile found',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: AppDimensions.spacingSm),
+            const Text(
+              'Please log in or refresh your session to view your profile.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: AppDimensions.spacingLg),
+            FilledButton.icon(
+              onPressed: () => context.go(AppRoutes.login),
+              icon: const Icon(Icons.login),
+              label: const Text('Go to Login'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, WidgetRef ref, UserModel user) {
+    return Column(
+      children: [
+        const SizedBox(height: AppDimensions.spacingSm),
+        const Center(child: ProfilePhotoPicker(radius: 56)),
+        const SizedBox(height: AppDimensions.spacingMd),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Flexible(
+              child: Text(
+                user.displayName?.isNotEmpty == true
+                    ? user.displayName!
+                    : 'Health Enthusiast',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 20),
+              tooltip: 'Edit Profile',
+              onPressed: () => _showEditProfileModal(context, ref, user),
+            ),
+          ],
+        ),
+        Text(
+          user.email,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVitalsCard(BuildContext context, WidgetRef ref, UserModel user) {
+    final weight = user.currentWeightKg;
+    final targetWeight = user.targetWeightKg;
+    final height = user.heightCm;
+    final waterGoal = user.dailyWaterGoalMl ?? 2000;
+
+    double? bmi;
+    String bmiCategory = '';
+    if (weight != null && height != null && height > 0) {
+      bmi = weight / ((height / 100) * (height / 100));
+      if (bmi < 18.5) {
+        bmiCategory = 'Underweight';
+      } else if (bmi < 25.0) {
+        bmiCategory = 'Normal';
+      } else if (bmi < 30.0) {
+        bmiCategory = 'Overweight';
+      } else {
+        bmiCategory = 'Obese';
+      }
+    }
+
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        side: BorderSide(color: Theme.of(context).dividerColor),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimensions.spacingMd),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: _VitalItem(
+                    label: 'Weight',
+                    value: weight != null
+                        ? '${weight.toStringAsFixed(1)} kg'
+                        : '--',
+                    subtext: targetWeight != null
+                        ? 'Goal: ${targetWeight.toStringAsFixed(1)} kg'
+                        : 'No target',
+                    icon: Icons.monitor_weight_outlined,
+                    color: Colors.orange,
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 48,
+                  color: Theme.of(context).dividerColor,
+                ),
+                Expanded(
+                  child: _VitalItem(
+                    label: 'Height',
+                    value: height != null ? '${height.toInt()} cm' : '--',
+                    subtext: bmi != null
+                        ? 'BMI ${bmi.toStringAsFixed(1)} ($bmiCategory)'
+                        : '--',
+                    icon: Icons.height_outlined,
+                    color: Colors.blue,
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: _VitalItem(
+                    label: 'Hydration Goal',
+                    value: '$waterGoal ml',
+                    subtext: '${(waterGoal / 250).round()} glasses',
+                    icon: Icons.water_drop_outlined,
+                    color: Colors.cyan,
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 48,
+                  color: Theme.of(context).dividerColor,
+                ),
+                Expanded(
+                  child: _VitalItem(
+                    label: 'Primary Goal',
+                    value: user.primaryGoal?.label ?? 'Healthy Living',
+                    subtext: user.activityLevel?.label ?? 'Active',
+                    icon: Icons.track_changes_outlined,
+                    color: Colors.green,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuCard(BuildContext context, WidgetRef ref, UserModel user) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        side: BorderSide(color: Theme.of(context).dividerColor),
+      ),
+      child: Column(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.person_outline, color: AppColors.primary),
+            title: const Text('Account Details'),
+            subtitle: const Text('Name, Age, Height, Weight, Goals'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _showEditProfileModal(context, ref, user),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(
+              Icons.emoji_events_outlined,
+              color: Colors.amber,
+            ),
+            title: const Text('Achievements & Level'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.achievements),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(
+              Icons.photo_camera_back_outlined,
+              color: Colors.teal,
+            ),
+            title: const Text('Progress Photos'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.progressPhotos),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.bar_chart_outlined, color: Colors.indigo),
+            title: const Text('Analytics & Reports'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.reports),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(
+              Icons.file_download_outlined,
+              color: Colors.deepPurple,
+            ),
+            title: const Text('Export Data'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.exportData),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.settings_outlined, color: Colors.blueGrey),
+            title: const Text('Settings & Preferences'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.settings),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.logout, color: AppColors.error),
+            title: const Text(
+              'Sign Out',
+              style: TextStyle(color: AppColors.error),
+            ),
+            onTap: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Sign Out'),
+                  content: const Text('Are you sure you want to sign out?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('Cancel'),
+                    ),
+                    FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.error,
+                      ),
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text('Sign Out'),
+                    ),
+                  ],
+                ),
+              );
+              if (confirm == true) {
+                await ref.read(authControllerProvider.notifier).signOut();
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditProfileModal(
+    BuildContext context,
+    WidgetRef ref,
+    UserModel user,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _EditProfileBottomSheet(user: user, ref: ref),
+    );
+  }
+
+  Widget _buildLifetimeStatsGrid(
+    BuildContext context,
+    WidgetRef ref,
+    String userId,
+  ) {
     final statsAsync = ref.watch(lifetimeStatsStreamProvider);
 
     return statsAsync.when(
@@ -189,6 +422,437 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
+class _VitalItem extends StatelessWidget {
+  const _VitalItem({
+    required this.label,
+    required this.value,
+    required this.subtext,
+    required this.icon,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final String subtext;
+  final IconData icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingSm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 16),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            overflow: TextOverflow.ellipsis,
+          ),
+          Text(
+            subtext,
+            style: const TextStyle(fontSize: 11, color: Colors.grey),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EditProfileBottomSheet extends StatefulWidget {
+  const _EditProfileBottomSheet({required this.user, required this.ref});
+
+  final UserModel user;
+  final WidgetRef ref;
+
+  @override
+  State<_EditProfileBottomSheet> createState() =>
+      _EditProfileBottomSheetState();
+}
+
+class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _ageController;
+  late final TextEditingController _heightController;
+  late final TextEditingController _weightController;
+  late final TextEditingController _targetWeightController;
+  late final TextEditingController _waterGoalController;
+
+  Gender? _gender;
+  PrimaryGoal? _primaryGoal;
+  ActivityLevel? _activityLevel;
+  DietType? _dietType;
+  FastingPlan? _fastingPlan;
+
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final u = widget.user;
+    _nameController = TextEditingController(text: u.displayName ?? '');
+    _ageController = TextEditingController(text: u.age?.toString() ?? '');
+    _heightController = TextEditingController(
+      text: u.heightCm?.toString() ?? '',
+    );
+    _weightController = TextEditingController(
+      text: u.currentWeightKg?.toString() ?? '',
+    );
+    _targetWeightController = TextEditingController(
+      text: u.targetWeightKg?.toString() ?? '',
+    );
+    _waterGoalController = TextEditingController(
+      text: (u.dailyWaterGoalMl ?? 2000).toString(),
+    );
+
+    _gender = u.gender;
+    _primaryGoal = u.primaryGoal;
+    _activityLevel = u.activityLevel;
+    _dietType = u.preferredDiet;
+    _fastingPlan = u.fastingPlan;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _ageController.dispose();
+    _heightController.dispose();
+    _weightController.dispose();
+    _targetWeightController.dispose();
+    _waterGoalController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveProfile() async {
+    setState(() => _isSaving = true);
+    try {
+      final updatedUser = widget.user.copyWith(
+        displayName: _nameController.text.trim().isNotEmpty
+            ? _nameController.text.trim()
+            : widget.user.displayName,
+        age: int.tryParse(_ageController.text.trim()),
+        gender: _gender,
+        heightCm: double.tryParse(_heightController.text.trim()),
+        currentWeightKg: double.tryParse(_weightController.text.trim()),
+        targetWeightKg: double.tryParse(_targetWeightController.text.trim()),
+        dailyWaterGoalMl:
+            int.tryParse(_waterGoalController.text.trim()) ?? 2000,
+        primaryGoal: _primaryGoal,
+        activityLevel: _activityLevel,
+        preferredDiet: _dietType,
+        fastingPlan: _fastingPlan,
+      );
+
+      await widget.ref
+          .read(authControllerProvider.notifier)
+          .saveUserProfile(updatedUser);
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile updated successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save profile: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.only(
+        top: AppDimensions.spacingLg,
+        left: AppDimensions.spacingLg,
+        right: AppDimensions.spacingLg,
+        bottom: bottomInset + AppDimensions.spacingLg,
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).dividerColor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppDimensions.spacingMd),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Account Details',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppDimensions.spacingMd),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Display Name',
+                        prefixIcon: Icon(Icons.person_outline),
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: AppDimensions.spacingMd),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _ageController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Age',
+                              prefixIcon: Icon(Icons.cake_outlined),
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppDimensions.spacingMd),
+                        Expanded(
+                          child: DropdownButtonFormField<Gender>(
+                            value: _gender,
+                            decoration: const InputDecoration(
+                              labelText: 'Gender',
+                              border: OutlineInputBorder(),
+                            ),
+                            items: Gender.values.map((g) {
+                              return DropdownMenuItem(
+                                value: g,
+                                child: Text(g.label),
+                              );
+                            }).toList(),
+                            onChanged: (val) => setState(() => _gender = val),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppDimensions.spacingMd),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _heightController,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: const InputDecoration(
+                              labelText: 'Height (cm)',
+                              prefixIcon: Icon(Icons.height),
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppDimensions.spacingMd),
+                        Expanded(
+                          child: TextField(
+                            controller: _weightController,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: const InputDecoration(
+                              labelText: 'Current Wt (kg)',
+                              prefixIcon: Icon(Icons.monitor_weight_outlined),
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppDimensions.spacingMd),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _targetWeightController,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: const InputDecoration(
+                              labelText: 'Target Wt (kg)',
+                              prefixIcon: Icon(Icons.flag_outlined),
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppDimensions.spacingMd),
+                        Expanded(
+                          child: TextField(
+                            controller: _waterGoalController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Water Goal (ml)',
+                              prefixIcon: Icon(Icons.water_drop_outlined),
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppDimensions.spacingMd),
+                    DropdownButtonFormField<PrimaryGoal>(
+                      value: _primaryGoal,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Primary Goal',
+                        prefixIcon: Icon(Icons.track_changes_outlined),
+                        border: OutlineInputBorder(),
+                      ),
+                      items: PrimaryGoal.values.map((goal) {
+                        return DropdownMenuItem(
+                          value: goal,
+                          child: Text(goal.label),
+                        );
+                      }).toList(),
+                      onChanged: (val) => setState(() => _primaryGoal = val),
+                    ),
+                    const SizedBox(height: AppDimensions.spacingMd),
+                    DropdownButtonFormField<ActivityLevel>(
+                      value: _activityLevel,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Activity Level',
+                        prefixIcon: Icon(Icons.directions_run),
+                        border: OutlineInputBorder(),
+                      ),
+                      items: ActivityLevel.values.map((act) {
+                        return DropdownMenuItem(
+                          value: act,
+                          child: Text('${act.label} (${act.description})'),
+                        );
+                      }).toList(),
+                      onChanged: (val) => setState(() => _activityLevel = val),
+                    ),
+                    const SizedBox(height: AppDimensions.spacingMd),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButtonFormField<DietType>(
+                            value: _dietType,
+                            isExpanded: true,
+                            decoration: const InputDecoration(
+                              labelText: 'Diet Type',
+                              border: OutlineInputBorder(),
+                            ),
+                            items: DietType.values.map((d) {
+                              return DropdownMenuItem(
+                                value: d,
+                                child: Text(d.label),
+                              );
+                            }).toList(),
+                            onChanged: (val) =>
+                                setState(() => _dietType = val),
+                          ),
+                        ),
+                        const SizedBox(width: AppDimensions.spacingMd),
+                        Expanded(
+                          child: DropdownButtonFormField<FastingPlan>(
+                            value: _fastingPlan,
+                            isExpanded: true,
+                            decoration: const InputDecoration(
+                              labelText: 'Fasting Plan',
+                              border: OutlineInputBorder(),
+                            ),
+                            items: FastingPlan.values.map((f) {
+                              return DropdownMenuItem(
+                                value: f,
+                                child: Text(f.displayName),
+                              );
+                            }).toList(),
+                            onChanged: (val) =>
+                                setState(() => _fastingPlan = val),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppDimensions.spacingLg),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: AppDimensions.spacingMd),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(50),
+              ),
+              onPressed: _isSaving ? null : _saveProfile,
+              child: _isSaving
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      'Save Changes',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _LifetimeStatCard extends StatelessWidget {
   const _LifetimeStatCard({
     required this.title,
@@ -207,7 +871,9 @@ class _LifetimeStatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppDimensions.spacingMd),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
         border: Border.all(color: Theme.of(context).dividerColor),
       ),

@@ -136,7 +136,7 @@ class ProfilePhotoPicker extends ConsumerWidget {
       file = File(path);
     }
 
-    if (file != null && file.existsSync()) {
+    if (file.existsSync()) {
       return Image.file(
         file,
         key: ValueKey(photoUrl),
