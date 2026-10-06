@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/providers.dart';
 import '../../../../core/firebase/firestore_service.dart';
 import '../../domain/models/daily_nutrition_summary_model.dart';
@@ -14,29 +18,89 @@ class DailyNutritionRepository {
   String _summaryPath(String userId, String dateString) =>
       'users/$userId/daily_summaries/$dateString';
 
+  Box<dynamic> get _summaryBox =>
+      Hive.box<dynamic>(AppConstants.dailySummaryBox);
+
+  DailyNutritionSummaryModel? _getFromHive(String userId, String dateString) {
+    try {
+      final key = '${userId}_$dateString';
+      final val = _summaryBox.get(key) ?? _summaryBox.get(dateString);
+      if (val is Map) {
+        return DailyNutritionSummaryModel.fromJson(
+          Map<String, dynamic>.from(val),
+        );
+      }
+    } catch (_) {}
+    return null;
+  }
+
   /// Watches the daily nutrition summary for a specific date.
+  /// Emits instantly from local Hive, updates reactively, and syncs Firestore in background.
   Stream<DailyNutritionSummaryModel?> watchDailySummary(
     String userId,
     String dateString,
   ) {
-    return _firestoreService
-        .streamDocument(_summaryPath(userId, dateString))
-        .map((doc) {
-          if (!doc.exists) return null;
-          return DailyNutritionSummaryModel.fromJson(doc.data()!);
+    late final StreamController<DailyNutritionSummaryModel?> controller;
+    StreamSubscription? hiveSub;
+    StreamSubscription? firestoreSub;
+
+    controller = StreamController<DailyNutritionSummaryModel?>.broadcast(
+      onListen: () {
+        // 1. Emit Hive data immediately
+        controller.add(_getFromHive(userId, dateString));
+
+        // 2. Listen to Hive changes
+        hiveSub = _summaryBox.watch().listen((_) {
+          if (!controller.isClosed) {
+            controller.add(_getFromHive(userId, dateString));
+          }
         });
+
+        // 3. Background Firestore sync
+        try {
+          firestoreSub = _firestoreService
+              .streamDocument(_summaryPath(userId, dateString))
+              .listen(
+            (doc) {
+              if (doc.exists && doc.data() != null) {
+                final data = doc.data()!;
+                _summaryBox.put('${userId}_$dateString', data);
+                _summaryBox.put(dateString, data);
+                if (!controller.isClosed) {
+                  controller.add(
+                    DailyNutritionSummaryModel.fromJson(data),
+                  );
+                }
+              }
+            },
+            onError: (_) {},
+          );
+        } catch (_) {}
+      },
+      onCancel: () {
+        hiveSub?.cancel();
+        firestoreSub?.cancel();
+      },
+    );
+
+    return controller.stream;
   }
 
   /// Sets or creates the initial daily summary document.
   Future<void> setDailySummary(DailyNutritionSummaryModel summary) async {
-    await _firestoreService.setDocument(
-      path: _summaryPath(summary.userId, summary.dateString),
-      data: summary.toJson(),
-    );
+    final key = '${summary.userId}_${summary.dateString}';
+    await _summaryBox.put(key, summary.toJson());
+    await _summaryBox.put(summary.dateString, summary.toJson());
+
+    try {
+      await _firestoreService.setDocument(
+        path: _summaryPath(summary.userId, summary.dateString),
+        data: summary.toJson(),
+      );
+    } catch (_) {}
   }
 
-  /// Transactionally updates the macros when a meal is added.
-  /// If the document doesn't exist, it creates it using default targets.
+  /// Updates the macros when a meal is added.
   Future<void> addMacros(
     String userId,
     String dateString, {
@@ -48,88 +112,65 @@ class DailyNutritionRepository {
     double? sugar,
     double? sodium,
   }) async {
-    final docRef = _firestore.doc(_summaryPath(userId, dateString));
+    final current = _getFromHive(userId, dateString);
 
-    await _firestore.runTransaction((transaction) async {
-      final snapshot = await transaction.get(docRef);
+    final currentCalories = current?.totalCalories ?? 0.0;
+    final currentProtein = current?.totalProtein ?? 0.0;
+    final currentCarbs = current?.totalCarbs ?? 0.0;
+    final currentFat = current?.totalFat ?? 0.0;
+    final currentFiber = current?.totalFiber ?? 0.0;
+    final currentSugar = current?.totalSugar ?? 0.0;
+    final currentSodium = current?.totalSodium ?? 0.0;
+    final currentMealCount = current?.mealCount ?? 0;
+    final targetCalories = current?.targetCalories ?? 2000.0;
+    final targetProtein = current?.targetProtein ?? 150.0;
 
-      if (!snapshot.exists) {
-        // Create initial empty document
-        final initial = DailyNutritionSummaryModel(
-          userId: userId,
-          dateString: dateString,
-          totalCalories: calories,
-          totalProtein: protein,
-          totalCarbs: carbs,
-          totalFat: fat,
-          totalFiber: fiber ?? 0.0,
-          totalSugar: sugar ?? 0.0,
-          totalSodium: sodium ?? 0.0,
-          waterIntakeMl: 0,
-          mealCount: 1,
-          averageCaloriesPerMeal: calories,
-          targetCalories: 2000, // Ideally pulled from User Profile later
-          targetProtein: 150,
-          targetCarbs: 200,
-          targetFat: 65,
-          waterGoalMl: 2500,
-          remainingCalories: 2000 - calories,
-          lastUpdated: DateTime.now(),
-        );
-        transaction.set(docRef, initial.toJson());
-        return;
-      }
+    final newCals = currentCalories + calories;
+    final newProtein = currentProtein + protein;
+    final newCarbs = currentCarbs + carbs;
+    final newFat = currentFat + fat;
+    final newFiber = currentFiber + (fiber ?? 0.0);
+    final newSugar = currentSugar + (sugar ?? 0.0);
+    final newSodium = currentSodium + (sodium ?? 0.0);
+    final newMealCount = currentMealCount + 1;
+    final avgCals = newMealCount > 0 ? newCals / newMealCount : newCals;
 
-      final currentData = snapshot.data()!;
-      final currentCalories = (currentData['totalCalories'] as num).toDouble();
-      final currentProtein = (currentData['totalProtein'] as num).toDouble();
-      final currentCarbs = (currentData['totalCarbs'] as num).toDouble();
-      final currentFat = (currentData['totalFat'] as num).toDouble();
-      final currentFiber =
-          (currentData['totalFiber'] as num?)?.toDouble() ?? 0.0;
-      final currentSugar =
-          (currentData['totalSugar'] as num?)?.toDouble() ?? 0.0;
-      final currentSodium =
-          (currentData['totalSodium'] as num?)?.toDouble() ?? 0.0;
+    final proteinMet = newProtein >= targetProtein;
+    final calExceeded = newCals > targetCalories;
+    final calMet = newCals >= (targetCalories - 100) && !calExceeded;
+    final fiberMet = newFiber >= 30.0;
 
-      final targetCalories = (currentData['targetCalories'] as num?)?.toDouble() ?? 2000;
-      final currentMealCount = (currentData['mealCount'] as num?)?.toInt() ?? 0;
+    final updated = DailyNutritionSummaryModel(
+      userId: userId,
+      dateString: dateString,
+      totalCalories: newCals,
+      totalProtein: newProtein,
+      totalCarbs: newCarbs,
+      totalFat: newFat,
+      totalFiber: newFiber,
+      totalSugar: newSugar,
+      totalSodium: newSodium,
+      waterIntakeMl: current?.waterIntakeMl ?? 0,
+      mealCount: newMealCount,
+      averageCaloriesPerMeal: avgCals,
+      targetCalories: targetCalories,
+      targetProtein: targetProtein,
+      targetCarbs: current?.targetCarbs ?? 200.0,
+      targetFat: current?.targetFat ?? 65.0,
+      waterGoalMl: current?.waterGoalMl ?? 2500,
+      remainingCalories: (targetCalories - newCals).clamp(0.0, double.infinity),
+      proteinTargetMet: proteinMet,
+      calorieTargetExceeded: calExceeded,
+      calorieTargetMet: calMet,
+      fiberGoalMet: fiberMet,
+      lastUpdated: DateTime.now(),
+    );
 
-      final newCals = currentCalories + calories;
-      final newProtein = currentProtein + protein;
-      final newMealCount = currentMealCount + 1;
-      final averageCalories = newCals / newMealCount;
-
-      // Simple AI signals logic
-      final targetProtein = (currentData['targetProtein'] as num?)?.toDouble() ?? 150;
-      final targetFiber = 30.0; // Hardcoded default
-      
-      final proteinMet = newProtein >= targetProtein;
-      final calExceeded = newCals > targetCalories;
-      final calMet = newCals >= (targetCalories - 100) && !calExceeded; // Within 100 kcal
-      final fiberMet = (currentFiber + (fiber ?? 0.0)) >= targetFiber;
-
-      transaction.update(docRef, {
-        'totalCalories': newCals,
-        'totalProtein': newProtein,
-        'totalCarbs': currentCarbs + carbs,
-        'totalFat': currentFat + fat,
-        'totalFiber': currentFiber + (fiber ?? 0.0),
-        'totalSugar': currentSugar + (sugar ?? 0.0),
-        'totalSodium': currentSodium + (sodium ?? 0.0),
-        'mealCount': newMealCount,
-        'averageCaloriesPerMeal': averageCalories,
-        'remainingCalories': (targetCalories - newCals).clamp(0.0, double.infinity),
-        'proteinTargetMet': proteinMet,
-        'calorieTargetExceeded': calExceeded,
-        'calorieTargetMet': calMet,
-        'fiberGoalMet': fiberMet,
-        'lastUpdated': DateTime.now().toIso8601String(),
-      });
-    });
+    // Save locally to Hive immediately so UI updates without network latency
+    await setDailySummary(updated);
   }
 
-  /// Transactionally updates the macros when a meal is removed.
+  /// Updates the macros when a meal is removed.
   Future<void> removeMacros(
     String userId,
     String dateString, {
@@ -141,59 +182,62 @@ class DailyNutritionRepository {
     double? sugar,
     double? sodium,
   }) async {
-    final docRef = _firestore.doc(_summaryPath(userId, dateString));
+    final current = _getFromHive(userId, dateString);
+    if (current == null) return;
 
-    await _firestore.runTransaction((transaction) async {
-      final snapshot = await transaction.get(docRef);
-      if (!snapshot.exists) return;
+    final currentCalories = current.totalCalories;
+    final currentProtein = current.totalProtein;
+    final currentCarbs = current.totalCarbs;
+    final currentFat = current.totalFat;
+    final currentFiber = current.totalFiber ?? 0.0;
+    final currentSugar = current.totalSugar ?? 0.0;
+    final currentSodium = current.totalSodium ?? 0.0;
+    final currentMealCount = current.mealCount;
+    final targetCalories = current.targetCalories;
+    final targetProtein = current.targetProtein ?? 150.0;
 
-      final currentData = snapshot.data()!;
-      final currentCalories = (currentData['totalCalories'] as num).toDouble();
-      final currentProtein = (currentData['totalProtein'] as num).toDouble();
-      final currentCarbs = (currentData['totalCarbs'] as num).toDouble();
-      final currentFat = (currentData['totalFat'] as num).toDouble();
-      final currentFiber =
-          (currentData['totalFiber'] as num?)?.toDouble() ?? 0.0;
-      final currentSugar =
-          (currentData['totalSugar'] as num?)?.toDouble() ?? 0.0;
-      final currentSodium =
-          (currentData['totalSodium'] as num?)?.toDouble() ?? 0.0;
+    final newCals = (currentCalories - calories).clamp(0.0, double.infinity);
+    final newProtein = (currentProtein - protein).clamp(0.0, double.infinity);
+    final newCarbs = (currentCarbs - carbs).clamp(0.0, double.infinity);
+    final newFat = (currentFat - fat).clamp(0.0, double.infinity);
+    final newFiber = (currentFiber - (fiber ?? 0.0)).clamp(0.0, double.infinity);
+    final newSugar = (currentSugar - (sugar ?? 0.0)).clamp(0.0, double.infinity);
+    final newSodium = (currentSodium - (sodium ?? 0.0)).clamp(0.0, double.infinity);
+    final newMealCount = (currentMealCount - 1).clamp(0, 100);
+    final avgCals = newMealCount > 0 ? newCals / newMealCount : 0.0;
 
-      final targetCalories = (currentData['targetCalories'] as num?)?.toDouble() ?? 2000;
-      final currentMealCount = (currentData['mealCount'] as num?)?.toInt() ?? 1;
+    final proteinMet = newProtein >= targetProtein;
+    final calExceeded = newCals > targetCalories;
+    final calMet = newCals >= (targetCalories - 100) && !calExceeded;
+    final fiberMet = newFiber >= 30.0;
 
-      final newCals = (currentCalories - calories).clamp(0.0, double.infinity);
-      final newProtein = (currentProtein - protein).clamp(0.0, double.infinity);
-      final newMealCount = (currentMealCount - 1).clamp(0, 100);
-      final averageCalories = newMealCount > 0 ? newCals / newMealCount : 0.0;
+    final updated = DailyNutritionSummaryModel(
+      userId: userId,
+      dateString: dateString,
+      totalCalories: newCals,
+      totalProtein: newProtein,
+      totalCarbs: newCarbs,
+      totalFat: newFat,
+      totalFiber: newFiber,
+      totalSugar: newSugar,
+      totalSodium: newSodium,
+      waterIntakeMl: current.waterIntakeMl,
+      mealCount: newMealCount,
+      averageCaloriesPerMeal: avgCals,
+      targetCalories: targetCalories,
+      targetProtein: targetProtein,
+      targetCarbs: current.targetCarbs ?? 200.0,
+      targetFat: current.targetFat ?? 65.0,
+      waterGoalMl: current.waterGoalMl ?? 2500,
+      remainingCalories: (targetCalories - newCals).clamp(0.0, double.infinity),
+      proteinTargetMet: proteinMet,
+      calorieTargetExceeded: calExceeded,
+      calorieTargetMet: calMet,
+      fiberGoalMet: fiberMet,
+      lastUpdated: DateTime.now(),
+    );
 
-      final targetProtein = (currentData['targetProtein'] as num?)?.toDouble() ?? 150;
-      final targetFiber = 30.0;
-      
-      final proteinMet = newProtein >= targetProtein;
-      final calExceeded = newCals > targetCalories;
-      final calMet = newCals >= (targetCalories - 100) && !calExceeded;
-      final newFiber = (currentFiber - (fiber ?? 0.0)).clamp(0.0, double.infinity);
-      final fiberMet = newFiber >= targetFiber;
-
-      transaction.update(docRef, {
-        'totalCalories': newCals,
-        'totalProtein': newProtein,
-        'totalCarbs': (currentCarbs - carbs).clamp(0.0, double.infinity),
-        'totalFat': (currentFat - fat).clamp(0.0, double.infinity),
-        'totalFiber': newFiber,
-        'totalSugar': (currentSugar - (sugar ?? 0.0)).clamp(0.0, double.infinity),
-        'totalSodium': (currentSodium - (sodium ?? 0.0)).clamp(0.0, double.infinity),
-        'mealCount': newMealCount,
-        'averageCaloriesPerMeal': averageCalories,
-        'remainingCalories': (targetCalories - newCals).clamp(0.0, double.infinity),
-        'proteinTargetMet': proteinMet,
-        'calorieTargetExceeded': calExceeded,
-        'calorieTargetMet': calMet,
-        'fiberGoalMet': fiberMet,
-        'lastUpdated': DateTime.now().toIso8601String(),
-      });
-    });
+    await setDailySummary(updated);
   }
 
   /// Updates the water intake directly.
@@ -202,41 +246,30 @@ class DailyNutritionRepository {
     String dateString,
     int amountMl,
   ) async {
-    final docRef = _firestore.doc(_summaryPath(userId, dateString));
+    final current = _getFromHive(userId, dateString);
+    final currentWater = current?.waterIntakeMl ?? 0;
+    final waterGoal = current?.waterGoalMl ?? 2500;
+    final newWater = (currentWater + amountMl).clamp(0, 10000);
 
-    await _firestore.runTransaction((transaction) async {
-      final snapshot = await transaction.get(docRef);
+    final updated = (current ??
+            DailyNutritionSummaryModel(
+              userId: userId,
+              dateString: dateString,
+              totalCalories: 0,
+              totalProtein: 0,
+              totalCarbs: 0,
+              totalFat: 0,
+              waterIntakeMl: 0,
+              targetCalories: 2000,
+              lastUpdated: DateTime.now(),
+            ))
+        .copyWith(
+      waterIntakeMl: newWater,
+      waterGoalMet: newWater >= waterGoal,
+      lastUpdated: DateTime.now(),
+    );
 
-      if (!snapshot.exists) {
-        // Create initial empty document just for water if needed
-        final initial = DailyNutritionSummaryModel(
-          userId: userId,
-          dateString: dateString,
-          totalCalories: 0,
-          totalProtein: 0,
-          totalCarbs: 0,
-          totalFat: 0,
-          waterIntakeMl: amountMl > 0 ? amountMl : 0,
-          targetCalories: 2000,
-          waterGoalMl: 2500,
-          lastUpdated: DateTime.now(),
-        );
-        transaction.set(docRef, initial.toJson());
-        return;
-      }
-
-      final currentData = snapshot.data()!;
-      final currentWater = (currentData['waterIntakeMl'] as num).toInt();
-      final waterGoal = (currentData['waterGoalMl'] as num?)?.toInt() ?? 2500;
-
-      final newWater = (currentWater + amountMl).clamp(0, 10000); // Max 10L
-
-      transaction.update(docRef, {
-        'waterIntakeMl': newWater,
-        'waterGoalMet': newWater >= waterGoal,
-        'lastUpdated': DateTime.now().toIso8601String(),
-      });
-    });
+    await setDailySummary(updated);
   }
 
   /// Gets the nutrition summaries for a given date range.
@@ -245,18 +278,34 @@ class DailyNutritionRepository {
     DateTime startDate,
     DateTime endDate,
   ) async {
-    final startString = '${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}';
-    final endString = '${endDate.year}-${endDate.month.toString().padLeft(2, '0')}-${endDate.day.toString().padLeft(2, '0')}';
+    final startString =
+        '${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}';
+    final endString =
+        '${endDate.year}-${endDate.month.toString().padLeft(2, '0')}-${endDate.day.toString().padLeft(2, '0')}';
 
-    final snapshot = await _firestore
-        .collection('users/$userId/daily_summaries')
-        .where('dateString', isGreaterThanOrEqualTo: startString)
-        .where('dateString', isLessThanOrEqualTo: endString)
-        .get();
+    try {
+      final snapshot = await _firestore
+          .collection('users/$userId/daily_summaries')
+          .where('dateString', isGreaterThanOrEqualTo: startString)
+          .where('dateString', isLessThanOrEqualTo: endString)
+          .get();
 
-    return snapshot.docs
-        .map((doc) => DailyNutritionSummaryModel.fromJson(doc.data()))
-        .toList();
+      return snapshot.docs
+          .map((doc) => DailyNutritionSummaryModel.fromJson(doc.data()))
+          .toList();
+    } catch (_) {
+      // Local Hive fallback
+      final result = <DailyNutritionSummaryModel>[];
+      for (var d = startDate;
+          !d.isAfter(endDate);
+          d = d.add(const Duration(days: 1))) {
+        final dStr =
+            '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+        final summary = _getFromHive(userId, dStr);
+        if (summary != null) result.add(summary);
+      }
+      return result;
+    }
   }
 }
 

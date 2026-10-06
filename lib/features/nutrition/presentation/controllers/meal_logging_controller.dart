@@ -83,7 +83,7 @@ class MealLoggingController extends StateNotifier<MealBuilderState> {
     state = MealBuilderState(mealType: state.mealType);
   }
 
-  /// Saves the built meal to Firestore via NutritionController.
+  /// Saves the built meal via NutritionController.
   Future<void> saveMeal({
     String? mealType,
     String? mealName,
@@ -92,14 +92,14 @@ class MealLoggingController extends StateNotifier<MealBuilderState> {
     if (state.items.isEmpty) return;
 
     final user = _ref.read(authControllerProvider).value;
-    if (user == null) throw Exception('User not logged in');
+    final userId = user?.uid ?? 'guest_user';
 
     final date = _ref.read(selectedDateProvider);
     final finalMealType = mealType ?? state.mealType;
 
     final mealLog = MealLogModel(
       id: const Uuid().v4(),
-      userId: user.uid,
+      userId: userId,
       date: date,
       mealType: finalMealType,
       mealName: mealName,
@@ -118,6 +118,51 @@ class MealLoggingController extends StateNotifier<MealBuilderState> {
     await _ref.read(nutritionControllerProvider.notifier).logMeal(mealLog);
 
     clearMeal(); // Reset builder after saving
+  }
+
+  /// Quick logs a single food item immediately without needing multi-step review.
+  Future<void> quickLogSingleFood({
+    required FoodItemModel food,
+    required double servingConsumedGrams,
+    String? mealType,
+  }) async {
+    final ratio = servingConsumedGrams / food.servingSizeGrams;
+    final mealItem = MealItemModel(
+      foodId: food.id,
+      foodName: food.name,
+      calories: food.calories * ratio,
+      protein: food.protein * ratio,
+      carbs: food.carbs * ratio,
+      fat: food.fat * ratio,
+      fiber: food.fiber != null ? food.fiber! * ratio : null,
+      sugar: food.sugar != null ? food.sugar! * ratio : null,
+      sodium: food.sodium != null ? food.sodium! * ratio : null,
+      servingConsumedGrams: servingConsumedGrams,
+    );
+
+    final user = _ref.read(authControllerProvider).value;
+    final userId = user?.uid ?? 'guest_user';
+    final date = _ref.read(selectedDateProvider);
+    final finalMealType = mealType ?? state.mealType;
+
+    final mealLog = MealLogModel(
+      id: const Uuid().v4(),
+      userId: userId,
+      date: date,
+      mealType: finalMealType,
+      mealName: food.name,
+      mealItems: [mealItem],
+      totalCalories: mealItem.calories,
+      totalProtein: mealItem.protein,
+      totalCarbs: mealItem.carbs,
+      totalFat: mealItem.fat,
+      totalFiber: mealItem.fiber,
+      totalSugar: mealItem.sugar,
+      totalSodium: mealItem.sodium,
+      createdAt: DateTime.now(),
+    );
+
+    await _ref.read(nutritionControllerProvider.notifier).logMeal(mealLog);
   }
 }
 

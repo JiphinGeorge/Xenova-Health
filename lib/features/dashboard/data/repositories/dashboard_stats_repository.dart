@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/providers.dart';
 import '../../../../core/firebase/firestore_service.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
@@ -12,6 +15,7 @@ class DashboardStatsRepository {
   final FirestoreService _firestoreService;
 
   String _documentPath(String userId) => 'users/$userId/stats/overview';
+  String _cacheKey(String userId) => 'dashboard_stats_$userId';
 
   /// Updates the dashboard stats overview document.
   Future<void> updateStats(String userId, DashboardStatsModel stats) async {
@@ -23,25 +27,80 @@ class DashboardStatsRepository {
       data['healthScore'] = stats.healthScore!.toJson();
     }
 
-    await _firestoreService.setDocument(
-      path: _documentPath(userId),
-      data: data,
-    );
+    // 1. Save to local Hive cache immediately for offline resilience
+    try {
+      if (Hive.isBoxOpen(AppConstants.cacheBox)) {
+        final box = Hive.box<dynamic>(AppConstants.cacheBox);
+        await box.put(_cacheKey(userId), jsonEncode(data));
+      }
+    } catch (_) {}
+
+    // 2. Sync to Firestore in background
+    try {
+      await _firestoreService.setDocument(
+        path: _documentPath(userId),
+        data: data,
+      );
+    } catch (_) {}
   }
 
-  /// Streams the dashboard stats overview document.
+  /// Streams the dashboard stats overview document with local fallback.
   Stream<DashboardStatsModel?> watchStats(String userId) {
     return _firestoreService.streamDocument(_documentPath(userId)).map((doc) {
-      if (!doc.exists) return null;
-      return DashboardStatsModel.fromJson(doc.data()!);
+      if (doc.exists && doc.data() != null) {
+        final stats = DashboardStatsModel.fromJson(doc.data()!);
+        // Refresh local cache
+        try {
+          if (Hive.isBoxOpen(AppConstants.cacheBox)) {
+            final box = Hive.box<dynamic>(AppConstants.cacheBox);
+            box.put(_cacheKey(userId), jsonEncode(stats.toJson()));
+          }
+        } catch (_) {}
+        return stats;
+      }
+
+      // Fallback to local Hive cache if remote doc doesn't exist yet
+      try {
+        if (Hive.isBoxOpen(AppConstants.cacheBox)) {
+          final box = Hive.box<dynamic>(AppConstants.cacheBox);
+          final cached = box.get(_cacheKey(userId));
+          if (cached != null) {
+            final map = cached is String
+                ? jsonDecode(cached) as Map<String, dynamic>
+                : Map<String, dynamic>.from(cached as Map);
+            return DashboardStatsModel.fromJson(map);
+          }
+        }
+      } catch (_) {}
+
+      return null;
     });
   }
 
   /// Gets the dashboard stats overview document once.
   Future<DashboardStatsModel?> getStats(String userId) async {
-    final doc = await _firestoreService.getDocument(_documentPath(userId));
-    if (!doc.exists) return null;
-    return DashboardStatsModel.fromJson(doc.data()!);
+    try {
+      final doc = await _firestoreService.getDocument(_documentPath(userId));
+      if (doc.exists && doc.data() != null) {
+        return DashboardStatsModel.fromJson(doc.data()!);
+      }
+    } catch (_) {}
+
+    // Fallback to local Hive cache
+    try {
+      if (Hive.isBoxOpen(AppConstants.cacheBox)) {
+        final box = Hive.box<dynamic>(AppConstants.cacheBox);
+        final cached = box.get(_cacheKey(userId));
+        if (cached != null) {
+          final map = cached is String
+              ? jsonDecode(cached) as Map<String, dynamic>
+              : Map<String, dynamic>.from(cached as Map);
+          return DashboardStatsModel.fromJson(map);
+        }
+      }
+    } catch (_) {}
+
+    return null;
   }
 }
 

@@ -18,6 +18,7 @@ class FoodDetailsScreen extends ConsumerStatefulWidget {
 
 class _FoodDetailsScreenState extends ConsumerState<FoodDetailsScreen> {
   late double _servingGrams;
+  bool _isQuickLogging = false;
 
   @override
   void initState() {
@@ -161,15 +162,95 @@ class _FoodDetailsScreenState extends ConsumerState<FoodDetailsScreen> {
               ),
 
               const SizedBox(height: AppDimensions.spacingXxl),
-              FilledButton.icon(
-                onPressed: () {
-                  ref
-                      .read(mealLoggingProvider.notifier)
-                      .addFood(widget.food, _servingGrams);
-                  context.pop();
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('Add to Meal'),
+              SizedBox(
+                height: 52,
+                child: FilledButton.icon(
+                  onPressed: _isQuickLogging
+                      ? null
+                      : () async {
+                          final currentMealType =
+                              ref.read(mealLoggingProvider).mealType;
+                          setState(() => _isQuickLogging = true);
+                          try {
+                            await ref
+                                .read(mealLoggingProvider.notifier)
+                                .quickLogSingleFood(
+                                  food: widget.food,
+                                  servingConsumedGrams: _servingGrams,
+                                  mealType: currentMealType,
+                                );
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.check_circle,
+                                        color: Colors.white,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Logged ${widget.food.name} to $currentMealType!',
+                                      ),
+                                    ],
+                                  ),
+                                  backgroundColor: AppColors.success,
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                              context.go('/nutrition');
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to log food: $e'),
+                                  backgroundColor: AppColors.error,
+                                ),
+                              );
+                            }
+                          } finally {
+                            if (mounted) setState(() => _isQuickLogging = false);
+                          }
+                        },
+                  icon: _isQuickLogging
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.check_circle_outline),
+                  label: Text(
+                    'Log Now (${ref.watch(mealLoggingProvider).mealType})',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppDimensions.spacingSm),
+              SizedBox(
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    ref
+                        .read(mealLoggingProvider.notifier)
+                        .addFood(widget.food, _servingGrams);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Added ${widget.food.name} to meal builder'),
+                        duration: const Duration(seconds: 1),
+                      ),
+                    );
+                    context.pop();
+                  },
+                  icon: const Icon(Icons.playlist_add),
+                  label: const Text('Add to Meal Builder'),
+                ),
               ),
             ],
           ),

@@ -17,6 +17,7 @@ class MealBuilderReviewScreen extends ConsumerStatefulWidget {
 class _MealBuilderReviewScreenState
     extends ConsumerState<MealBuilderReviewScreen> {
   late String _mealType;
+  bool _isSaving = false;
 
   final _mealTypes = [
     'Breakfast',
@@ -120,17 +121,53 @@ class _MealBuilderReviewScreenState
         child: Padding(
           padding: const EdgeInsets.all(AppDimensions.spacingMd),
           child: FilledButton(
-            onPressed: builderState.items.isEmpty
+            onPressed: builderState.items.isEmpty || _isSaving
                 ? null
                 : () async {
-                    await ref
-                        .read(mealLoggingProvider.notifier)
-                        .saveMeal(mealType: _mealType);
-                    if (context.mounted) {
-                      context.go('/nutrition');
+                    setState(() => _isSaving = true);
+                    try {
+                      await ref
+                          .read(mealLoggingProvider.notifier)
+                          .saveMeal(mealType: _mealType);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                const Icon(Icons.check_circle, color: Colors.white),
+                                const SizedBox(width: 8),
+                                Text('$_mealType logged successfully!'),
+                              ],
+                            ),
+                            backgroundColor: AppColors.success,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                        context.go('/nutrition');
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Failed to save meal: $e'),
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+                      }
+                    } finally {
+                      if (mounted) setState(() => _isSaving = false);
                     }
                   },
-            child: const Text('Save Meal'),
+            child: _isSaving
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text('Save Meal'),
           ),
         ),
       ),

@@ -13,6 +13,8 @@ import '../../../progress_photos/presentation/widgets/add_progress_photo_dialog.
 import '../../../weight/presentation/controllers/weight_controller.dart';
 import '../../../weight/presentation/widgets/add_weight_dialog.dart';
 import '../../data/repositories/dashboard_stats_repository.dart';
+import '../../domain/models/health_score_model.dart';
+import '../controllers/health_score_provider.dart';
 import '../../../nutrition/presentation/controllers/nutrition_controller.dart';
 import '../../../notifications/presentation/controllers/notification_controller.dart';
 import '../../../profile/presentation/widgets/profile_photo_picker.dart';
@@ -42,6 +44,7 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Keep stats in sync
     ref.watch(dashboardStatsSyncProvider);
+    ref.watch(autoSyncDashboardStatsProvider);
 
     final user = ref.watch(authControllerProvider).value;
     final name = user?.displayName?.split(' ').first ?? 'Xenova';
@@ -385,66 +388,480 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildHealthScoreCard(BuildContext context, WidgetRef ref) {
-    final statsAsync = ref.watch(dashboardStatsStreamProvider);
-    return statsAsync.when(
-      data: (stats) {
-        final score = stats?.healthScore?.overallHealthScore ?? 0.0;
-        String status = "Needs Improvement";
-        Color color = AppColors.error;
-        if (score >= 80) {
-          status = "Excellent";
-          color = AppColors.success;
-        } else if (score >= 50) {
-          status = "Good";
-          color = AppColors.warning;
-        }
+    final healthScore = ref.watch(healthScoreProvider);
+    final score = healthScore.overallHealthScore;
 
-        return Container(
+    String status = "Needs Focus";
+    Color color = AppColors.error;
+    IconData statusIcon = Icons.health_and_safety_outlined;
+
+    if (score >= 80) {
+      status = "Excellent";
+      color = AppColors.success;
+      statusIcon = Icons.verified_outlined;
+    } else if (score >= 50) {
+      status = "Good";
+      color = AppColors.primary;
+      statusIcon = Icons.thumb_up_alt_outlined;
+    }
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _showHealthScoreBreakdown(context, healthScore),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
+        child: Container(
           padding: const EdgeInsets.all(AppDimensions.spacingLg),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [color.withValues(alpha: 0.8), color],
+              colors: [color.withValues(alpha: 0.85), color],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.35),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Overall Health Score',
-                    style: TextStyle(color: Colors.white, fontSize: 14),
+                  Row(
+                    children: [
+                      Icon(statusIcon, color: Colors.white, size: 28),
+                      const SizedBox(width: AppDimensions.spacingSm),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Overall Health Score',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            status,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    status,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        '${score.toInt()}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 34,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const Text(
+                        '/100',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              Text(
-                '${score.toInt()}/100',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
+              const SizedBox(height: AppDimensions.spacingMd),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Tap to view 4-pillar breakdown & tips',
+                      style: TextStyle(color: Colors.white, fontSize: 12),
+                    ),
+                    Icon(Icons.arrow_forward_ios, color: Colors.white, size: 12),
+                  ],
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showHealthScoreBreakdown(
+    BuildContext context,
+    HealthScoreModel healthScore,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final score = healthScore.overallHealthScore;
+
+    String status = "Needs Focus";
+    Color color = AppColors.error;
+    if (score >= 80) {
+      status = "Excellent";
+      color = AppColors.success;
+    } else if (score >= 50) {
+      status = "Good";
+      color = AppColors.primary;
+    }
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceDark : Colors.white,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppDimensions.radius2Xl),
+            ),
+          ),
+          padding: EdgeInsets.only(
+            top: AppDimensions.spacingLg,
+            left: AppDimensions.spacingLg,
+            right: AppDimensions.spacingLg,
+            bottom: MediaQuery.of(ctx).padding.bottom + AppDimensions.spacingLg,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.spacingLg),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Health Score Breakdown',
+                      style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(ctx).pop(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppDimensions.spacingSm),
+                Text(
+                  'Calculated continuously across your 4 core lifestyle & physiological pillars.',
+                  style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.spacingLg),
+
+                // Overall Score Highlight Card
+                Container(
+                  padding: const EdgeInsets.all(AppDimensions.spacingLg),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        color.withValues(alpha: 0.15),
+                        color.withValues(alpha: 0.05),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+                    border: Border.all(color: color.withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '${score.toInt()}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppDimensions.spacingMd),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              status,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: color,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              score >= 80
+                                  ? 'Superb performance across nutrition, fasting, and hydration!'
+                                  : score >= 50
+                                      ? 'Solid baseline. A few healthy choices will push you into Excellent.'
+                                      : 'Log your meals, track fasting, and hydrate to raise your score.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.spacingXl),
+
+                Text(
+                  'Core Health Pillars',
+                  style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.spacingMd),
+
+                _buildPillarRow(
+                  context: ctx,
+                  icon: Icons.restaurant_menu,
+                  iconColor: Colors.orange,
+                  title: 'Nutrition & Macros',
+                  weight: '35% weight',
+                  score: healthScore.nutritionScore,
+                  desc: 'Calorie compliance, protein targets, and meal logging frequency.',
+                ),
+                const SizedBox(height: AppDimensions.spacingMd),
+                _buildPillarRow(
+                  context: ctx,
+                  icon: Icons.timer_outlined,
+                  iconColor: Colors.purple,
+                  title: 'Intermittent Fasting',
+                  weight: '25% weight',
+                  score: healthScore.fastingScore,
+                  desc: 'Active fast progress, target completion, and weekly streaks.',
+                ),
+                const SizedBox(height: AppDimensions.spacingMd),
+                _buildPillarRow(
+                  context: ctx,
+                  icon: Icons.monitor_weight_outlined,
+                  iconColor: Colors.teal,
+                  title: 'Weight & Consistency',
+                  weight: '25% weight',
+                  score: healthScore.weightConsistencyScore,
+                  desc: 'Weigh-in consistency, BMI status, and goal progress.',
+                ),
+                const SizedBox(height: AppDimensions.spacingMd),
+                _buildPillarRow(
+                  context: ctx,
+                  icon: Icons.water_drop_outlined,
+                  iconColor: Colors.blue,
+                  title: 'Hydration',
+                  weight: '15% weight',
+                  score: healthScore.waterScore,
+                  desc: 'Daily water intake adherence vs recommended daily goal.',
+                ),
+                const SizedBox(height: AppDimensions.spacingXl),
+
+                // Tips Section
+                Text(
+                  'Actionable Tips to Boost Your Score',
+                  style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.spacingSm),
+                ..._generateHealthTips(healthScore).map(
+                  (tip) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.arrow_right,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            tip,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.spacingXl),
+
+                // Quick Action Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                          context.push('/nutrition');
+                        },
+                        icon: const Icon(Icons.restaurant, size: 16),
+                        label: const Text('Log Meal'),
+                      ),
+                    ),
+                    const SizedBox(width: AppDimensions.spacingMd),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                          context.push('/fasting');
+                        },
+                        icon: const Icon(Icons.timer, size: 16),
+                        label: const Text('Fasting Timer'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         );
       },
-      loading: () => const SizedBox(height: 80, child: Center(child: CircularProgressIndicator())),
-      error: (_, __) => const SizedBox.shrink(),
     );
+  }
+
+  Widget _buildPillarRow({
+    required BuildContext context,
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String weight,
+    required double score,
+    required String desc,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scoreColor = score >= 80
+        ? AppColors.success
+        : score >= 50
+            ? AppColors.primary
+            : AppColors.error;
+
+    return Container(
+      padding: const EdgeInsets.all(AppDimensions.spacingMd),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.elevatedDark
+            : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: iconColor, size: 20),
+              const SizedBox(width: AppDimensions.spacingSm),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+              ),
+              Text(
+                weight,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${score.toInt()}/100',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: scoreColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: (score / 100.0).clamp(0.0, 1.0),
+              backgroundColor: Colors.grey.withValues(alpha: 0.2),
+              color: scoreColor,
+              minHeight: 6,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            desc,
+            style: TextStyle(
+              fontSize: 11,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<String> _generateHealthTips(HealthScoreModel healthScore) {
+    final tips = <String>[];
+    if (healthScore.waterScore < 80) {
+      tips.add('Drink 1-2 more glasses of water today to hit your 2.5L hydration goal (+${(80 - healthScore.waterScore).toInt()} pts).');
+    }
+    if (healthScore.nutritionScore < 75) {
+      tips.add('Log your meals consistently and hit your daily protein goal (+${(75 - healthScore.nutritionScore).toInt()} pts).');
+    }
+    if (healthScore.fastingScore < 75) {
+      tips.add('Complete your current fast or build a streak to advance your metabolic health score.');
+    }
+    if (healthScore.weightConsistencyScore < 75) {
+      tips.add('Record your weight at least once a week to maintain your tracking consistency score.');
+    }
+    if (tips.isEmpty) {
+      tips.add('Keep up your daily routine! All 4 pillars are operating at peak performance.');
+    }
+    return tips;
   }
 
   Widget _buildNutritionCard(BuildContext context, WidgetRef ref) {

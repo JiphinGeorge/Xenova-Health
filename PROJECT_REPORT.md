@@ -101,7 +101,15 @@ Below is the detailed audit of all 14 feature modules, specifying exact implemen
 
 #### What Has Been Implemented
 - **Multi-Meal Logging:** Categorization of food items into Breakfast, Lunch, Dinner, and Snacks.
-- **Macronutrient Tracking:** Automated summing of Calories, Protein (g), Carbohydrates (g), and Fat (g).
+- **Local-First Resilience & Instant Updates (Hive):**
+  - All logged meals are saved immediately to local Hive (`meal_box`) and streamed reactively with `_mealBox.watch()`, updating the UI instantly without server or connection latency.
+  - Daily summaries are saved locally in Hive (`daily_summary_box`) without relying on network transactions.
+  - Background Firestore synchronization ensures cross-device backup whenever connectivity is available.
+- **Self-Healing Daily Summary:** If the daily summary is out of sync or absent, the nutrition dashboard automatically aggregates macros and calories directly from that day's meal logs.
+- **Dual Logging Modes:**
+  - **Quick Log:** One-tap logging directly from the Food Details screen straight into the chosen meal category (Breakfast, Lunch, Dinner, Snack).
+  - **Meal Builder:** Multi-item meal builder with portion scaling, food item removal, and review before batch saving.
+- **Macronutrient Tracking:** Automated summing of Calories, Protein (g), Carbohydrates (g), and Fat (g) with progress indicators and goal bars.
 - **Water Tracker:** Persistent daily hydration intake with progress toward user-defined goals (e.g., 2500 ml).
 - **Food Database Repository (`food_database_repository.dart`):**
   - Case-insensitive prefix search against Firestore `food_database` collection using `searchName`.

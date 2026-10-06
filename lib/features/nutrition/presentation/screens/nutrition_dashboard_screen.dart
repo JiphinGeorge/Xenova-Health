@@ -35,28 +35,59 @@ class _NutritionDashboardScreenState
 
   DailyNutritionSummaryModel _getEffectiveSummary(
     DailyNutritionSummaryModel? summary,
-    DateTime selectedDate,
-  ) {
-    if (summary != null) return summary;
-
+    DateTime selectedDate, [
+    List<MealLogModel>? meals,
+  ]) {
     final user = ref.read(authControllerProvider).value;
     final dateString =
         '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
 
+    double totalCals = summary?.totalCalories ?? 0.0;
+    double totalProtein = summary?.totalProtein ?? 0.0;
+    double totalCarbs = summary?.totalCarbs ?? 0.0;
+    double totalFat = summary?.totalFat ?? 0.0;
+    int mealCount = summary?.mealCount ?? 0;
+
+    // Self-healing fallback: if summary is missing or 0 but meals were logged for this date
+    if (meals != null && meals.isNotEmpty) {
+      final computedCals =
+          meals.fold<double>(0, (sum, m) => sum + m.totalCalories);
+      final computedProtein =
+          meals.fold<double>(0, (sum, m) => sum + m.totalProtein);
+      final computedCarbs =
+          meals.fold<double>(0, (sum, m) => sum + m.totalCarbs);
+      final computedFat =
+          meals.fold<double>(0, (sum, m) => sum + m.totalFat);
+
+      if (totalCals == 0 || computedCals > totalCals) {
+        totalCals = computedCals;
+        totalProtein = computedProtein;
+        totalCarbs = computedCarbs;
+        totalFat = computedFat;
+        mealCount = meals.length;
+      }
+    }
+
+    final targetCals = summary?.targetCalories ?? 2000.0;
+    final targetProtein = summary?.targetProtein ?? 150.0;
+    final targetCarbs = summary?.targetCarbs ?? 200.0;
+    final targetFat = summary?.targetFat ?? 65.0;
+
     return DailyNutritionSummaryModel(
-      userId: user?.uid ?? '',
+      userId: user?.uid ?? 'guest_user',
       dateString: dateString,
-      totalCalories: 0,
-      totalProtein: 0,
-      totalCarbs: 0,
-      totalFat: 0,
-      waterIntakeMl: 0,
-      waterGoalMl: 2500,
-      targetCalories: 2000,
-      targetProtein: 150,
-      targetCarbs: 200,
-      targetFat: 65,
-      remainingCalories: 2000,
+      totalCalories: totalCals,
+      totalProtein: totalProtein,
+      totalCarbs: totalCarbs,
+      totalFat: totalFat,
+      waterIntakeMl: summary?.waterIntakeMl ?? 0,
+      waterGoalMl: summary?.waterGoalMl ?? 2500,
+      targetCalories: targetCals,
+      targetProtein: targetProtein,
+      targetCarbs: targetCarbs,
+      targetFat: targetFat,
+      remainingCalories: (targetCals - totalCals).clamp(0.0, double.infinity),
+      mealCount: mealCount,
       lastUpdated: DateTime.now(),
     );
   }
@@ -108,7 +139,11 @@ class _NutritionDashboardScreenState
           SliverToBoxAdapter(
             child: summaryAsync.when(
               data: (summary) {
-                final effective = _getEffectiveSummary(summary, selectedDate);
+                final effective = _getEffectiveSummary(
+                  summary,
+                  selectedDate,
+                  mealsAsync.value,
+                );
                 return Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppDimensions.spacingLg,
