@@ -434,7 +434,9 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                     ),
                     subtitle: Text(
-                      plan.description,
+                      plan == FastingPlan.custom
+                          ? 'Customizable fasting duration'
+                          : '${plan.defaultDurationHours.toInt()} hours fasting target',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

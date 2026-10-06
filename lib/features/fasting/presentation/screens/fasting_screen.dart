@@ -628,6 +628,24 @@ class _StartFastingViewState extends ConsumerState<_StartFastingView> {
                               _selectedPlan = FastingPlan.custom;
                             });
                             Navigator.of(context).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.check_circle,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Custom fast duration set to $formattedDuration!',
+                                    ),
+                                  ],
+                                ),
+                                backgroundColor: AppColors.success,
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
                           },
                           style: FilledButton.styleFrom(
                             shape: RoundedRectangleBorder(
@@ -887,6 +905,20 @@ class _StartFastingViewState extends ConsumerState<_StartFastingView> {
                 setState(() => _selectedPlan = plan);
                 if (plan == FastingPlan.custom) {
                   _showAdjustCustomTimeSheet(context);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          const Icon(Icons.check_circle, color: Colors.white),
+                          const SizedBox(width: 8),
+                          Text('Fasting plan set to ${plan.displayName}!'),
+                        ],
+                      ),
+                      backgroundColor: AppColors.success,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
                 }
               },
               selectedColor: AppColors.primary,
