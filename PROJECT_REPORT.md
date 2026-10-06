@@ -55,6 +55,7 @@ Below is the detailed audit of all 14 feature modules, specifying exact implemen
   - Biological sex, age, height, current weight, and goal weight.
   - Activity level (Sedentary, Lightly Active, Moderately Active, Very Active, Extra Active).
   - Primary goal selection (Weight Loss, Muscle Gain, Maintenance, Better Energy).
+  - Dietary preferences (`DietType`): Omnivore, Pescatarian, Flexitarian, Vegetarian, Vegan, Eggetarian, High Protein, and No Preference, with explicit descriptive guides on what foods are included.
 - **Persistent State:** Flags user completion in SharedPreferences to prevent re-displaying onboarding on subsequent launches.
 
 #### What Has NOT Been Implemented / Pending
@@ -259,7 +260,14 @@ Below is the detailed audit of all 14 feature modules, specifying exact implemen
   - Default fasting protocol preference.
   - Daily calorie and macronutrient manual override.
   - Daily notification reminder toggles.
-- **Data Export Screen (`export_data_screen.dart`):** UI interface to trigger PDF/CSV report exports.
+- **Data Export & Reporting System (`export_data_screen.dart`, `report_export_service.dart`):**
+  - **Full Health Report (PDF):** Generates a formatted medical-grade PDF health report containing user profile info, live Overall Health Score, BMI, weight progress, fasting metrics, and personalized wellness summary.
+  - **Granular CSV Exports:**
+    - **Weight History CSV:** Exports date, logged weight, notes, and source.
+    - **Nutrition Logs CSV:** Exports date, meal type, food items, grams consumed, total calories, protein, carbs, fat, and notes.
+    - **Fasting Logs CSV:** Exports start/end timestamps, planned duration, and completion statuses.
+  - **Offline-First & Guest Resilience:** Exports pull directly from local Hive boxes (`meal_box`, `daily_summary_box`, `weight_box`, `cacheBox`) with offline fallback, completely decoupled from external API keys.
+  - **Universal Mobile Share Integration:** Exports write to the device cache directory and invoke native Android/iOS system share sheets (`share_plus`) to send directly via WhatsApp, Gmail, Google Drive, or File Manager.
 
 #### What Has NOT Been Implemented / Pending
 - **Account Deletion (GDPR Compliance):** Self-service "Delete Account and Wipe All Data" flow that purges both Firebase Auth and Firestore records.

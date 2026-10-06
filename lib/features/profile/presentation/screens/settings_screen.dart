@@ -280,7 +280,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           items: DietType.values.map((diet) {
                             return DropdownMenuItem(
                               value: diet,
-                              child: Text(diet.name.toUpperCase()),
+                              child: Text(diet.label),
                             );
                           }).toList(),
                           onChanged: (diet) {

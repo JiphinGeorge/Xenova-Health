@@ -478,6 +478,7 @@ class _StepNutrition extends ConsumerWidget {
                 final d = DietType.values[index];
                 return _SelectionCard(
                   title: d.label,
+                  subtitle: d.description,
                   isSelected: diet == d,
                   onTap: () {
                     ref
