@@ -586,12 +586,15 @@ class _NutritionDashboardScreenState
                   ),
                 ],
               ),
-              Text(
-                '$waterIntake / $waterGoal ml • $glasses/$goalGlasses glasses',
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+              Flexible(
+                child: Text(
+                  '$waterIntake / $waterGoal ml • $glasses/$goalGlasses glasses',
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -607,19 +610,22 @@ class _NutritionDashboardScreenState
             ),
           ),
           const SizedBox(height: AppDimensions.spacingMd),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+          Wrap(
+            alignment: WrapAlignment.end,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
             children: [
               if (waterIntake > 0)
-                IconButton(
+                IconButton.outlined(
                   tooltip: 'Subtract 250ml',
                   onPressed: () {
                     ref
                         .read(nutritionControllerProvider.notifier)
                         .logWater(ref.read(selectedDateProvider), -250);
                   },
-                  icon: const Icon(Icons.remove_circle_outline),
-                  color: Colors.grey,
+                  icon: const Icon(Icons.remove, size: 16),
+                  visualDensity: VisualDensity.compact,
                 ),
               FilledButton.tonalIcon(
                 onPressed: () {
@@ -628,9 +634,8 @@ class _NutritionDashboardScreenState
                       .logWater(ref.read(selectedDateProvider), 250);
                 },
                 icon: const Icon(Icons.add, size: 16),
-                label: const Text('+250 ml (1 glass)'),
+                label: const Text('+250 ml'),
               ),
-              const SizedBox(width: 8),
               FilledButton.icon(
                 onPressed: () {
                   ref
