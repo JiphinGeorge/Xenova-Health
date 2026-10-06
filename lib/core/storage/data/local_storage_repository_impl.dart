@@ -43,7 +43,18 @@ class LocalStorageRepositoryImpl implements StorageRepository {
     }
 
     final ext = image.path.split('.').last;
-    final savedFile = await image.copy('${profileDir.path}/avatar.$ext');
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final savedFile = await image.copy('${profileDir.path}/avatar_$timestamp.$ext');
+
+    try {
+      final list = profileDir.listSync();
+      for (final entity in list) {
+        if (entity.path != savedFile.path && entity.path.contains('avatar')) {
+          entity.deleteSync();
+        }
+      }
+    } catch (_) {}
+
     if (onProgress != null) onProgress(1.0);
     return 'file://${savedFile.path}';
   }

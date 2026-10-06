@@ -35,6 +35,7 @@ class ProfilePhotoController extends AsyncNotifier<void> {
 
       // Crop image to a square
       CroppedFile? croppedFile;
+      bool cropThrew = false;
       try {
         croppedFile = await ImageCropper().cropImage(
           sourcePath: pickedFile.path,
@@ -55,8 +56,13 @@ class ProfilePhotoController extends AsyncNotifier<void> {
           ],
         );
       } catch (e) {
-        // Fallback: skip cropping, use the picked image directly
-        croppedFile = null;
+        cropThrew = true;
+      }
+
+      // If user deliberately cancelled cropping, don't upload
+      if (croppedFile == null && !cropThrew) {
+        state = const AsyncData(null);
+        return;
       }
 
       final file = croppedFile != null

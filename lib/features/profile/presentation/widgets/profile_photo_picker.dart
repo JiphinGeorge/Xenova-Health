@@ -123,13 +123,23 @@ class ProfilePhotoPicker extends ConsumerWidget {
 
     // Local file path (with or without file://)
     String path = photoUrl;
+    File? file;
     if (path.startsWith('file://')) {
-      path = path.replaceFirst('file://', '');
+      try {
+        path = Uri.parse(photoUrl).toFilePath();
+        file = File(path);
+      } catch (_) {
+        path = photoUrl.replaceFirst('file://', '');
+        file = File(path);
+      }
+    } else {
+      file = File(path);
     }
-    final file = File(path);
-    if (file.existsSync()) {
+
+    if (file != null && file.existsSync()) {
       return Image.file(
         file,
+        key: ValueKey(photoUrl),
         fit: BoxFit.cover,
         width: radius * 2,
         height: radius * 2,

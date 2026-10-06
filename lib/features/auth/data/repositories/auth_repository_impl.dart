@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hive/hive.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/firebase/firebase_auth_service.dart';
 import '../../../../core/firebase/firestore_service.dart';
 import '../../domain/models/user_model.dart';
@@ -18,6 +20,11 @@ class AuthRepositoryImpl implements AuthRepository {
     _authSubscription = authService.authStateChanges.listen((firebaseUser) {
       if (firebaseUser == null) {
         _cachedUser = null;
+        if (Hive.isBoxOpen(AppConstants.userBox)) {
+          try {
+            Hive.box<dynamic>(AppConstants.userBox).delete('current_user');
+          } catch (_) {}
+        }
         _authStateController.add(null);
       } else {
         getUserProfile(firebaseUser.uid).then((userModel) {
@@ -25,16 +32,26 @@ class AuthRepositoryImpl implements AuthRepository {
             _cachedUser = userModel;
             _authStateController.add(userModel);
           } else {
-            final minimalUser = UserModel(
+            final fallbackUser = _cachedUser ?? UserModel(
               uid: firebaseUser.uid,
               email: firebaseUser.email ?? '',
               displayName: firebaseUser.displayName,
               photoUrl: firebaseUser.photoURL,
               createdAt: DateTime.now(),
             );
-            _cachedUser = minimalUser;
-            _authStateController.add(minimalUser);
+            _cachedUser = fallbackUser;
+            _authStateController.add(fallbackUser);
           }
+        }).catchError((_) {
+          final fallbackUser = _cachedUser ?? UserModel(
+            uid: firebaseUser.uid,
+            email: firebaseUser.email ?? '',
+            displayName: firebaseUser.displayName,
+            photoUrl: firebaseUser.photoURL,
+            createdAt: DateTime.now(),
+          );
+          _cachedUser = fallbackUser;
+          _authStateController.add(fallbackUser);
         });
       }
     });
@@ -55,6 +72,17 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   UserModel? get currentUser {
     if (_cachedUser != null) return _cachedUser;
+
+    if (Hive.isBoxOpen(AppConstants.userBox)) {
+      try {
+        final raw = Hive.box<dynamic>(AppConstants.userBox).get('current_user');
+        if (raw != null) {
+          _cachedUser = UserModel.fromJson(Map<String, dynamic>.from(raw as Map));
+          return _cachedUser;
+        }
+      } catch (_) {}
+    }
+
     final fbUser = authService.currentUser;
     if (fbUser != null) {
       return UserModel(
@@ -150,15 +178,22 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> saveUserProfile(UserModel user) async {
+    _cachedUser = user;
+    _authStateController.add(user);
+
+    if (Hive.isBoxOpen(AppConstants.userBox)) {
+      try {
+        await Hive.box<dynamic>(AppConstants.userBox).put('current_user', user.toJson());
+      } catch (_) {}
+    }
+
     try {
-      _cachedUser = user;
-      _authStateController.add(user);
       await firestoreService.setDocument(
         path: '$_usersCollection/${user.uid}',
         data: user.toJson(),
       );
-    } catch (e) {
-      throw Exception('Failed to save user profile: $e');
+    } catch (_) {
+      // Local state remains persisted in Hive even when offline
     }
   }
 
@@ -169,14 +204,30 @@ class AuthRepositoryImpl implements AuthRepository {
         '$_usersCollection/$uid',
       );
 
-      if (!snapshot.exists) return null;
-      final data = snapshot.data();
-      if (data == null) return null;
+      if (snapshot.exists && snapshot.data() != null) {
+        final user = UserModel.fromJson(snapshot.data()!);
+        _cachedUser = user;
+        if (Hive.isBoxOpen(AppConstants.userBox)) {
+          try {
+            await Hive.box<dynamic>(AppConstants.userBox).put('current_user', user.toJson());
+          } catch (_) {}
+        }
+        return user;
+      }
+    } catch (_) {}
 
-      return UserModel.fromJson(data);
-    } catch (e) {
-      throw Exception('Failed to get user profile: $e');
+    if (Hive.isBoxOpen(AppConstants.userBox)) {
+      try {
+        final raw = Hive.box<dynamic>(AppConstants.userBox).get('current_user');
+        if (raw != null) {
+          final user = UserModel.fromJson(Map<String, dynamic>.from(raw as Map));
+          _cachedUser = user;
+          return user;
+        }
+      } catch (_) {}
     }
+
+    return null;
   }
 
   Exception _handleFirebaseAuthError(FirebaseAuthException e) {
