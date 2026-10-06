@@ -260,11 +260,19 @@ abstract final class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: isDark
             ? AppColors.elevatedDark
-            : const Color(0xFFF3F4F6),
-        selectedColor: AppColors.primarySurface,
+            : const Color(0xFFF1F5F9),
+        selectedColor: AppColors.primary,
         disabledColor: isDark ? AppColors.surfaceDark : AppColors.dividerLight,
-        labelStyle: AppTextStyles.labelMedium(),
-        side: BorderSide.none,
+        labelStyle: AppTextStyles.labelMedium(
+          color: isDark ? AppColors.textPrimaryDark : const Color(0xFF1E293B),
+        ),
+        secondaryLabelStyle: AppTextStyles.labelMedium(
+          color: Colors.white,
+        ),
+        side: BorderSide(
+          color: isDark ? AppColors.borderDark : const Color(0xFFCBD5E1),
+          width: 1,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
         ),
