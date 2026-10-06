@@ -69,6 +69,7 @@ $contextJson
 
   /// Generates a weekly summary (non-streaming).
   Future<String?> generateWeeklySummary(AIContextModel contextSnapshot) async {
+    if (!_isConfigured) return null;
     try {
       final messages = buildHistory(contextSnapshot, []);
       messages.add({'role': 'user', 'content': AiPromptTemplates.weeklySummary()});
@@ -95,6 +96,10 @@ $contextJson
 
   /// Streams a response from Groq.
   Stream<String> sendMessageStream(List<Map<String, String>> history, String message) async* {
+    if (!_isConfigured) {
+      yield "AI service is currently in development mode. API keys are not configured.";
+      return;
+    }
     history.add({'role': 'user', 'content': message});
 
     try {
