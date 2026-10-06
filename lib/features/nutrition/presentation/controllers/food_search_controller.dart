@@ -21,22 +21,27 @@ final foodSearchResultsProvider = StreamProvider<List<FoodItemModel>>((
   final repo = ref.watch(foodDatabaseRepositoryProvider);
 
   if (query.trim().isEmpty) {
-    // If empty query, maybe show recent or favorites from custom foods
+    // When empty query, display user custom foods plus all staple global foods
     await for (final customFoods in repo.watchCustomFoods(user.uid)) {
-      yield customFoods.take(20).toList(); // Return top 20 recent custom foods
+      final combined = <String, FoodItemModel>{};
+      for (final f in customFoods) {
+        combined[f.id] = f;
+      }
+      for (final f in FoodDatabaseRepository.defaultFoods) {
+        combined[f.id] = f;
+      }
+      yield combined.values.toList();
+      break;
     }
     return;
   }
 
-  // Realistically we'd want to combine both streams using RxDart, but we can
-  // yield the global foods stream directly for now since it covers the use-case.
-  // We'll watch global foods and filter custom foods manually here.
-
-  // To keep it simple without rxdart, we can just return global foods matching query.
-  // A robust approach would be to combine them.
-  final globalStream = repo.searchGlobalFoods(query.trim());
-
-  await for (final globalFoods in globalStream) {
-    yield globalFoods;
+  final trimmed = query.trim().toLowerCase();
+  await for (final globalFoods in repo.searchGlobalFoods(trimmed)) {
+    final map = <String, FoodItemModel>{};
+    for (final f in globalFoods) {
+      map[f.id] = f;
+    }
+    yield map.values.toList();
   }
 });

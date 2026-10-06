@@ -9,11 +9,21 @@ import 'nutrition_controller.dart';
 /// State of the currently built meal.
 class MealBuilderState {
   final List<MealItemModel> items;
+  final String mealType;
 
-  MealBuilderState({this.items = const []});
+  MealBuilderState({
+    this.items = const [],
+    this.mealType = 'Breakfast',
+  });
 
-  MealBuilderState copyWith({List<MealItemModel>? items}) {
-    return MealBuilderState(items: items ?? this.items);
+  MealBuilderState copyWith({
+    List<MealItemModel>? items,
+    String? mealType,
+  }) {
+    return MealBuilderState(
+      items: items ?? this.items,
+      mealType: mealType ?? this.mealType,
+    );
   }
 
   double get totalCalories => items.fold(0, (sum, item) => sum + item.calories);
@@ -32,6 +42,11 @@ class MealLoggingController extends StateNotifier<MealBuilderState> {
   MealLoggingController(this._ref) : super(MealBuilderState());
 
   final Ref _ref;
+
+  /// Sets the meal category (Breakfast, Lunch, Dinner, Snack)
+  void setMealType(String mealType) {
+    state = state.copyWith(mealType: mealType);
+  }
 
   /// Adds a food item to the current meal being built.
   void addFood(FoodItemModel food, double servingConsumedGrams) {
@@ -65,12 +80,12 @@ class MealLoggingController extends StateNotifier<MealBuilderState> {
 
   /// Clears the current meal builder.
   void clearMeal() {
-    state = MealBuilderState();
+    state = MealBuilderState(mealType: state.mealType);
   }
 
   /// Saves the built meal to Firestore via NutritionController.
   Future<void> saveMeal({
-    required String mealType,
+    String? mealType,
     String? mealName,
     String? note,
   }) async {
@@ -80,12 +95,13 @@ class MealLoggingController extends StateNotifier<MealBuilderState> {
     if (user == null) throw Exception('User not logged in');
 
     final date = _ref.read(selectedDateProvider);
+    final finalMealType = mealType ?? state.mealType;
 
     final mealLog = MealLogModel(
       id: const Uuid().v4(),
       userId: user.uid,
       date: date,
-      mealType: mealType,
+      mealType: finalMealType,
       mealName: mealName,
       note: note,
       mealItems: state.items,

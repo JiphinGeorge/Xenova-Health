@@ -159,7 +159,7 @@ class DashboardScreen extends ConsumerWidget {
                   _QuickActionBtn(
                     icon: Icons.restaurant_outlined,
                     label: 'Meal',
-                    onTap: () {},
+                    onTap: () => context.push('/nutrition'),
                   ),
                   const SizedBox(width: AppDimensions.spacingSm),
                   _QuickActionBtn(
@@ -181,54 +181,8 @@ class DashboardScreen extends ConsumerWidget {
               _buildNutritionCard(context, ref),
               const SizedBox(height: AppDimensions.spacingXl),
 
-              // 5. Progress Photos (Existing)
-
-              // 4. Today's Progress (Placeholders)
-              Text(
-                'Today\'s Progress',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: AppDimensions.spacingMd),
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: AppDimensions.spacingMd,
-                crossAxisSpacing: AppDimensions.spacingMd,
-                childAspectRatio: 1.5,
-                children: const [
-                  _ProgressCard(
-                    title: 'Calories',
-                    subtitle: '1,200 / 2,000 kcal',
-                    icon: Icons.local_fire_department,
-                    progress: 0.6,
-                    color: Colors.orange,
-                  ),
-                  _ProgressCard(
-                    title: 'Protein',
-                    subtitle: '80 / 150 g',
-                    icon: Icons.fitness_center,
-                    progress: 0.53,
-                    color: Colors.blue,
-                  ),
-                  _ProgressCard(
-                    title: 'Fasting',
-                    subtitle: '14h 20m',
-                    icon: Icons.timer,
-                    progress: 0.8,
-                    color: Colors.purple,
-                  ),
-                  _ProgressCard(
-                    title: 'Water',
-                    subtitle: '1.5 / 2.5 L',
-                    icon: Icons.water_drop,
-                    progress: 0.6,
-                    color: Colors.cyan,
-                  ),
-                ],
-              ),
+              // 4. Today's Progress (Live Dynamic Stats)
+              _buildTodaysProgress(context, ref),
               const SizedBox(height: AppDimensions.spacingXl),
 
               // 5. AI Coach Card
@@ -520,56 +474,56 @@ class DashboardScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(AppDimensions.spacingLg),
           child: nutritionAsync.when(
             data: (summary) {
-              if (summary == null) {
-                return Column(
-                  children: [
-                    const Icon(Icons.restaurant, color: Colors.grey, size: 40),
-                    const SizedBox(height: AppDimensions.spacingMd),
-                    const Text('No meals logged today.'),
-                    const SizedBox(height: AppDimensions.spacingMd),
-                    FilledButton.tonal(
-                      onPressed: () => context.push('/food-search'),
-                      child: const Text('Log a Meal'),
-                    ),
-                  ],
-                );
-              }
+              final targetCals = summary?.targetCalories ?? 2000.0;
+              final totalCals = summary?.totalCalories ?? 0.0;
+              final pctCals = (totalCals / targetCals).clamp(0.0, 1.0);
+              final proteinGoal = summary?.targetProtein ?? 150.0;
+              final totalProtein = summary?.totalProtein ?? 0.0;
+              final pctProtein = (totalProtein / proteinGoal).clamp(0.0, 1.0);
+              final waterGoal = summary?.waterGoalMl ?? 2500;
+              final waterIntake = summary?.waterIntakeMl ?? 0;
+              final pctWater = (waterIntake / waterGoal).clamp(0.0, 1.0);
+              final remaining = (targetCals - totalCals).clamp(0.0, double.infinity);
 
-              final pctCals = (summary.totalCalories / summary.targetCalories)
-                  .clamp(0.0, 1.0);
-              final proteinGoal = summary.targetProtein ?? 150.0;
-              final pctProtein = (summary.totalProtein / proteinGoal).clamp(
-                0.0,
-                1.0,
-              );
-              final waterGoal = summary.waterGoalMl ?? 2500;
-              final pctWater = (summary.waterIntakeMl / waterGoal).clamp(
-                0.0,
-                1.0,
-              );
-              final remaining = summary.targetCalories - summary.totalCalories;
-
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+              return Column(
                 children: [
-                  _StatRing(
-                    value: pctCals,
-                    label:
-                        '${remaining.clamp(0, double.infinity).toStringAsFixed(0)}',
-                    subLabel: 'kcal left',
-                    color: pctCals >= 1.0 ? AppColors.error : AppColors.primary,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _StatRing(
+                        value: pctCals,
+                        label: remaining.toStringAsFixed(0),
+                        subLabel: 'kcal left',
+                        color: pctCals >= 1.0 ? AppColors.error : AppColors.primary,
+                      ),
+                      _StatRing(
+                        value: pctProtein,
+                        label: '${totalProtein.toStringAsFixed(0)}g',
+                        subLabel: 'Protein',
+                        color: Colors.blue,
+                      ),
+                      _StatRing(
+                        value: pctWater,
+                        label: '${(waterIntake / 1000).toStringAsFixed(1)}L',
+                        subLabel: 'Water',
+                        color: Colors.lightBlueAccent,
+                      ),
+                    ],
                   ),
-                  _StatRing(
-                    value: pctProtein,
-                    label: '${(pctProtein * 100).toStringAsFixed(0)}%',
-                    subLabel: 'Protein',
-                    color: Colors.blue,
-                  ),
-                  _StatRing(
-                    value: pctWater,
-                    label: '${(pctWater * 100).toStringAsFixed(0)}%',
-                    subLabel: 'Water',
-                    color: Colors.lightBlueAccent,
+                  const SizedBox(height: AppDimensions.spacingSm),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        summary == null || summary.mealCount == 0
+                            ? 'No meals logged yet today'
+                            : '${summary.mealCount} meal${summary.mealCount > 1 ? 's' : ''} logged (${totalCals.toStringAsFixed(0)} kcal)',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               );
@@ -577,6 +531,104 @@ class DashboardScreen extends ConsumerWidget {
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, st) => Text('Error: $e'),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTodaysProgress(BuildContext context, WidgetRef ref) {
+    final nutritionAsync = ref.watch(dailyNutritionSummaryStreamProvider);
+    final activeSessionAsync = ref.watch(activeFastingSessionProvider);
+
+    final summary = nutritionAsync.value;
+    final targetCals = summary?.targetCalories ?? 2000.0;
+    final totalCals = summary?.totalCalories ?? 0.0;
+    final pctCals = (totalCals / targetCals).clamp(0.0, 1.0);
+
+    final targetProtein = summary?.targetProtein ?? 150.0;
+    final totalProtein = summary?.totalProtein ?? 0.0;
+    final pctProtein = (totalProtein / targetProtein).clamp(0.0, 1.0);
+
+    final waterGoal = summary?.waterGoalMl ?? 2500;
+    final waterIntake = summary?.waterIntakeMl ?? 0;
+    final pctWater = (waterIntake / waterGoal).clamp(0.0, 1.0);
+
+    final session = activeSessionAsync.value;
+    String fastingSubtitle = 'Not Fasting';
+    double fastingProgress = 0.0;
+    if (session != null) {
+      final elapsed = DateTime.now().difference(session.startTime);
+      final hours = elapsed.inHours;
+      final minutes = elapsed.inMinutes.remainder(60);
+      fastingSubtitle = '${hours}h ${minutes}m';
+      final targetMinutes = (session.targetDurationHours * 60).toInt();
+      fastingProgress = targetMinutes > 0
+          ? (elapsed.inMinutes / targetMinutes).clamp(0.0, 1.0)
+          : 0.0;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          "Today's Progress",
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: AppDimensions.spacingMd),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: AppDimensions.spacingMd,
+          crossAxisSpacing: AppDimensions.spacingMd,
+          childAspectRatio: 1.5,
+          children: [
+            GestureDetector(
+              onTap: () => context.push('/nutrition'),
+              child: _ProgressCard(
+                title: 'Calories',
+                subtitle:
+                    '${totalCals.toStringAsFixed(0)} / ${targetCals.toStringAsFixed(0)} kcal',
+                icon: Icons.local_fire_department,
+                progress: pctCals,
+                color: Colors.orange,
+              ),
+            ),
+            GestureDetector(
+              onTap: () => context.push('/nutrition'),
+              child: _ProgressCard(
+                title: 'Protein',
+                subtitle:
+                    '${totalProtein.toStringAsFixed(0)} / ${targetProtein.toStringAsFixed(0)} g',
+                icon: Icons.fitness_center,
+                progress: pctProtein,
+                color: Colors.blue,
+              ),
+            ),
+            GestureDetector(
+              onTap: () => context.push('/fasting'),
+              child: _ProgressCard(
+                title: 'Fasting',
+                subtitle: fastingSubtitle,
+                icon: Icons.timer,
+                progress: fastingProgress,
+                color: Colors.purple,
+              ),
+            ),
+            GestureDetector(
+              onTap: () => context.push('/nutrition'),
+              child: _ProgressCard(
+                title: 'Water',
+                subtitle:
+                    '${(waterIntake / 1000).toStringAsFixed(1)} / ${(waterGoal / 1000).toStringAsFixed(1)} L',
+                icon: Icons.water_drop,
+                progress: pctWater,
+                color: Colors.cyan,
+              ),
+            ),
+          ],
         ),
       ],
     );

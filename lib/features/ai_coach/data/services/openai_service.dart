@@ -79,7 +79,7 @@ $contextJson
         }),
       );
 
-      return response.data['choices'][0]['message']['content'] as String?;
+      return response.data?['choices']?[0]?['message']?['content'] as String?;
     } catch (e) {
       print('Weekly summary error: $e');
       return null;
@@ -100,7 +100,8 @@ $contextJson
         }),
       );
 
-      final stream = response.data.stream as Stream<List<int>>;
+      final stream = response.data?.stream;
+      if (stream == null) return;
       String buffer = '';
 
       await for (final chunk in stream) {

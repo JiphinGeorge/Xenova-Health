@@ -14,22 +14,47 @@ class FoodDatabaseRepository {
   String _globalFoodsPath() => 'food_database';
   String _customFoodsPath(String userId) => 'users/$userId/custom_foods';
 
-  /// Watches global foods based on a query
+  /// Watches global foods based on a query with substring and offline fallback
   Stream<List<FoodItemModel>> searchGlobalFoods(String query) {
-    // Case-insensitive prefix search using a lowercased 'searchName' field.
-    // Falls back to 'name' field for data without searchName.
-    final lowerQuery = query.toLowerCase();
-    return _firestore
-        .collection(_globalFoodsPath())
-        .where('searchName', isGreaterThanOrEqualTo: lowerQuery)
-        .where('searchName', isLessThanOrEqualTo: '$lowerQuery\uf8ff')
-        .limit(20)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => FoodItemModel.fromJson(doc.data()))
-              .toList(),
-        );
+    final lowerQuery = query.toLowerCase().trim();
+
+    final firestoreStream = lowerQuery.isEmpty
+        ? _firestore.collection(_globalFoodsPath()).limit(30).snapshots()
+        : _firestore
+            .collection(_globalFoodsPath())
+            .where('searchName', isGreaterThanOrEqualTo: lowerQuery)
+            .where('searchName', isLessThanOrEqualTo: '$lowerQuery\uf8ff')
+            .limit(30)
+            .snapshots();
+
+    return firestoreStream.map((snapshot) {
+      final fromFirestore = snapshot.docs
+          .map((doc) => FoodItemModel.fromJson(doc.data()))
+          .toList();
+
+      // In-memory filter on defaultFoods to guarantee substring matches
+      final matchingDefaults = lowerQuery.isEmpty
+          ? defaultFoods
+          : defaultFoods.where((f) {
+              final name = f.name.toLowerCase();
+              final brand = (f.brandName ?? '').toLowerCase();
+              return name.contains(lowerQuery) || brand.contains(lowerQuery);
+            }).toList();
+
+      final map = <String, FoodItemModel>{};
+      for (final f in matchingDefaults) {
+        map[f.id] = f;
+      }
+      for (final f in fromFirestore) {
+        map[f.id] = f;
+      }
+      return map.values.toList();
+    }).handleError((_) {
+      if (lowerQuery.isEmpty) return defaultFoods;
+      return defaultFoods
+          .where((f) => f.name.toLowerCase().contains(lowerQuery))
+          .toList();
+    });
   }
 
   /// Watches custom foods for a specific user
@@ -84,9 +109,22 @@ class FoodDatabaseRepository {
 
       final batch = _firestore.batch();
 
-    final foods = [
-      // Proteins
-      FoodItemModel(
+      for (final food in defaultFoods) {
+        final docRef = collection.doc(food.id);
+        final data = food.toJson();
+        data['searchName'] = food.name.toLowerCase();
+        batch.set(docRef, data);
+      }
+
+      await batch.commit();
+    } catch (e) {
+      // Offline fallback is handled by in-memory defaultFoods
+    }
+  }
+
+  static const List<FoodItemModel> defaultFoods = [
+    // Proteins
+    FoodItemModel(
         id: 'global_egg',
         name: 'Egg (Large)',
         calories: 72,
@@ -344,20 +382,7 @@ class FoodDatabaseRepository {
         sugar: 4.7,
         isVerified: true,
       ),
-    ];
-
-    for (final food in foods) {
-      final docRef = collection.doc(food.id);
-      final data = food.toJson();
-      data['searchName'] = food.name.toLowerCase();
-      batch.set(docRef, data);
-    }
-
-    await batch.commit();
-    } catch (e) {
-      print('Food database seed error: $e');
-    }
-  }
+  ];
 }
 
 final foodDatabaseRepositoryProvider = Provider<FoodDatabaseRepository>((ref) {

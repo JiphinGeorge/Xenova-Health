@@ -16,7 +16,7 @@ class MealBuilderReviewScreen extends ConsumerStatefulWidget {
 
 class _MealBuilderReviewScreenState
     extends ConsumerState<MealBuilderReviewScreen> {
-  String _mealType = 'Breakfast';
+  late String _mealType;
 
   final _mealTypes = [
     'Breakfast',
@@ -26,6 +26,15 @@ class _MealBuilderReviewScreenState
     'Pre-Workout',
     'Post-Workout',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _mealType = ref.read(mealLoggingProvider).mealType;
+    if (!_mealTypes.contains(_mealType)) {
+      _mealType = 'Breakfast';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

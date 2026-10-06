@@ -68,3 +68,5 @@ lcov.info
 *.apk
 *.aab
 *.ipa
+# Widget Preview related
+.widget_preview/

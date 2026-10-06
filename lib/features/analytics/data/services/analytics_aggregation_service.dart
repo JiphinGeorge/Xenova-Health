@@ -4,7 +4,6 @@ import '../../../fasting/data/repositories/fasting_repository.dart';
 import '../../../nutrition/data/repositories/daily_nutrition_repository.dart';
 import '../../../weight/data/repositories/weight_repository.dart';
 import '../../domain/models/analytics_report_model.dart';
-import '../../domain/models/analytics_snapshot_model.dart';
 
 /// Client-side aggregation service that builds AnalyticsReports
 class AnalyticsAggregationService {
