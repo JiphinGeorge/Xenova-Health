@@ -5,6 +5,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 import '../../firebase/storage_service.dart';
 import '../domain/storage_repository.dart';
+import 'local_storage_repository_impl.dart';
 
 /// Firebase implementation of [StorageRepository] that uploads files
 /// to Firebase Storage.
@@ -30,11 +31,19 @@ class FirebaseStorageRepositoryImpl implements StorageRepository {
     );
     if (compressedBytes == null) throw Exception('Image compression failed');
 
-    return _storageService.uploadBytes(
-      path: path, 
-      bytes: compressedBytes,
-      contentType: 'image/jpeg',
-    );
+    try {
+      return await _storageService.uploadBytes(
+        path: path, 
+        bytes: compressedBytes,
+        contentType: 'image/jpeg',
+      );
+    } catch (_) {
+      return LocalStorageRepositoryImpl().uploadProfilePhoto(
+        userId: userId,
+        image: image,
+        onProgress: onProgress,
+      );
+    }
   }
 
   @override

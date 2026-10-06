@@ -8,6 +8,8 @@ import '../../domain/models/user_model.dart';
 import '../../domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
+  UserModel? _cachedUser;
+
   AuthRepositoryImpl({
     required this.authService,
     required this.firestoreService,
@@ -15,15 +17,14 @@ class AuthRepositoryImpl implements AuthRepository {
     // Listen to Firebase auth changes and map to our UserModel
     _authSubscription = authService.authStateChanges.listen((firebaseUser) {
       if (firebaseUser == null) {
+        _cachedUser = null;
         _authStateController.add(null);
       } else {
-        // We only have the minimal user here. Full user comes from Firestore.
-        // We trigger a fetch of the profile.
         getUserProfile(firebaseUser.uid).then((userModel) {
           if (userModel != null) {
+            _cachedUser = userModel;
             _authStateController.add(userModel);
           } else {
-            // User exists in Auth but not in Firestore yet (e.g. just signed up)
             final minimalUser = UserModel(
               uid: firebaseUser.uid,
               email: firebaseUser.email ?? '',
@@ -31,6 +32,7 @@ class AuthRepositoryImpl implements AuthRepository {
               photoUrl: firebaseUser.photoURL,
               createdAt: DateTime.now(),
             );
+            _cachedUser = minimalUser;
             _authStateController.add(minimalUser);
           }
         });
@@ -52,9 +54,18 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   UserModel? get currentUser {
-    // This is a synchronous getter, we can't fetch from Firestore synchronously.
-    // In a real app we might cache the last known UserModel here.
-    return null; // The controller will handle the reactive state.
+    if (_cachedUser != null) return _cachedUser;
+    final fbUser = authService.currentUser;
+    if (fbUser != null) {
+      return UserModel(
+        uid: fbUser.uid,
+        email: fbUser.email ?? '',
+        displayName: fbUser.displayName,
+        photoUrl: fbUser.photoURL,
+        createdAt: DateTime.now(),
+      );
+    }
+    return null;
   }
 
   @override
@@ -140,6 +151,8 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> saveUserProfile(UserModel user) async {
     try {
+      _cachedUser = user;
+      _authStateController.add(user);
       await firestoreService.setDocument(
         path: '$_usersCollection/${user.uid}',
         data: user.toJson(),

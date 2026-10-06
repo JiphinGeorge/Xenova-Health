@@ -11,9 +11,9 @@ import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../progress_photos/presentation/controllers/progress_photos_controller.dart';
 import '../controllers/profile_photo_controller.dart';
 
-/// A reusable avatar widget that supports picking and displaying a profile photo.
+/// A reusable avatar widget that supports picking, uploading, and viewing a profile photo.
 ///
-/// Handles both network URLs and local file URIs seamlessly.
+/// Handles both network URLs and local file URIs seamlessly with error recovery.
 class ProfilePhotoPicker extends ConsumerWidget {
   const ProfilePhotoPicker({super.key, this.radius = 60});
 
@@ -87,6 +87,71 @@ class ProfilePhotoPicker extends ConsumerWidget {
     );
   }
 
+  Widget _buildAvatarImage(
+    BuildContext context,
+    String? photoUrl,
+    double radius,
+  ) {
+    if (photoUrl == null || photoUrl.isEmpty) {
+      return Center(
+        child: Icon(
+          Icons.person,
+          size: radius * 1.2,
+          color: AppColors.primary.withValues(alpha: 0.5),
+        ),
+      );
+    }
+
+    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+      return CachedNetworkImage(
+        imageUrl: photoUrl,
+        fit: BoxFit.cover,
+        width: radius * 2,
+        height: radius * 2,
+        placeholder: (_, __) => const Center(
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+        errorWidget: (_, __, ___) => Center(
+          child: Icon(
+            Icons.person,
+            size: radius * 1.2,
+            color: AppColors.primary.withValues(alpha: 0.5),
+          ),
+        ),
+      );
+    }
+
+    // Local file path (with or without file://)
+    String path = photoUrl;
+    if (path.startsWith('file://')) {
+      path = path.replaceFirst('file://', '');
+    }
+    final file = File(path);
+    if (file.existsSync()) {
+      return Image.file(
+        file,
+        fit: BoxFit.cover,
+        width: radius * 2,
+        height: radius * 2,
+        errorBuilder: (_, __, ___) => Center(
+          child: Icon(
+            Icons.person,
+            size: radius * 1.2,
+            color: AppColors.primary.withValues(alpha: 0.5),
+          ),
+        ),
+      );
+    }
+
+    return Center(
+      child: Icon(
+        Icons.person,
+        size: radius * 1.2,
+        color: AppColors.primary.withValues(alpha: 0.5),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).value;
@@ -98,33 +163,33 @@ class ProfilePhotoPicker extends ConsumerWidget {
     final photoUrl = user?.photoUrl;
     final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
 
-    ImageProvider? imageProvider;
-    if (hasPhoto) {
-      if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
-        imageProvider = CachedNetworkImageProvider(photoUrl);
-      } else if (photoUrl.startsWith('file://')) {
-        // Strip the file:// prefix for the local File object
-        imageProvider = FileImage(File(photoUrl.replaceFirst('file://', '')));
-      }
-    }
-
     return GestureDetector(
       onTap: isLoading
           ? null
           : () => _showPickerOptions(context, ref, hasPhoto),
       child: Stack(
         children: [
-          CircleAvatar(
-            radius: radius,
-            backgroundColor: AppColors.primarySurface,
-            backgroundImage: imageProvider,
-            child: imageProvider == null
-                ? Icon(
-                    Icons.person,
-                    size: radius * 1.2,
-                    color: AppColors.primary.withValues(alpha: 0.5),
-                  )
-                : null,
+          Container(
+            width: radius * 2,
+            height: radius * 2,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.primarySurface,
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.3),
+                width: 2.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.15),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: _buildAvatarImage(context, photoUrl, radius),
+            ),
           ),
 
           if (isLoading)
@@ -136,7 +201,9 @@ class ProfilePhotoPicker extends ConsumerWidget {
                 ),
                 child: Center(
                   child: CircularProgressIndicator(
-                    value: isUploading && uploadState.progress > 0 ? uploadState.progress : null,
+                    value: isUploading && uploadState.progress > 0
+                        ? uploadState.progress
+                        : null,
                     color: Colors.white,
                   ),
                 ),
@@ -156,7 +223,7 @@ class ProfilePhotoPicker extends ConsumerWidget {
                   width: 2,
                 ),
               ),
-              child: Icon(Icons.edit, size: radius * 0.35, color: Colors.white),
+              child: Icon(Icons.camera_alt, size: radius * 0.35, color: Colors.white),
             ),
           ),
         ],
