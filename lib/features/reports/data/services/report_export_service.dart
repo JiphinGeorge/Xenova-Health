@@ -34,16 +34,16 @@ class ReportExportService {
     this._statsRepo,
     this._weightRepo,
     this._fastingRepo,
-    this._analyticsRepo,
+    this._analyticsRepo, [
     this._openAIService,
-  );
+  ]);
 
   final Ref _ref;
   final DashboardStatsRepository _statsRepo;
   final WeightRepository _weightRepo;
   final FastingRepository _fastingRepo;
   final AnalyticsRepository _analyticsRepo;
-  final OpenAIService _openAIService;
+  final OpenAIService? _openAIService;
 
   final CsvGenerator _csvGenerator = CsvGenerator();
   final PdfGenerator _pdfGenerator = PdfGenerator();
@@ -215,7 +215,7 @@ class ReportExportService {
 
     // AI summary or clinical local summary
     String? aiSummary;
-    if (_openAIService.isConfigured) {
+    if (_openAIService != null && _openAIService!.isConfigured) {
       try {
         final contextModel = AIContextModel(
           contextVersion: '1.0',
@@ -235,7 +235,7 @@ class ReportExportService {
           waterGoalMet: (latestReport?.averageDailyWater ?? 2200) > 2000,
           calorieTargetMet: true,
         );
-        aiSummary = await _openAIService.generateWeeklySummary(contextModel);
+        aiSummary = await _openAIService!.generateWeeklySummary(contextModel);
         if (aiSummary != null && aiSummary.isNotEmpty) {
           _ref.read(achievementEngineProvider).processAiCoachEvent(true);
         }
@@ -268,12 +268,17 @@ class ReportExportService {
 }
 
 final reportExportServiceProvider = Provider<ReportExportService>((ref) {
+  OpenAIService? openAIService;
+  try {
+    openAIService = ref.watch(openAIServiceProvider);
+  } catch (_) {}
+
   return ReportExportService(
     ref,
     ref.watch(dashboardStatsRepositoryProvider),
     ref.watch(weightRepositoryProvider),
     ref.watch(fastingRepositoryProvider),
     ref.watch(analyticsRepositoryProvider),
-    ref.watch(openAIServiceProvider),
+    openAIService,
   );
 });
