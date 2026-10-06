@@ -94,13 +94,25 @@ class ProgressPhotosController extends AsyncNotifier<void> {
 
       await ref.read(progressPhotoRepositoryProvider).addPhoto(photo);
 
-      // Trigger achievement hooks asynchronously
-      _checkMilestones(photo);
+      try {
+        final statsRepo = ref.read(lifetimeStatsRepositoryProvider);
+        final stats = await statsRepo.getStats(user.uid);
+        await statsRepo.saveStats(
+          user.uid,
+          stats.copyWith(totalProgressPhotos: stats.totalProgressPhotos + 1),
+        );
+      } catch (_) {}
+
+      try {
+        _checkMilestones(photo);
+      } catch (_) {}
 
       ref.read(progressPhotoUploadStateProvider.notifier).state = 
           const UploadState(status: UploadStatus.completed, progress: 1.0);
 
-      await ref.read(analyticsServiceProvider).logPhotoUploaded();
+      try {
+        await ref.read(analyticsServiceProvider).logPhotoUploaded();
+      } catch (_) {}
 
       state = const AsyncData(null);
     } catch (e, st) {
@@ -142,6 +154,17 @@ class ProgressPhotosController extends AsyncNotifier<void> {
 
       final repository = ref.read(progressPhotoRepositoryProvider);
       await repository.deletePhoto(user.uid, photo.id);
+
+      try {
+        final statsRepo = ref.read(lifetimeStatsRepositoryProvider);
+        final stats = await statsRepo.getStats(user.uid);
+        if (stats.totalProgressPhotos > 0) {
+          await statsRepo.saveStats(
+            user.uid,
+            stats.copyWith(totalProgressPhotos: stats.totalProgressPhotos - 1),
+          );
+        }
+      } catch (_) {}
 
       state = const AsyncData(null);
     } catch (e, st) {

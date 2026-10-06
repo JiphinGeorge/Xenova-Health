@@ -67,8 +67,20 @@ class _PhotoComparisonScreenState extends State<PhotoComparisonScreen> {
     if (photo.photoUrl.startsWith('http://') ||
         photo.photoUrl.startsWith('https://')) {
       return CachedNetworkImageProvider(photo.photoUrl);
-    } else if (photo.photoUrl.startsWith('file://')) {
-      return FileImage(File(photo.photoUrl.replaceFirst('file://', '')));
+    }
+
+    String path = photo.photoUrl;
+    if (path.startsWith('file://')) {
+      try {
+        path = Uri.parse(photo.photoUrl).toFilePath();
+      } catch (_) {
+        path = photo.photoUrl.replaceFirst('file://', '');
+      }
+    }
+
+    final file = File(path);
+    if (file.existsSync()) {
+      return FileImage(file);
     }
     return const AssetImage('assets/images/placeholder.png');
   }

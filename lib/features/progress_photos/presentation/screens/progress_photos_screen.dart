@@ -58,6 +58,125 @@ class _ProgressPhotosScreenState extends ConsumerState<ProgressPhotosScreen> {
     );
   }
 
+  void _showPhotoDetailDialog(ProgressPhotoModel photo) {
+    final dateStr =
+        '${photo.date.year}-${photo.date.month.toString().padLeft(2, '0')}-${photo.date.day.toString().padLeft(2, '0')}';
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => Dialog.fullscreen(
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(dateStr),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                tooltip: 'Delete Photo',
+                onPressed: () async {
+                  final confirm = await showDialog<bool>(
+                    context: ctx,
+                    builder: (dCtx) => AlertDialog(
+                      title: const Text('Delete Photo?'),
+                      content: const Text('This action cannot be undone.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(dCtx, false),
+                          child: const Text('Cancel'),
+                        ),
+                        FilledButton(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.error,
+                          ),
+                          onPressed: () => Navigator.pop(dCtx, true),
+                          child: const Text('Delete'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirm == true) {
+                    Navigator.pop(ctx);
+                    await ref
+                        .read(progressPhotosControllerProvider.notifier)
+                        .deletePhoto(photo);
+                  }
+                },
+              ),
+            ],
+          ),
+          body: Column(
+            children: [
+              Expanded(
+                child: InteractiveViewer(
+                  minScale: 0.8,
+                  maxScale: 4.0,
+                  child: Center(
+                    child: Image(
+                      image: _resolveProgressImage(
+                        photo.photoUrl,
+                        photo.thumbnailUrl,
+                      ),
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(AppDimensions.spacingLg),
+                decoration: BoxDecoration(
+                  color: Theme.of(ctx).cardColor,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 8,
+                      offset: Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Recorded Weight',
+                            style: Theme.of(ctx).textTheme.labelMedium?.copyWith(
+                              color: Colors.grey,
+                            ),
+                          ),
+                          Text(
+                            '${photo.weightAtTime} kg',
+                            style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (photo.note != null && photo.note!.isNotEmpty)
+                        Flexible(
+                          child: Text(
+                            photo.note!,
+                            textAlign: TextAlign.end,
+                            style: Theme.of(ctx).textTheme.bodyMedium,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final photosAsync = ref.watch(progressPhotosStreamProvider);
@@ -226,7 +345,9 @@ class _ProgressPhotosScreenState extends ConsumerState<ProgressPhotosScreen> {
           isGrid: true,
           isSelectionMode: _isSelectionMode,
           isSelected: isSelected,
-          onTap: _isSelectionMode ? () => _togglePhotoSelection(photo) : null,
+          onTap: _isSelectionMode
+              ? () => _togglePhotoSelection(photo)
+              : () => _showPhotoDetailDialog(photo),
         );
       },
     );
@@ -245,11 +366,52 @@ class _ProgressPhotosScreenState extends ConsumerState<ProgressPhotosScreen> {
           photo: photo,
           isSelectionMode: _isSelectionMode,
           isSelected: isSelected,
-          onTap: _isSelectionMode ? () => _togglePhotoSelection(photo) : null,
+          onTap: _isSelectionMode
+              ? () => _togglePhotoSelection(photo)
+              : () => _showPhotoDetailDialog(photo),
         );
       },
     );
   }
+}
+
+ImageProvider _resolveProgressImage(String photoUrl, [String? thumbUrl]) {
+  final target = (thumbUrl != null && thumbUrl.isNotEmpty) ? thumbUrl : photoUrl;
+
+  if (target.startsWith('http://') || target.startsWith('https://')) {
+    return CachedNetworkImageProvider(target);
+  }
+
+  String path = target;
+  if (path.startsWith('file://')) {
+    try {
+      path = Uri.parse(target).toFilePath();
+    } catch (_) {
+      path = target.replaceFirst('file://', '');
+    }
+  }
+
+  final file = File(path);
+  if (file.existsSync()) {
+    return FileImage(file);
+  }
+
+  if (target != photoUrl) {
+    String origPath = photoUrl;
+    if (origPath.startsWith('file://')) {
+      try {
+        origPath = Uri.parse(photoUrl).toFilePath();
+      } catch (_) {
+        origPath = photoUrl.replaceFirst('file://', '');
+      }
+    }
+    final origFile = File(origPath);
+    if (origFile.existsSync()) {
+      return FileImage(origFile);
+    }
+  }
+
+  return const AssetImage('assets/images/placeholder.png');
 }
 
 class _PhotoCard extends ConsumerWidget {
@@ -268,16 +430,7 @@ class _PhotoCard extends ConsumerWidget {
   final VoidCallback? onTap;
 
   ImageProvider _getImageProvider() {
-    if (photo.thumbnailUrl != null && photo.thumbnailUrl!.startsWith('http')) {
-      return CachedNetworkImageProvider(photo.thumbnailUrl!);
-    } else if (photo.photoUrl.startsWith('http://') ||
-        photo.photoUrl.startsWith('https://')) {
-      return CachedNetworkImageProvider(photo.photoUrl);
-    } else if (photo.photoUrl.startsWith('file://')) {
-      return FileImage(File(photo.photoUrl.replaceFirst('file://', '')));
-    }
-    // Fallback if not recognized
-    return const AssetImage('assets/images/placeholder.png');
+    return _resolveProgressImage(photo.photoUrl, photo.thumbnailUrl);
   }
 
   Future<void> _delete(BuildContext context, WidgetRef ref) async {
@@ -411,13 +564,7 @@ class _TimelineCard extends ConsumerWidget {
   final VoidCallback? onTap;
 
   ImageProvider _getImageProvider() {
-    if (photo.photoUrl.startsWith('http://') ||
-        photo.photoUrl.startsWith('https://')) {
-      return CachedNetworkImageProvider(photo.photoUrl);
-    } else if (photo.photoUrl.startsWith('file://')) {
-      return FileImage(File(photo.photoUrl.replaceFirst('file://', '')));
-    }
-    return const AssetImage('assets/images/placeholder.png');
+    return _resolveProgressImage(photo.photoUrl, photo.thumbnailUrl);
   }
 
   Future<void> _delete(BuildContext context, WidgetRef ref) async {
