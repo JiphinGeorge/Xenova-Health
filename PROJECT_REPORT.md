@@ -70,6 +70,13 @@ Below is the detailed audit of all 14 feature modules, specifying exact implemen
   - **Active Fasting Widget:** Real-time countdown timer showing current fast duration, target window, and fasting stage (e.g., Anabolic, Fat Burning, Ketosis).
   - **Quick Water Logger:** Increment/decrement buttons to quickly add water intake (250ml / 500ml steps).
   - **Weight Trajectory Card:** Displays current weight, delta from goal, and recent weekly trend.
+  - **Overall Health Score Engine (`health_score_provider.dart`):** Dynamic multi-pillar composite health score (0–100) calculated continuously from real-time user metrics:
+    - **Nutrition & Macros (35% weight):** Calorie target adherence, protein intake compliance, and daily meal count.
+    - **Intermittent Fasting (25% weight):** Active fast progress, completion status, and multi-day streaks.
+    - **Weight Tracking & Consistency (25% weight):** Weigh-in recency, BMI status classification, and goal progress.
+    - **Hydration (15% weight):** Daily water intake vs. 2.5L goal.
+  - **Interactive 4-Pillar Breakdown Bottom Sheet:** Tapping the Health Score card on the dashboard opens a detailed analysis sheet with individual progress bars, score weights, status tier (Needs Focus, Good, Excellent), and dynamic actionable tips to boost the score.
+  - **Cross-Feature Sync & Offline Resilience:** Health scores are auto-synced into `DashboardStatsModel` and cached in local Hive (`cacheBox`) for offline access, report PDF/CSV export, and AI context feeding.
   - **Quick Action Bar:** Direct shortcuts to log meal, log weight, start fast, or chat with AI Coach.
   - **Daily Motivational Quote / Health Tip:** Context-aware tip generated based on daily progress.
 

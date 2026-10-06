@@ -13,21 +13,28 @@ class OpenAIService {
   final String _baseUrl = 'https://api.groq.com/openai/v1';
   final String _model = 'llama-3.3-70b-versatile';
   late final Dio _dio;
+  bool _isConfigured = false;
+
+  bool get isConfigured => _isConfigured;
 
   OpenAIService() {
     final apiKey = dotenv.env['GROQ_API_KEY'];
-    if (apiKey == null || apiKey.isEmpty) {
-      throw Exception('GROQ_API_KEY not found in .env');
+    if (apiKey != null && apiKey.isNotEmpty) {
+      _apiKey = apiKey;
+      _isConfigured = true;
+      _dio = Dio(BaseOptions(
+        baseUrl: _baseUrl,
+        headers: {
+          'Authorization': 'Bearer $_apiKey',
+          'Content-Type': 'application/json',
+        },
+        responseType: ResponseType.stream,
+      ));
+    } else {
+      _apiKey = '';
+      _isConfigured = false;
+      _dio = Dio(BaseOptions(baseUrl: _baseUrl));
     }
-    _apiKey = apiKey;
-    _dio = Dio(BaseOptions(
-      baseUrl: _baseUrl,
-      headers: {
-        'Authorization': 'Bearer $_apiKey',
-        'Content-Type': 'application/json',
-      },
-      responseType: ResponseType.stream,
-    ));
   }
 
   /// Builds chat messages list for the API.
