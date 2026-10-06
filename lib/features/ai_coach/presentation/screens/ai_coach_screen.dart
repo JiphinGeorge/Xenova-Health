@@ -1,398 +1,326 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_dimensions.dart';
-import '../../domain/models/chat_message_model.dart';
-import '../controllers/ai_coach_controller.dart';
 
-class AICoachScreen extends ConsumerStatefulWidget {
+/// Screen displayed when accessing the AI Coach feature, highlighting it as Future Scope.
+class AICoachScreen extends StatelessWidget {
   const AICoachScreen({super.key});
 
   @override
-  ConsumerState<AICoachScreen> createState() => _AICoachScreenState();
-}
-
-class _AICoachScreenState extends ConsumerState<AICoachScreen> {
-  final TextEditingController _textController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
-
-  final List<String> _quickActions = [
-    "Analyze my weight trend",
-    "Analyze my nutrition",
-    "Analyze my fasting consistency",
-    "How close am I to my goal?",
-    "Suggest a high-protein meal",
-    "What should I improve this week?"
-  ];
-
-  void _sendMessage(String text) {
-    if (text.trim().isEmpty) return;
-    _textController.clear();
-    ref.read(aiCoachControllerProvider.notifier).sendMessage(text);
-    _scrollToBottom();
-  }
-
-  void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final state = ref.watch(aiCoachControllerProvider);
-
-    // Auto-scroll when new messages arrive
-    ref.listen(aiCoachControllerProvider, (prev, next) {
-      if (prev?.messages.length != next.messages.length || next.isTyping) {
-        _scrollToBottom();
-      }
-    });
-
-  bool _shouldShowWelcome(AICoachState state) {
-    // Show welcome when there are no user messages (only the auto-greeting or empty)
-    return state.messages.where((m) => m.messageType == ChatMessageType.user).isEmpty;
-  }
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI Coach'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'New Chat',
-            onPressed: () {
-              ref.read(aiCoachControllerProvider.notifier).clearChatHistory();
-            },
-          ),
-        ],
+        title: const Text('AI Health Coach'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
       ),
-      body: Column(
-        children: [
-          if (state.errorMessage != null)
-            Container(
-              width: double.infinity,
-              color: AppColors.error.withValues(alpha: 0.1),
-              padding: const EdgeInsets.all(8),
-              child: Text(
-                state.errorMessage!,
-                style: const TextStyle(color: AppColors.error),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          
-          Expanded(
-            child: _shouldShowWelcome(state)
-                ? _buildWelcomeSection()
-                : ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(AppDimensions.spacingMd),
-                    itemCount: state.messages.length + (state.isTyping ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index == state.messages.length) {
-                        return _buildAssistantMessage(state.partialResponse, isTyping: true);
-                      }
-                      final msg = state.messages[index];
-                      if (msg.messageType == ChatMessageType.user) {
-                        return _buildUserMessage(msg.text);
-                      } else {
-                        return _buildAssistantMessage(msg.text);
-                      }
-                    },
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimensions.spacingXl,
+            vertical: AppDimensions.spacingLg,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: AppDimensions.spacingLg),
+
+              // Glowing AI Badge / Icon
+              Center(
+                child: Container(
+                  width: 110,
+                  height: 110,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primary,
+                        AppColors.secondary,
+                        Colors.purpleAccent.shade400,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.35),
+                        blurRadius: 28,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
                   ),
-          ),
-          
-          if (!_shouldShowWelcome(state) && state.messages.length <= 3)
-            _buildQuickActions(),
-
-          _buildInputArea(state.isTyping),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWelcomeSection() {
-    final suggestions = [
-      _SuggestionItem(
-        icon: Icons.trending_down_rounded,
-        title: 'Analyze my progress',
-        subtitle: 'Get insights on your weight trend',
-        prompt: 'Analyze my weight trend and tell me how I\'m doing',
-      ),
-      _SuggestionItem(
-        icon: Icons.restaurant_menu_rounded,
-        title: 'Meal suggestions',
-        subtitle: 'Get personalized meal ideas',
-        prompt: 'Suggest a high-protein, low-calorie meal plan for today',
-      ),
-      _SuggestionItem(
-        icon: Icons.timer_rounded,
-        title: 'Fasting tips',
-        subtitle: 'Optimize your fasting routine',
-        prompt: 'Analyze my fasting consistency and suggest improvements',
-      ),
-      _SuggestionItem(
-        icon: Icons.emoji_events_rounded,
-        title: 'Weekly review',
-        subtitle: 'See what to improve this week',
-        prompt: 'What should I improve this week based on my data?',
-      ),
-    ];
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppDimensions.spacingLg),
-      child: Column(
-        children: [
-          const SizedBox(height: 24),
-
-          // AI Icon
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.primary,
-                  AppColors.primary.withValues(alpha: 0.7),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.3),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.auto_awesome_rounded,
-              color: Colors.white,
-              size: 36,
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Greeting
-          Text(
-            'Hi! I\'m your AI Health Coach',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-            textAlign: TextAlign.center,
-          ),
-
-          const SizedBox(height: 8),
-
-          Text(
-            'I can analyze your health data, suggest meals,\nand help you reach your goals faster.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  height: 1.5,
-                ),
-            textAlign: TextAlign.center,
-          ),
-
-          const SizedBox(height: 28),
-
-          // "Try asking" label
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Try asking',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
+                  child: const Center(
+                    child: Icon(
+                      Icons.auto_awesome,
+                      size: 54,
+                      color: Colors.white,
+                    ),
                   ),
-            ),
-          ),
+                ),
+              ),
 
-          const SizedBox(height: 12),
+              const SizedBox(height: AppDimensions.spacingXl),
 
-          // Suggestion cards
-          ...suggestions.map((s) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Material(
-              color: isDark
-                  ? Theme.of(context).colorScheme.surfaceContainerHighest
-                  : Theme.of(context).colorScheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(14),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(14),
-                onTap: () => _sendMessage(s.prompt),
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Row(
+              // Status Tag Chip
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.amber.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
+                      Icon(Icons.construction, size: 16, color: Colors.amber),
+                      SizedBox(width: 6),
+                      Text(
+                        'FEATURE UNDER DEVELOPMENT',
+                        style: TextStyle(
+                          color: Colors.amber,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          letterSpacing: 0.8,
                         ),
-                        child: Icon(s.icon, color: AppColors.primary, size: 20),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              s.title,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              s.subtitle,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        size: 14,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ],
                   ),
                 ),
               ),
+
+              const SizedBox(height: AppDimensions.spacingMd),
+
+              // Title
+              Text(
+                'AI Coach • Future Scope',
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: AppDimensions.spacingSm),
+
+              // Description
+              Text(
+                'The intelligent personalized AI Health & Nutrition Coach is currently in active research & development as part of the Phase 2 milestone for Xenova Health.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: AppDimensions.spacing2xl),
+
+              // Roadmap Header
+              Text(
+                'Planned Capabilities',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: AppDimensions.spacingMd),
+
+              // Feature Cards
+              _buildFeatureItem(
+                context,
+                icon: Icons.insights_outlined,
+                color: Colors.blueAccent,
+                title: 'Live Metric Intelligence',
+                description:
+                    'Context-aware analysis of your daily calories, macro ratios, fasting streaks, and weight trends.',
+              ),
+              const SizedBox(height: AppDimensions.spacingSm),
+
+              _buildFeatureItem(
+                context,
+                icon: Icons.restaurant_menu_outlined,
+                color: Colors.green,
+                title: 'Adaptive Meal Suggestions',
+                description:
+                    'Dynamic recommendations for healthy high-protein meals based on remaining macro targets.',
+              ),
+              const SizedBox(height: AppDimensions.spacingSm),
+
+              _buildFeatureItem(
+                context,
+                icon: Icons.timer_outlined,
+                color: Colors.purple,
+                title: 'Smart Fasting Windows',
+                description:
+                    'Automated guidance when to break your fast, stay hydrated, and optimize metabolic recovery.',
+              ),
+              const SizedBox(height: AppDimensions.spacingSm),
+
+              _buildFeatureItem(
+                context,
+                icon: Icons.photo_camera_back_outlined,
+                color: Colors.teal,
+                title: 'Visual Body Composition Analysis',
+                description:
+                    'Computer-vision assisted comparison of progress photos to detect visual muscle definition changes.',
+              ),
+
+              const SizedBox(height: AppDimensions.spacingXl),
+
+              // Campus Note Card
+              Container(
+                padding: const EdgeInsets.all(AppDimensions.spacingMd),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppColors.surfaceDark
+                      : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+                  border: Border.all(
+                    color: theme.dividerColor.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.school_outlined,
+                      color: AppColors.primary,
+                      size: 22,
+                    ),
+                    const SizedBox(width: AppDimensions.spacingMd),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Campus Project Milestone',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Core features (Nutrition tracking, fasting timer, progress photos, local storage, gamification) are fully functional offline without third-party API dependencies.',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: AppDimensions.spacing2xl),
+
+              // Action Buttons
+              FilledButton.icon(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Thanks for your interest! Feature scheduled for Phase 2.'),
+                      backgroundColor: Colors.blueAccent,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.notifications_active_outlined),
+                label: const Text('Notify When Available'),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(50),
+                ),
+              ),
+              const SizedBox(height: AppDimensions.spacingSm),
+
+              OutlinedButton(
+                onPressed: () => context.pop(),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(48),
+                ),
+                child: const Text('Back to Dashboard'),
+              ),
+
+              const SizedBox(height: AppDimensions.spacingXl),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureItem(
+    BuildContext context, {
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String description,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.all(AppDimensions.spacingMd),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.elevatedDark : Colors.white,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        border: Border.all(color: theme.dividerColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
             ),
-          )),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(width: AppDimensions.spacingMd),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
-
-  Widget _buildQuickActions() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingMd, vertical: AppDimensions.spacingSm),
-      child: Row(
-        children: _quickActions.map((action) {
-          return Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: ActionChip(
-              label: Text(action),
-              onPressed: () => _sendMessage(action),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildUserMessage(String text) {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: AppDimensions.spacingMd, left: 40),
-        padding: const EdgeInsets.all(AppDimensions.spacingLg),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusLg).copyWith(
-            bottomRight: const Radius.circular(0),
-          ),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAssistantMessage(String text, {bool isTyping = false}) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: AppDimensions.spacingMd, right: 40),
-        padding: const EdgeInsets.all(AppDimensions.spacingLg),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusLg).copyWith(
-            bottomLeft: const Radius.circular(0),
-          ),
-        ),
-        child: isTyping && text.isEmpty
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : MarkdownBody(data: text),
-      ),
-    );
-  }
-
-  Widget _buildInputArea(bool isTyping) {
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.spacingMd),
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
-      ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _textController,
-                enabled: !isTyping,
-                decoration: InputDecoration(
-                  hintText: 'Ask your AI Coach...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppDimensions.spacingLg,
-                    vertical: AppDimensions.spacingMd,
-                  ),
-                ),
-                onSubmitted: _sendMessage,
-              ),
-            ),
-            const SizedBox(width: AppDimensions.spacingSm),
-            IconButton.filled(
-              icon: const Icon(Icons.send),
-              onPressed: isTyping ? null : () => _sendMessage(_textController.text),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SuggestionItem {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final String prompt;
-
-  const _SuggestionItem({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.prompt,
-  });
 }

@@ -139,32 +139,19 @@ Below is the detailed audit of all 14 feature modules, specifying exact implemen
 
 ---
 
-### Feature 7: AI Coach & Health Advisor (`lib/features/ai_coach`)
+### Feature 7: AI Coach & Health Advisor (`lib/features/ai_coach`) - *Future Scope (Phase 2)*
 
-#### What Has Been Implemented
-- **LLM Streaming Integration (`openai_service.dart`):**
-  - Connects to Groq's high-speed inference API using `llama-3.3-70b-versatile` over Dio HTTP streaming (Server-Sent Events / SSE).
-  - Streams response chunks directly to the UI for near-instant typing feedback.
-- **RAG-Style Context Engine (`ai_context_model.dart`):**
-  - Automatically compiles user context before each prompt:
-    - User's age, gender, height, current weight, and target weight.
-    - Today's consumed calories and macros vs. targets.
-    - Active fasting state (e.g., "14 hours into a 16-hour fast").
-    - Recent 7-day weight trend.
-    - Recent unlocked achievements.
-  - Injects context as a hidden system message so the AI can provide personalized advice without the user having to re-type their stats.
-- **Safety & Health Advice Policy (`health_advice_policy.dart`):**
-  - Strict system prompt guardrails preventing the AI from issuing medical diagnoses, prescribing medications, or encouraging unhealthy dietary extremes.
-- **Rate Limiting Guard (`ai_rate_limiter_service.dart`):**
-  - Restricts users to a configurable limit (default: 20 messages/day) to prevent API credit exhaustion; tracked locally and persisted.
-- **Chat UI (`ai_coach_screen.dart`):**
-  - Chat bubbles with markdown rendering (`flutter_markdown`).
-  - Quick-prompt starter chips (e.g., "Suggest high-protein snack", "How is my fasting going?", "Analyze my week").
-  - Local chat history persistence via SharedPreferences / Hive.
+#### Current Status: Future Scope Milestone
+- **Campus Mini-Project Scope Strategy:** To ensure the core mobile application operates 100% reliably offline on physical devices without third-party LLM API key dependencies or paid token quotas, the AI Coach is formally designated as **Future Scope (Phase 2)**.
+- **Interactive "Under Development" Preview (`ai_coach_screen.dart`):**
+  - Tapping the AI Coach button from the Dashboard routes to an interactive, polished **"Feature Under Development • Future Scope"** screen.
+  - Showcases the upcoming capability roadmap: Live Metric Intelligence, Adaptive Meal Suggestions, Smart Fasting Windows, and Visual Body Composition Analysis.
+  - Provides a "Notify When Available" feedback trigger and clean navigation back to active features.
 
-#### What Has NOT Been Implemented / Pending
-- **Gemini SDK Provider Toggle:** While `API_AND_AI.md` describes Google Gemini and `.env.example` lists `GEMINI_API_KEY`, the current service code in `openai_service.dart` strictly calls the Groq OpenAI-compatible endpoint. A runtime switcher between Gemini and Groq is not yet implemented.
-- **Voice Input / Audio Playback:** Speech-to-text input and text-to-speech voice readout for the AI Coach.
+#### Backend Architecture Prepared for Future Deployment
+- **LLM Streaming Integration (`openai_service.dart`):** Ready for Groq high-speed inference (`llama-3.3-70b-versatile`) over Server-Sent Events (SSE).
+- **RAG-Style Context Engine (`ai_context_model.dart`):** Aggregates user metrics (age, gender, BMI, calorie targets, fasting streaks) into system context.
+- **Safety Policy & Rate Limiter (`health_advice_policy.dart`, `ai_rate_limiter_service.dart`):** Medical disclaimers and token abuse prevention guards.
 
 ---
 

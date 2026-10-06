@@ -402,8 +402,8 @@ class ProfileScreen extends ConsumerWidget {
               color: Colors.green,
             ),
             _LifetimeStatCard(
-              title: 'AI Chats',
-              value: '${stats.totalAIChats}',
+              title: 'AI Coach',
+              value: 'Phase 2',
               icon: Icons.auto_awesome,
               color: Colors.cyan,
             ),
