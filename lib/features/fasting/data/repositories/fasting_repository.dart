@@ -1,11 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/providers.dart';
 import '../../../../core/firebase/firestore_service.dart';
 import '../../domain/models/fasting_session_model.dart';
 
-/// Repository for managing Intermittent Fasting sessions in Firestore.
+/// Repository for managing Intermittent Fasting sessions in Firestore and Hive.
 class FastingRepository {
   FastingRepository(this._firestoreService);
 
@@ -22,33 +24,84 @@ class FastingRepository {
           descending: true,
         )
         .map((snapshot) {
-          return snapshot.docs
+          final list = snapshot.docs
               .map((doc) => FastingSessionModel.fromJson(doc.data()))
               .toList();
+
+          // Cache to local Hive box for offline resilience
+          try {
+            final box = Hive.box<dynamic>(AppConstants.fastingBox);
+            for (final session in list) {
+              box.put(session.id, session.toJson());
+            }
+          } catch (_) {}
+
+          return list;
+        })
+        .handleError((error) {
+          // Fallback to local Hive box if Firestore is offline or fails
+          try {
+            final box = Hive.box<dynamic>(AppConstants.fastingBox);
+            final cached = box.values
+                .map((e) => FastingSessionModel.fromJson(Map<String, dynamic>.from(e as Map)))
+                .where((s) => s.userId == userId)
+                .toList();
+            cached.sort((a, b) => b.startTime.compareTo(a.startTime));
+            return cached;
+          } catch (_) {
+            return <FastingSessionModel>[];
+          }
         });
   }
 
   /// Saves a new fasting session (e.g., starts a fast).
   Future<void> saveFastingSession(FastingSessionModel session) async {
-    await _firestoreService.setDocument(
-      path: '${_collectionPath(session.userId)}/${session.id}',
-      data: session.toJson(),
-    );
+    // Cache locally immediately
+    try {
+      final box = Hive.box<dynamic>(AppConstants.fastingBox);
+      await box.put(session.id, session.toJson());
+    } catch (_) {}
+
+    try {
+      await _firestoreService.setDocument(
+        path: '${_collectionPath(session.userId)}/${session.id}',
+        data: session.toJson(),
+      );
+    } catch (_) {
+      // Offline mode: already stored in Hive
+    }
   }
 
   /// Updates an existing fasting session (e.g., ends a fast).
   Future<void> updateFastingSession(FastingSessionModel session) async {
-    await _firestoreService.updateDocument(
-      path: '${_collectionPath(session.userId)}/${session.id}',
-      data: session.toJson(),
-    );
+    // Cache locally immediately
+    try {
+      final box = Hive.box<dynamic>(AppConstants.fastingBox);
+      await box.put(session.id, session.toJson());
+    } catch (_) {}
+
+    try {
+      await _firestoreService.updateDocument(
+        path: '${_collectionPath(session.userId)}/${session.id}',
+        data: session.toJson(),
+      );
+    } catch (_) {
+      // Offline mode: already stored in Hive
+    }
   }
 
   /// Deletes a fasting session.
   Future<void> deleteFastingSession(String userId, String sessionId) async {
-    await _firestoreService.deleteDocument(
-      '${_collectionPath(userId)}/$sessionId',
-    );
+    try {
+      final box = Hive.box<dynamic>(AppConstants.fastingBox);
+      await box.delete(sessionId);
+    } catch (_) {}
+
+    try {
+      await _firestoreService.deleteDocument(
+        '${_collectionPath(userId)}/$sessionId',
+      );
+    } catch (_) {}
   }
 
   /// Gets the fasting sessions for a given date range.
