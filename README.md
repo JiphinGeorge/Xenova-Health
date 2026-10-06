@@ -2,14 +2,14 @@
 
 # Xenova Health
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=24&pause=1000&color=F76B1C&center=true&vCenter=true&width=435&lines=AI-Powered+Health+Tracking;Weight+%26+Nutrition+Management;Intermittent+Fasting+Coach;Your+Personal+Wellness+Platform" alt="Typing SVG" />
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=24&pause=1000&color=F76B1C&center=true&vCenter=true&width=450&lines=All-in-One+Health+%26+Wellness+Platform;Weight+%26+Calorie+Management;Intermittent+Fasting+Coach;Medical-Grade+PDF+%26+CSV+Exports" alt="Typing SVG" />
 
-**A Production-Ready Health and Fitness Platform powered by Flutter, Firebase, Riverpod, and Gemini AI.**
+**A Production-Ready, Offline-Resilient Health and Fitness Platform powered by Flutter, Firebase, Riverpod, and Hive.**
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
 [![Firebase](https://img.shields.io/badge/Firebase-Ready-FFCA28?style=for-the-badge&logo=firebase&logoColor=white)](https://firebase.google.com)
 [![Riverpod](https://img.shields.io/badge/Riverpod-State_Management-000000?style=for-the-badge&logo=dart&logoColor=white)](https://riverpod.dev)
-[![Gemini](https://img.shields.io/badge/Gemini-AI_Coach-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://deepmind.google/technologies/gemini/)
+[![Hive](https://img.shields.io/badge/Hive-Offline_First-FF6F00?style=for-the-badge&logo=hive&logoColor=white)](https://docs.hivedb.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 <br/>
@@ -20,79 +20,77 @@
 
 ## 🌟 Introduction
 
-Xenova Health is an advanced, AI-driven wellness ecosystem designed to empower users on their health journeys. It bridges the gap between raw health data and actionable insights by seamlessly combining:
-- **AI-Powered Health Tracking Platform**
-- **Weight Management System**
-- **Nutrition Tracking System**
-- **Intermittent Fasting Platform**
-- **Progress Photo Analysis**
-- **Analytics Dashboard**
-- **AI Coach powered by Gemini**
+**Xenova Health** is an advanced, offline-first mobile health and wellness platform designed to bridge raw daily health tracking with actionable, scientific insights. Built with Flutter, it combines:
+- **Comprehensive Calorie & Macro Tracking:** Intelligent food search, USDA integration, and time-of-day meal categorization.
+- **Intermittent Fasting Suite:** Real-time metabolic tracking across 6 standard schedules plus interactive custom fasting timers (1h–72h).
+- **Weight & Body Metrics:** Time-series logging with automatic BMI, BMR, TDEE, and calorie deficit calculations.
+- **Dynamic Overall Health Score (0–100):** Real-time multi-pillar composite algorithm across Nutrition, Fasting, Weight consistency, and Hydration.
+- **Medical-Grade Report Generation:** Comprehensive offline PDF health summaries and granular CSV exports for healthcare professionals.
+- **Photographic Physique Tracking:** Side-by-side visual comparison with privacy-conscious cloud backup.
+- **Gamified Consistency:** XP progression, streaks, and milestone achievements.
 
 ---
 
 ## 🎨 App Branding & Vision
 
 ### The Xenova Identity
-The Xenova Health visual identity is designed to represent personal transformation, health improvement, and technology-driven wellness. The primary logo features a modern stylized "X" that symbolizes growth, progress, and the journey toward healthier living. The blue and purple gradient reflects trust, intelligence, innovation, and the integration of artificial intelligence within the platform.
-
-For mobile deployment, Xenova Health utilizes a simplified **orange and gold icon** derived from the brand identity. The icon represents vitality, energy, achievement, and human-centered wellness. Its minimal design ensures strong recognition across Android and iOS devices while maintaining consistency with the application's mission.
-
-**Mission Statement:** To democratize personalized health coaching by fusing state-of-the-art artificial intelligence with comprehensive lifestyle tracking, empowering individuals to take control of their well-being.
+The Xenova Health visual identity represents personal transformation, vitality, and human-centered technology:
+- **Stylized "X" Emblem:** Symbolizes growth, multidimensional progress, and the convergence of lifestyle pillars into unified well-being.
+- **Color Palette:** A balanced interplay between deep dark-mode slate surfaces (`#0F172A`), vibrant wellness teal (`#0D9488`), and energizing amber/orange accents (`#F59E0B`), meticulously tuned for both dark mode and high-contrast light mode readability.
+- **Mission Statement:** To provide individuals with an uncompromising, private, and offline-reliable health management companion that turns daily discipline into lasting physical vitality.
 
 ---
 
 ## ✨ Key Features
 
-### 🔐 Authentication
-* **Email Login**: Secure email/password authentication via Firebase Auth.
-* **Google Login**: Seamless single sign-on experience.
+### 🔐 Authentication & Onboarding
+* **Firebase Authentication:** Secure email/password login and Google SSO.
+* **Reactive Session Management:** Automatic route guarding and session restoration via Riverpod streams.
+* **Personalized Onboarding Wizard:** Collects baseline metrics, activity multipliers, primary goals, and dietary protocols.
+* **Expanded Dietary Preferences (`DietType`):** Full support for Omnivore, Pescatarian, Flexitarian, Vegetarian, Vegan, Eggetarian, High Protein, and No Preference with clear food guide inclusions.
 
-### ⚖️ Health Tracking
-* **Weight Tracking**: Log and visualize daily weight.
-* **BMI & BMR**: Automatic Body Mass Index and Basal Metabolic Rate calculations.
-* **TDEE**: Total Daily Energy Expenditure tracking based on activity levels.
+### 📊 Dynamic Dashboard & Health Score
+* **Daily Executive Overview:** Instant visibility into calories consumed vs. budget, water intake, active fasting state, and weight trajectory.
+* **Overall Health Score Engine (0–100):** Computes a live composite health score across 4 weighted pillars:
+  - 🥗 **Nutrition (35%):** Caloric goal adherence and macronutrient distribution.
+  - ⏱️ **Fasting (25%):** Fasting window completion and metabolic milestones.
+  - ⚖️ **Weight & Consistency (25%):** Logging regularity and progress toward target weight.
+  - 💧 **Hydration (15%):** Daily water intake goal completion.
+* **Interactive Pillar Breakdown Modal:** Tap the health score card to view granular scores, performance ratings, and personalized improvement tips.
 
-### 🥗 Nutrition
-* **Food Database**: Search and log meals using a comprehensive database (USDA API).
-* **Meal Logging**: Track Breakfast, Lunch, Dinner, and Snacks.
-* **Water Tracking**: Monitor daily hydration goals.
+### 🥗 Nutrition & Meal Logging
+* **Context-Aware "+ Add Food" Logger:** Automatically selects the appropriate meal category (Breakfast, Lunch, Dinner, Snack) based on current local time, with full manual override.
+* **Portion & Macro Breakdown:** Real-time protein, carb, fat, and calorie calculations per serving.
+* **Local-First Serialization:** High-performance offline caching via Hive with seamless Firestore cloud sync.
+* **Quick Water Tracker:** One-tap +250ml / +500ml hydration logging with reactive daily progress ring.
 
-### ⏱️ Fasting
-* **16:8 & OMAD**: Built-in popular fasting schedules.
-* **Custom Plans**: Create and track personalized intermittent fasting windows.
+### ⏱️ Intermittent Fasting Suite
+* **Preset Fasting Protocols:** Built-in 16:8 (LeanGains), 18:6, 20:4 (Warrior), 14:10, 12:12, and 24h OMAD schedules.
+* **Interactive Custom Fast Selector:** Continuous slider (1h–72h), ±30m step adjustments, quick preset chips, and target end-time preview.
+* **Live Metabolic Stage Timeline:** Real-time visual progress through Blood Sugar Stabilization (0–4h), Glycogen Depletion (4–12h), Ketosis (12–18h), Autophagy (18–24h), and Peak Growth Hormone (24h+).
 
-### 🤖 AI Coach
-* **Gemini AI**: Conversational health coaching powered by Google's Gemini.
-* **Weekly Summary**: AI-generated health reports analyzing your 7-day trends.
-* **Personalized Recommendations**: Context-aware dietary and fitness advice.
+### ⚖️ Weight Management & Health Calculators
+* **Time-Series Weight Tracking:** Log morning weigh-ins, body fat percentage, mood, and personal notes.
+* **Embedded Health Calculators:**
+  - **BMI Calculator:** Body Mass Index classification based on WHO standards.
+  - **BMR Calculator:** Mifflin-St Jeor basal metabolic rate.
+  - **TDEE Calculator:** Total Daily Energy Expenditure factoring activity levels.
+  - **Calorie Deficit Calculator:** Targeted calorie budgets for safe, sustainable weight loss or gain.
+
+### 📄 Medical-Grade PDF & CSV Health Reports
+* **Comprehensive PDF Report:** Generates multi-page summary reports formatted for consultations with doctors, dietitians, or personal coaches.
+* **Granular CSV Exporters:** Export individual datasets for Weight, Nutrition, and Fasting history.
+* **Native System Share Sheet:** Directly save, print, or share reports via `share_plus`.
 
 ### 📸 Progress Photos
-* **Before/After Comparison**: Side-by-side visual progress tracking.
-* **Cloud Storage**: Secure, private backup of photos via Firebase Storage.
+* **Private Physique Journal:** Capture or import front, side, and back physique photos.
+* **Side-by-Side Comparison:** Interactive before-and-after slider to visually inspect body composition changes over time.
+* **Encrypted Storage:** Private cloud backup via Firebase Cloud Storage with offline thumbnail caching.
 
-### 📈 Analytics & Reports
-* **Charts & Trends**: Interactive charts for weight, nutrition, and fasting history.
-* **PDF & CSV Export**: Generate shareable reports for personal records or healthcare providers.
-
-### 🎮 Gamification & Notifications
-* **XP & Levels**: Earn experience points for logging meals, fasting, and consistency.
-* **Achievements**: Unlock badges for major milestones (e.g., "7-Day Streak").
-* **Notification Center**: Centralized hub for reminders, level-ups, and AI alerts.
-
----
-
-## 📸 Screenshots
-
-*(Replace placeholders with actual app screenshots)*
-
-| Login | Dashboard | Weight Tracker | Nutrition |
-|:---:|:---:|:---:|:---:|
-| <img src="assets/images/placeholder.png" width="200"/> | <img src="assets/images/placeholder.png" width="200"/> | <img src="assets/images/placeholder.png" width="200"/> | <img src="assets/images/placeholder.png" width="200"/> |
-
-| Fasting | Analytics | AI Coach | Achievements |
-|:---:|:---:|:---:|:---:|
-| <img src="assets/images/placeholder.png" width="200"/> | <img src="assets/images/placeholder.png" width="200"/> | <img src="assets/images/placeholder.png" width="200"/> | <img src="assets/images/placeholder.png" width="200"/> |
+### 🎮 Gamification & Achievements
+* **XP Progression System:** Earn experience points for every logged meal, completed fast, and daily check-in.
+* **Milestone Badges:** Unlock achievements for logging streaks, fasting mastery, and hydration milestones.
+* **Toast & SnackBar Feedback:** Instant confirmations across profile photo updates, fasting plan changes, and preference edits.
 
 ---
 
@@ -100,122 +98,144 @@ For mobile deployment, Xenova Health utilizes a simplified **orange and gold ico
 
 | Layer | Technologies |
 |---|---|
-| **Frontend** | Flutter, Riverpod (State Management), GoRouter (Navigation), Freezed (Data Classes) |
-| **Backend & Auth** | Firebase Authentication, Firebase Cloud Storage, Firebase App Check |
-| **Database** | Cloud Firestore (NoSQL), Hive (Local Caching) |
-| **AI Integration** | Google Gemini API (`google_generative_ai`) |
-| **Analytics & Crash**| Firebase Analytics, Firebase Crashlytics |
-| **CI/CD** | GitHub Actions, Environment Variables (.env), Fastlane (Planned) |
+| **Framework** | Flutter 3.x (Dart 3.x), Material 3 Design System |
+| **State Management** | Riverpod (`flutter_riverpod`, `AsyncNotifier`, `NotifierProvider`) |
+| **Navigation & Routing** | GoRouter with reactive authentication refresh streams |
+| **Local Offline Storage** | Hive (local boxes: `user_box`, `weight_box`, `meal_box`, `fasting_box`, `daily_summary_box`, `cache_box`) & SharedPreferences |
+| **Cloud Backend** | Firebase Authentication, Cloud Firestore (NoSQL), Firebase Cloud Storage |
+| **Quality & Observability** | Firebase Crashlytics, Firebase Analytics |
+| **Document Generation** | `pdf`, `printing`, `share_plus`, `csv` |
+| **Data Immutability** | Freezed & JsonSerializable code generation |
 
 ---
 
 ## 🏗️ Project Architecture
 
-Xenova Health strictly follows **Feature-First Clean Architecture**, ensuring scalability, testability, and separation of concerns.
-
-- **Presentation Layer**: UI Components, Screens, and Riverpod Controllers. Handles user interaction and state rendering.
-- **Domain Layer**: Core business logic, Entities (Models), and Repository Interfaces. This layer is entirely independent of external frameworks.
-- **Data Layer**: API integrations, Firebase implementations, and local caching (Hive). Responsible for fetching and formatting data.
-- **Dependency Injection**: Riverpod is used extensively to provide Repositories, Services, and State Controllers across the app.
-
-*(See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed diagrams and flows).*
-
----
-
-## 📂 Folder Structure
+Xenova Health strictly follows **Feature-First Clean Architecture**:
 
 ```text
 lib/
-├── app/                  # App routing, themes, and global configuration
-├── core/                 # Shared utilities, constants, and global services (Firebase, Hive)
-└── features/             # Feature-first modules
-    ├── ai_coach/         # Gemini chat, context building, and insights
-    ├── analytics/        # Charts, trends, and data visualization
-    ├── auth/             # Login, registration, and user sessions
-    ├── dashboard/        # Main landing screen and daily overview
-    ├── fasting/          # Timer, schedules, and fasting history
-    ├── gamification/     # XP, levels, and achievements engine
-    ├── notifications/    # In-app alerts and Firebase messaging
-    ├── nutrition/        # USDA search, meal logging, and macro tracking
-    ├── profile/          # Settings, preferences, and user details
-    ├── progress_photos/  # Image capture, compression, and cloud storage
-    ├── reports/          # PDF & CSV generation and export
-    └── weight/           # Daily weight logging and goal tracking
+├── app/                  # Application configuration, routing (GoRouter), themes & dimensions
+├── core/                 # Shared domain logic, calculators, constants, Hive managers, widgets
+└── features/             # Independent, feature-encapsulated modules
+    ├── ai_coach/         # Phase 2 roadmap view & service architecture
+    ├── analytics/        # Time-series charts, trends, and data visualization
+    ├── auth/             # Authentication controllers, Firebase Auth service, login & register
+    ├── dashboard/        # Main hub, executive overview, live health score engine
+    ├── fasting/          # Intermittent fasting timers, custom duration modal, metabolic timeline
+    ├── gamification/     # XP engine, levels, streaks, and milestone badges
+    ├── notifications/    # Local notification engine & reminder dispatchers
+    ├── nutrition/        # Context-aware meal logging, USDA search, macro distribution, Hive repo
+    ├── onboarding/       # Multi-step onboarding wizard, metric input, dietary setup
+    ├── profile/          # User preferences, diet settings, unit converters, legal documents
+    ├── progress_photos/  # Physique comparison gallery and Firebase storage sync
+    ├── reports/          # PDF report generator and CSV export utilities
+    └── weight/           # Daily weight logging, goal tracking, and progress charts
 ```
 
----
-
-## 🗄️ Database & Storage
-
-Xenova uses a highly optimized NoSQL structure in **Firestore**:
-- `users/{uid}`: Core profile and settings.
-- `users/{uid}/weight_entries`: Time-series weight tracking.
-- `users/{uid}/meal_logs`: Nutritional tracking.
-- `users/{uid}/fasting_sessions`: Intermittent fasting records.
-- `users/{uid}/achievements`: Unlocked badges and XP.
-
-**Firebase Storage**:
-- `profile_photos/{uid}/avatar.jpg`
-- `progress_photos/{uid}/{timestamp}_original.jpg`
-
-*(See [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) for complete entity relationships).*
+Each feature module is structured into three clean layers:
+1. **Domain Layer:** Pure Dart entities, immutable models, and repository interfaces.
+2. **Data Layer:** Local Hive storage, remote Firestore adapters, and DTO serializers.
+3. **Presentation Layer:** Riverpod state controllers and Material 3 UI widgets.
 
 ---
 
-## 🛡️ Security Features
+## 🗄️ Database & Offline Storage Architecture
 
-- **Firebase Security Rules**: Strict read/write validation preventing unauthorized access.
-- **Firebase App Check**: Play Integrity (Android) and DeviceCheck (iOS) to protect backend resources from abuse.
-- **Environment Variables**: API keys and secrets are safely injected via `.env` files and GitHub Secrets.
-- **Crashlytics**: Real-time fatal and non-fatal error reporting.
+### Cloud Firestore Collections
+- `users/{uid}`: Core profile, physical metrics, goals, and preference flags.
+- `users/{uid}/weight_entries`: Time-series weight, body fat %, and notes.
+- `users/{uid}/meal_logs`: Meal logs containing structured food items and macro summaries.
+- `users/{uid}/fasting_sessions`: Intermittent fasting sessions with start, target, and end timestamps.
+- `users/{uid}/daily_nutrition`: Pre-aggregated daily calorie and macronutrient summaries.
+- `users/{uid}/achievements`: Earned badges, current XP, and level state.
+
+### Local Hive Persistence
+All write operations commit to local Hive boxes immediately, ensuring zero-latency user interactions and complete offline autonomy:
+- `user_box`: Local cache of user profile state.
+- `weight_box`: Local time-series weight log cache.
+- `meal_box`: Local meal logs with nested item serialization.
+- `fasting_box`: Active and historical fasting sessions.
+- `daily_summary_box`: Computed daily nutrition totals.
+- `cache_box`: General cache and offline synchronization queues.
 
 ---
 
 ## 🚀 Installation & Setup
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/JiphinGeorge/Xenova-Health.git
-   cd "Xenova Health"
-   ```
+### Prerequisites
+- **Flutter SDK:** `^3.24.0` or higher
+- **Dart SDK:** `^3.5.0` or higher
+- **Android Studio / VS Code** with Flutter & Dart extensions
+- **Java Development Kit (JDK):** JDK 17 or JDK 21 LTS
 
-2. **Install Flutter dependencies:**
-   ```bash
-   flutter pub get
-   ```
+### 1. Clone the Repository
+```bash
+git clone https://github.com/JiphinGeorge/Xenova-Health.git
+cd Xenova-Health
+```
 
-3. **Environment Setup:**
-   Create `.env.dev`, `.env.staging`, and `.env.prod` files inside `assets/env/`. Add your API keys:
-   ```env
-   USDA_API_KEY=your_key_here
-   GEMINI_API_KEY=your_key_here
-   USE_FIREBASE_STORAGE=true
-   ```
+### 2. Install Dependencies
+```bash
+flutter pub get
+```
 
-4. **Firebase Configuration:**
-   Run FlutterFire to generate platform configurations:
-   ```bash
-   flutterfire configure --project=your-firebase-project-id
-   ```
+### 3. Environment Configuration
+Create environment files under `assets/env/` (e.g., `.env.dev`, `.env.prod`):
+```env
+USDA_API_KEY=your_usda_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
+USE_FIREBASE_STORAGE=true
+```
 
-5. **Run the App:**
-   ```bash
-   flutter run --flavor dev
-   ```
+### 4. Firebase Setup
+Ensure your Firebase project is configured using FlutterFire CLI:
+```bash
+flutterfire configure --project=your-firebase-project-id
+```
 
-*(See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed release and CI/CD instructions).*
+### 5. Run the Application
+```bash
+# Run Development Flavor
+flutter run -d <device_id> --flavor dev
+
+# Run Production Flavor
+flutter run -d <device_id> --flavor prod
+```
 
 ---
 
-## 🔮 Future Scope
+## 🧪 Testing & Code Quality
 
-- **Wearable Integration**: Syncing with Apple Health & Google Fit.
-- **AI Nutrition Scanner**: Take a picture of food for automatic calorie estimation using Gemini Vision.
-- **Advanced Coaching**: Real-time workout tracking and dynamic macro adjustments.
+```bash
+# Run Dart analyzer
+flutter analyze
+
+# Run unit and widget tests
+flutter test
+
+# Regenerate Freezed and Hive serialization models
+dart run build_runner build --delete-conflicting-outputs
+```
 
 ---
 
-## 👨‍💻 Contributors
+## 🔮 Phase 2 Roadmap
+
+- [ ] **AI Conversational Health Coach:** Deep personalized lifestyle recommendations via Gemini.
+- [ ] **AI Vision Food Scanner:** Automatic macronutrient estimation from food photographs.
+- [ ] **Wearable Sensor Integration:** Bi-directional sync with Google Health Connect & Apple HealthKit.
+- [ ] **Biometric App Lock:** Fingerprint and Face ID biometric authentication for sensitive health data.
+
+---
+
+## 👨‍💻 Author & Maintainer
 
 **Jiphin George**  
-[GitHub Profile](https://github.com/JiphinGeorge)
+- GitHub: [@JiphinGeorge](https://github.com/JiphinGeorge)
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
