@@ -198,48 +198,6 @@ class DashboardScreen extends ConsumerWidget {
               _buildTodaysProgress(context, ref),
               const SizedBox(height: AppDimensions.spacingXl),
 
-              // 5. AI Coach Card
-              Container(
-                padding: const EdgeInsets.all(AppDimensions.spacingLg),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.primary, AppColors.secondary],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.auto_awesome, color: Colors.white, size: 32),
-                    SizedBox(width: AppDimensions.spacingMd),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'AI Coach Insight',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            "You've been consistent with your weight logs! Keep it up. A 500 kcal deficit will get you to your goal safely.",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppDimensions.spacingXl),
 
               // 6. Recent Activity
               Text(

@@ -556,11 +556,26 @@ class _StartFastingViewState extends ConsumerState<_StartFastingView> {
                             label: Text('${pH}h'),
                             selected: isSelected,
                             selectedColor: AppColors.primary,
+                            backgroundColor: isDark
+                                ? AppColors.elevatedDark
+                                : const Color(0xFFF1F5F9),
+                            side: BorderSide(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : (isDark
+                                      ? AppColors.borderDark
+                                      : const Color(0xFFCBD5E1)),
+                              width: 1,
+                            ),
                             labelStyle: TextStyle(
-                              color: isSelected ? Colors.white : null,
+                              color: isSelected
+                                  ? Colors.white
+                                  : (isDark
+                                      ? AppColors.textPrimaryDark
+                                      : const Color(0xFF1E293B)),
                               fontWeight: isSelected
                                   ? FontWeight.bold
-                                  : FontWeight.w500,
+                                  : FontWeight.w600,
                               fontSize: 12,
                             ),
                             onSelected: (_) {
@@ -863,6 +878,8 @@ class _StartFastingViewState extends ConsumerState<_StartFastingView> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       children: [
         const Icon(Icons.timer_outlined, size: 64, color: AppColors.primary),
@@ -895,7 +912,9 @@ class _StartFastingViewState extends ConsumerState<_StartFastingView> {
                     Icon(
                       Icons.tune,
                       size: 14,
-                      color: isSelected ? Colors.white : AppColors.primary,
+                      color: isSelected
+                          ? Colors.white
+                          : (isDark ? AppColors.primaryLight : AppColors.primary),
                     ),
                   ],
                 ],
@@ -922,9 +941,22 @@ class _StartFastingViewState extends ConsumerState<_StartFastingView> {
                 }
               },
               selectedColor: AppColors.primary,
+              backgroundColor:
+                  isDark ? AppColors.elevatedDark : const Color(0xFFF1F5F9),
+              side: BorderSide(
+                color: isSelected
+                    ? AppColors.primary
+                    : (isDark ? AppColors.borderDark : const Color(0xFFCBD5E1)),
+                width: 1.2,
+              ),
               labelStyle: TextStyle(
-                color: isSelected ? Colors.white : null,
-                fontWeight: isSelected ? FontWeight.bold : null,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark
+                        ? AppColors.textPrimaryDark
+                        : const Color(0xFF1E293B)),
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                fontSize: 13,
               ),
             );
           }).toList(),
@@ -979,11 +1011,15 @@ class _FastingStatsGrid extends ConsumerWidget {
         decoration: BoxDecoration(
           color: isDark ? AppColors.elevatedDark : Colors.white,
           borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+          border: Border.all(
+            color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -994,12 +1030,24 @@ class _FastingStatsGrid extends ConsumerWidget {
             const SizedBox(height: AppDimensions.spacingSm),
             Text(
               title,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : const Color(0xFF64748B),
+                fontWeight: FontWeight.w500,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               value,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : const Color(0xFF0F172A),
+              ),
             ),
           ],
         ),

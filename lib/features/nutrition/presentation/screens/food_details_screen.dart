@@ -33,6 +33,7 @@ class _FoodDetailsScreenState extends ConsumerState<FoodDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final ratio = widget.food.servingSizeGrams > 0
         ? _servingGrams / widget.food.servingSizeGrams
         : 1.0;
@@ -61,7 +62,11 @@ class _FoodDetailsScreenState extends ConsumerState<FoodDetailsScreen> {
                   widget.food.brandName!,
                   style: Theme.of(
                     context,
-                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                  ).textTheme.bodyMedium?.copyWith(
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : const Color(0xFF64748B),
+                  ),
                 ),
               ],
               const SizedBox(height: AppDimensions.spacingXl),
@@ -70,11 +75,16 @@ class _FoodDetailsScreenState extends ConsumerState<FoodDetailsScreen> {
               Container(
                 padding: const EdgeInsets.all(AppDimensions.spacingLg),
                 decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest
-                      .withValues(alpha: 0.35),
+                  color: isDark
+                      ? AppColors.elevatedDark
+                      : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+                  border: Border.all(
+                    color: isDark
+                        ? AppColors.borderDark
+                        : const Color(0xFFE2E8F0),
+                    width: 1,
+                  ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -120,6 +130,28 @@ class _FoodDetailsScreenState extends ConsumerState<FoodDetailsScreen> {
                   return ChoiceChip(
                     label: Text(type),
                     selected: isSelected,
+                    selectedColor: AppColors.primary,
+                    backgroundColor: isDark
+                        ? AppColors.elevatedDark
+                        : const Color(0xFFF1F5F9),
+                    side: BorderSide(
+                      color: isSelected
+                          ? AppColors.primary
+                          : (isDark
+                              ? AppColors.borderDark
+                              : const Color(0xFFCBD5E1)),
+                      width: 1.2,
+                    ),
+                    labelStyle: TextStyle(
+                      color: isSelected
+                          ? Colors.white
+                          : (isDark
+                              ? AppColors.textPrimaryDark
+                              : const Color(0xFF1E293B)),
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.w600,
+                      fontSize: 13,
+                    ),
                     onSelected: (selected) {
                       if (selected) {
                         setState(() => _selectedMealType = type);
@@ -148,27 +180,65 @@ class _FoodDetailsScreenState extends ConsumerState<FoodDetailsScreen> {
                     label: Text(
                       '${widget.food.servingSizeGrams.round()}g (1 serving)',
                     ),
-                    avatar: const Icon(Icons.check, size: 16),
+                    avatar: Icon(
+                      Icons.check,
+                      size: 16,
+                      color: isDark
+                          ? AppColors.primaryLight
+                          : AppColors.primary,
+                    ),
+                    backgroundColor: isDark
+                        ? AppColors.elevatedDark
+                        : const Color(0xFFF1F5F9),
+                    side: BorderSide(
+                      color: isDark
+                          ? AppColors.borderDark
+                          : const Color(0xFFCBD5E1),
+                      width: 1,
+                    ),
+                    labelStyle: TextStyle(
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : const Color(0xFF1E293B),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
                     onPressed: () => setState(
                       () => _servingGrams = widget.food.servingSizeGrams,
                     ),
                   ),
-                  ActionChip(
-                    label: const Text('50g'),
-                    onPressed: () => setState(() => _servingGrams = 50),
-                  ),
-                  ActionChip(
-                    label: const Text('100g'),
-                    onPressed: () => setState(() => _servingGrams = 100),
-                  ),
-                  ActionChip(
-                    label: const Text('150g'),
-                    onPressed: () => setState(() => _servingGrams = 150),
-                  ),
-                  ActionChip(
-                    label: const Text('200g'),
-                    onPressed: () => setState(() => _servingGrams = 200),
-                  ),
+                  ...[50.0, 100.0, 150.0, 200.0].map((grams) {
+                    final isCurrent = (_servingGrams - grams).abs() < 0.1;
+                    return ActionChip(
+                      label: Text('${grams.toInt()}g'),
+                      backgroundColor: isCurrent
+                          ? (isDark
+                              ? AppColors.primaryDark
+                              : const Color(0xFFCCFBF1))
+                          : (isDark
+                              ? AppColors.elevatedDark
+                              : const Color(0xFFF1F5F9)),
+                      side: BorderSide(
+                        color: isCurrent
+                            ? AppColors.primary
+                            : (isDark
+                                ? AppColors.borderDark
+                                : const Color(0xFFCBD5E1)),
+                        width: 1,
+                      ),
+                      labelStyle: TextStyle(
+                        color: isCurrent
+                            ? (isDark ? Colors.white : AppColors.primaryDark)
+                            : (isDark
+                                ? AppColors.textPrimaryDark
+                                : const Color(0xFF1E293B)),
+                        fontWeight:
+                            isCurrent ? FontWeight.bold : FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                      onPressed: () => setState(() => _servingGrams = grams),
+                    );
+                  }),
                 ],
               ),
 

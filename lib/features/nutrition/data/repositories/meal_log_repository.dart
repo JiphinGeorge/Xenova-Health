@@ -82,8 +82,8 @@ class MealLogRepository {
   ) {
     late final StreamController<List<MealLogModel>> controller;
 
-    StreamSubscription? hiveSub;
-    StreamSubscription? firestoreSub;
+    StreamSubscription<dynamic>? hiveSub;
+    StreamSubscription<dynamic>? firestoreSub;
 
     controller = StreamController<List<MealLogModel>>.broadcast(
       onListen: () {
@@ -135,17 +135,25 @@ class MealLogRepository {
     return controller.stream;
   }
 
+  Map<String, dynamic> _serializeMealLog(MealLogModel mealLog) {
+    final map = Map<String, dynamic>.from(mealLog.toJson());
+    map['mealItems'] = mealLog.mealItems.map((item) => item.toJson()).toList();
+    return map;
+  }
+
   /// Adds a new meal log locally and to Firestore.
   Future<void> addMealLog(MealLogModel mealLog) async {
+    final serialized = _serializeMealLog(mealLog);
+
     // 1. Persist immediately to Hive so UI updates instantly
-    await _mealBox.put(mealLog.id, mealLog.toJson());
+    await _mealBox.put(mealLog.id, serialized);
 
     // 2. Best-effort write to Firestore
     try {
       await _firestoreService
           .setDocument(
             path: '${_mealLogsPath(mealLog.userId)}/${mealLog.id}',
-            data: mealLog.toJson(),
+            data: serialized,
           )
           .timeout(const Duration(seconds: 3));
     } catch (_) {

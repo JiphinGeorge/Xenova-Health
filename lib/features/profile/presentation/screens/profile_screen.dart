@@ -691,6 +691,10 @@ class _VitalItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final secondaryColor =
+        isDark ? AppColors.textSecondaryDark : const Color(0xFF64748B);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingSm),
       child: Column(
@@ -703,7 +707,11 @@ class _VitalItem extends StatelessWidget {
               Expanded(
                 child: Text(
                   label,
-                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: secondaryColor,
+                    fontWeight: FontWeight.w500,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -717,7 +725,7 @@ class _VitalItem extends StatelessWidget {
           ),
           Text(
             subtext,
-            style: const TextStyle(fontSize: 11, color: Colors.grey),
+            style: TextStyle(fontSize: 11, color: secondaryColor),
             overflow: TextOverflow.ellipsis,
           ),
         ],

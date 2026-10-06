@@ -10,14 +10,14 @@ import '../../../gamification/application/services/achievement_engine_service.da
 
 /// Controller managing the global authentication state.
 class AuthController extends AsyncNotifier<UserModel?> {
-  late final AuthRepository _repository;
+  AuthRepository get _repository => ref.read(authRepositoryProvider);
 
   @override
   FutureOr<UserModel?> build() {
-    _repository = ref.watch(authRepositoryProvider);
+    final repository = ref.watch(authRepositoryProvider);
 
     // Subscribe to auth state changes from repository
-    final sub = _repository.authStateChanges.listen((user) {
+    final sub = repository.authStateChanges.listen((user) {
       state = AsyncData(user);
       if (user != null) {
         // Gamification Hook for daily logins
@@ -27,7 +27,7 @@ class AuthController extends AsyncNotifier<UserModel?> {
 
     ref.onDispose(sub.cancel);
 
-    return _repository.currentUser;
+    return repository.currentUser;
   }
 
   /// Signs the user in with email and password.

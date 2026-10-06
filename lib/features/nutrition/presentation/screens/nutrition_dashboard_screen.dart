@@ -394,6 +394,10 @@ class _NutritionDashboardScreenState
       decoration: BoxDecoration(
         color: isDark ? AppColors.elevatedDark : Colors.white,
         borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
@@ -419,7 +423,9 @@ class _NutritionDashboardScreenState
                       child: CircularProgressIndicator(
                         value: pctCals,
                         strokeWidth: 9,
-                        backgroundColor: AppColors.primarySurface,
+                        backgroundColor: isDark
+                            ? AppColors.primaryDark.withValues(alpha: 0.3)
+                            : const Color(0xFFE2E8F0),
                         color: pctCals >= 1.0
                             ? AppColors.error
                             : AppColors.primary,
@@ -435,9 +441,15 @@ class _NutritionDashboardScreenState
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const Text(
+                        Text(
                           'kcal left',
-                          style: TextStyle(fontSize: 11, color: Colors.grey),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : const Color(0xFF64748B),
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ],
                     ),
@@ -467,15 +479,23 @@ class _NutritionDashboardScreenState
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Daily Goal',
-                          style: TextStyle(fontSize: 13, color: Colors.grey),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : const Color(0xFF64748B),
+                          ),
                         ),
                         Text(
                           '${targetCals.toStringAsFixed(0)} kcal',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
-                            color: Colors.grey,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : const Color(0xFF475569),
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
@@ -486,7 +506,9 @@ class _NutritionDashboardScreenState
                       child: LinearProgressIndicator(
                         value: pctCals,
                         minHeight: 8,
-                        backgroundColor: AppColors.primarySurface,
+                        backgroundColor: isDark
+                            ? AppColors.primaryDark.withValues(alpha: 0.3)
+                            : const Color(0xFFE2E8F0),
                         color: pctCals >= 1.0
                             ? AppColors.error
                             : AppColors.primary,
@@ -509,7 +531,8 @@ class _NutritionDashboardScreenState
                   consumed: totalPro,
                   target: targetPro,
                   pct: pctPro,
-                  color: Colors.blue,
+                  color: const Color(0xFF2563EB),
+                  isDark: isDark,
                 ),
               ),
               const SizedBox(width: AppDimensions.spacingMd),
@@ -519,7 +542,8 @@ class _NutritionDashboardScreenState
                   consumed: totalCarbs,
                   target: targetCarbs,
                   pct: pctCarbs,
-                  color: Colors.green,
+                  color: const Color(0xFF059669),
+                  isDark: isDark,
                 ),
               ),
               const SizedBox(width: AppDimensions.spacingMd),
@@ -529,7 +553,8 @@ class _NutritionDashboardScreenState
                   consumed: totalFat,
                   target: targetFat,
                   pct: pctFat,
-                  color: Colors.orange,
+                  color: const Color(0xFFD97706),
+                  isDark: isDark,
                 ),
               ),
             ],
@@ -545,6 +570,7 @@ class _NutritionDashboardScreenState
     required double target,
     required double pct,
     required Color color,
+    required bool isDark,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -562,7 +588,13 @@ class _NutritionDashboardScreenState
             ),
             Text(
               '${consumed.toStringAsFixed(0)}/${target.toStringAsFixed(0)}g',
-              style: const TextStyle(fontSize: 11, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : const Color(0xFF475569),
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
@@ -572,7 +604,9 @@ class _NutritionDashboardScreenState
           child: LinearProgressIndicator(
             value: pct,
             minHeight: 6,
-            backgroundColor: color.withValues(alpha: 0.15),
+            backgroundColor: isDark
+                ? color.withValues(alpha: 0.25)
+                : const Color(0xFFE2E8F0),
             color: color,
           ),
         ),
@@ -635,8 +669,10 @@ class _NutritionDashboardScreenState
               Flexible(
                 child: Text(
                   '$waterIntake / $waterGoal ml • $glasses/$goalGlasses glasses',
-                  style: const TextStyle(
-                    color: Colors.grey,
+                  style: TextStyle(
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : const Color(0xFF475569),
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),
@@ -651,7 +687,9 @@ class _NutritionDashboardScreenState
             child: LinearProgressIndicator(
               value: pctWater,
               minHeight: 8,
-              backgroundColor: Colors.blue.withValues(alpha: 0.12),
+              backgroundColor: isDark
+                  ? Colors.blue.withValues(alpha: 0.2)
+                  : const Color(0xFFE2E8F0),
               color: Colors.blue,
             ),
           ),
@@ -681,6 +719,15 @@ class _NutritionDashboardScreenState
                 },
                 icon: const Icon(Icons.add, size: 16),
                 label: const Text('+250 ml'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: isDark
+                      ? AppColors.elevatedDark
+                      : const Color(0xFFE0F2FE),
+                  foregroundColor: isDark
+                      ? const Color(0xFF7DD3FC)
+                      : const Color(0xFF0369A1),
+                  textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                ),
               ),
               FilledButton.icon(
                 onPressed: () {
@@ -690,6 +737,11 @@ class _NutritionDashboardScreenState
                 },
                 icon: const Icon(Icons.add, size: 16),
                 label: const Text('+500 ml'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF0284C7),
+                  foregroundColor: Colors.white,
+                  textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                ),
               ),
             ],
           ),
@@ -792,25 +844,44 @@ class _NutritionDashboardScreenState
                   ref.read(mealLoggingProvider.notifier).setMealType(title);
                   context.push('/food-search');
                 },
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest.withValues(
-                      alpha: 0.25,
+                    color: isDark
+                        ? AppColors.elevatedDark.withValues(alpha: 0.5)
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isDark
+                          ? AppColors.borderDark
+                          : const Color(0xFFCBD5E1),
+                      width: 1,
                     ),
-                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Center(
-                    child: Text(
-                      '+ Add $title food',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.add_circle_outline,
+                          size: 16,
+                          color: isDark
+                              ? AppColors.primaryLight
+                              : AppColors.primaryDark,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Add $title food',
+                          style: TextStyle(
+                            color: isDark
+                                ? AppColors.primaryLight
+                                : AppColors.primaryDark,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

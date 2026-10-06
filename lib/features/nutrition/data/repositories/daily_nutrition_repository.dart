@@ -87,8 +87,8 @@ class DailyNutritionRepository {
     String dateString,
   ) {
     late final StreamController<DailyNutritionSummaryModel?> controller;
-    StreamSubscription? hiveSub;
-    StreamSubscription? firestoreSub;
+    StreamSubscription<dynamic>? hiveSub;
+    StreamSubscription<dynamic>? firestoreSub;
 
     controller = StreamController<DailyNutritionSummaryModel?>.broadcast(
       onListen: () {

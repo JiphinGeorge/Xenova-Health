@@ -215,7 +215,8 @@ class ReportExportService {
 
     // AI summary or clinical local summary
     String? aiSummary;
-    if (_openAIService != null && _openAIService!.isConfigured) {
+    final openAI = _openAIService;
+    if (openAI != null && openAI.isConfigured) {
       try {
         final contextModel = AIContextModel(
           contextVersion: '1.0',
@@ -235,7 +236,7 @@ class ReportExportService {
           waterGoalMet: (latestReport?.averageDailyWater ?? 2200) > 2000,
           calorieTargetMet: true,
         );
-        aiSummary = await _openAIService!.generateWeeklySummary(contextModel);
+        aiSummary = await openAI.generateWeeklySummary(contextModel);
         if (aiSummary != null && aiSummary.isNotEmpty) {
           _ref.read(achievementEngineProvider).processAiCoachEvent(true);
         }
