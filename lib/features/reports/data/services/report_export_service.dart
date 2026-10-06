@@ -106,8 +106,8 @@ class ReportExportService {
           for (final key in box.keys) {
             final val = box.get(key);
             if (val != null) {
-              final map = val is String
-                  ? jsonDecode(val)
+              final Map<String, dynamic> map = val is String
+                  ? jsonDecode(val) as Map<String, dynamic>
                   : Map<String, dynamic>.from(val as Map);
               meals.add(MealLogModel.fromJson(map));
             }
@@ -127,8 +127,8 @@ class ReportExportService {
             for (final key in box.keys) {
               final val = box.get(key);
               if (val != null) {
-                final map = val is String
-                    ? jsonDecode(val)
+                final Map<String, dynamic> map = val is String
+                    ? jsonDecode(val) as Map<String, dynamic>
                     : Map<String, dynamic>.from(val as Map);
                 summaries.add(DailyNutritionSummaryModel.fromJson(map));
               }
@@ -154,7 +154,7 @@ class ReportExportService {
       } catch (_) {}
 
       if (sessions.isEmpty) {
-        sessions = _ref.read(fastingHistoryStreamProvider).value ?? [];
+        sessions = _ref.read(fastingHistoryProvider).value ?? [];
       }
       csvData = _csvGenerator.generateFastingCsv(sessions);
       filename = 'fasting_history_${DateTime.now().millisecondsSinceEpoch}.csv';

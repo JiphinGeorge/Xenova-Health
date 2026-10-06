@@ -28,21 +28,38 @@ class _ExportDataScreenState extends ConsumerState<ExportDataScreen> {
 
   Future<void> _handleExport() async {
     final user = ref.read(authControllerProvider).value;
-    if (user == null) return;
+    final userId = user?.uid ?? 'guest_user';
 
     setState(() => _isExporting = true);
-    
+
     try {
       final exportService = ref.read(reportExportServiceProvider);
-      await exportService.exportAndShare(user.uid, _selectedDataType, _selectedFormat);
-      
+      await exportService.exportAndShare(
+        userId,
+        _selectedDataType,
+        _selectedFormat,
+      );
+
       if (mounted) {
-        ref.read(analyticsServiceProvider).logReportExported(format: _selectedFormat);
+        ref
+            .read(analyticsServiceProvider)
+            .logReportExported(format: _selectedFormat);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$_selectedFormat file ready for sharing!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Export failed: $e')),
+          SnackBar(
+            content: Text('Export failed: $e'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } finally {
