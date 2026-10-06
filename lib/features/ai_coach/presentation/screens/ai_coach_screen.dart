@@ -125,7 +125,7 @@ class AICoachScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
 
-              const SizedBox(height: AppDimensions.spacing2xl),
+              const SizedBox(height: AppDimensions.spacingXxl),
 
               // Roadmap Header
               Text(
@@ -224,7 +224,7 @@ class AICoachScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: AppDimensions.spacing2xl),
+              const SizedBox(height: AppDimensions.spacingXxl),
 
               // Action Buttons
               FilledButton.icon(
