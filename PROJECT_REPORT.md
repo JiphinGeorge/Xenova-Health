@@ -119,20 +119,23 @@ Below is the detailed audit of all 14 feature modules, specifying exact implemen
 ### Feature 6: Intermittent Fasting System (`lib/features/fasting`)
 
 #### What Has Been Implemented
-- **Preset Fasting Protocols:** Built-in standard fasting schedules:
+- **Preset & Custom Fasting Protocols:** Built-in standard fasting schedules and fully custom options:
   - 16:8 (LeanGains)
+  - 14:10 (Gentle Fast)
+  - 12:12 (Circadian Rhythm)
   - 18:6 (The Warrior Lite)
   - 20:4 (The Warrior Diet)
   - OMAD (One Meal A Day / 23:1)
-  - Custom user-defined fasting windows.
-- **Active Fast Engine:** Real-time countdown timer that survives app restarts using SharedPreferences and background start timestamps.
+  - **Custom Fasting Time Adjustment:** Tapping the "Custom" plan chip immediately opens an interactive bottom sheet modal allowing users to customize duration from 1h to 72h (30-min increments) using sliders, +/- stepper buttons, and popular quick presets (`12h`, `14h`, `16h`, `18h`, `20h`, `24h`, `36h`, `48h`). Also includes inline controls on the main screen with live target completion date/time calculations and physiological phase previews (Fat Burning, Autophagy, Deep Ketosis).
+- **Active Fast Engine:** Real-time countdown timer and progress circle that tracks elapsed vs. target hours, surviving app restarts and background transitions.
+- **Offline-First Resilience (Hive):** Fasts are instantly cached in Hive (`fasting_box`) and mirrored to Firestore, ensuring starting, ending, and viewing fasting sessions work completely offline without internet or server dependencies.
 - **Metabolic Stage Visualizer:** Displays physiological milestones reached during the fast:
   - 0–4 hours: Blood Sugar Normalization
   - 4–8 hours: Glycogen Depletion
   - 8–12 hours: Fat Burning Mode
   - 12–18 hours: Ketosis Initiation
   - 18+ hours: Autophagy Stimulation
-- **Fasting History & Streaks:** Logs completed fasting sessions to Firestore (`users/{uid}/fasting_sessions`) with duration, mood, and note.
+- **Fasting History & Streaks:** Logs completed fasting sessions with duration, completion percentage, streak metrics, and achievements engine synchronization.
 
 #### What Has NOT Been Implemented / Pending
 - **Live Notification Countdown:** Persistent ongoing Android notification bar showing live minutes remaining without opening the app.
