@@ -33,8 +33,9 @@ final healthScoreProvider = Provider<HealthScoreModel>((ref) {
         ? nutritionSummary.targetCalories
         : 2000.0;
     final totalProtein = nutritionSummary.totalProtein;
-    final targetProtein = nutritionSummary.targetProtein > 0
-        ? nutritionSummary.targetProtein
+    final targetProtein = (nutritionSummary.targetProtein != null &&
+            nutritionSummary.targetProtein! > 0)
+        ? nutritionSummary.targetProtein!
         : 140.0;
 
     if (mealCount > 0) {

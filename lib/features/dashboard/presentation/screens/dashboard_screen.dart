@@ -535,7 +535,7 @@ class DashboardScreen extends ConsumerWidget {
           decoration: BoxDecoration(
             color: isDark ? AppColors.surfaceDark : Colors.white,
             borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppDimensions.radius2Xl),
+              top: Radius.circular(AppDimensions.radiusXxl),
             ),
           ),
           padding: EdgeInsets.only(
