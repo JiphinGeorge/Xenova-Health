@@ -126,7 +126,9 @@ class MealLoggingController extends StateNotifier<MealBuilderState> {
     required double servingConsumedGrams,
     String? mealType,
   }) async {
-    final ratio = servingConsumedGrams / food.servingSizeGrams;
+    final ratio = food.servingSizeGrams > 0
+        ? servingConsumedGrams / food.servingSizeGrams
+        : 1.0;
     final mealItem = MealItemModel(
       foodId: food.id,
       foodName: food.name,
@@ -143,7 +145,9 @@ class MealLoggingController extends StateNotifier<MealBuilderState> {
     final user = _ref.read(authControllerProvider).value;
     final userId = user?.uid ?? 'guest_user';
     final date = _ref.read(selectedDateProvider);
-    final finalMealType = mealType ?? state.mealType;
+    final finalMealType = (mealType != null && mealType.trim().isNotEmpty)
+        ? mealType.trim()
+        : state.mealType;
 
     final mealLog = MealLogModel(
       id: const Uuid().v4(),

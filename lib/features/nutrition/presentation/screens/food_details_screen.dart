@@ -18,12 +18,17 @@ class FoodDetailsScreen extends ConsumerStatefulWidget {
 
 class _FoodDetailsScreenState extends ConsumerState<FoodDetailsScreen> {
   late double _servingGrams;
+  late String _selectedMealType;
   bool _isQuickLogging = false;
 
   @override
   void initState() {
     super.initState();
     _servingGrams = widget.food.servingSizeGrams;
+    _selectedMealType = ref.read(mealLoggingProvider).mealType;
+    if (_selectedMealType.trim().isEmpty) {
+      _selectedMealType = 'Breakfast';
+    }
   }
 
   @override
@@ -100,6 +105,35 @@ class _FoodDetailsScreenState extends ConsumerState<FoodDetailsScreen> {
 
               const SizedBox(height: AppDimensions.spacingXl),
               const Text(
+                'Meal Category',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+
+              // Meal Category Selector Chips
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: ['Breakfast', 'Lunch', 'Dinner', 'Snack'].map((type) {
+                  final isSelected =
+                      _selectedMealType.toLowerCase() == type.toLowerCase();
+                  return ChoiceChip(
+                    label: Text(type),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      if (selected) {
+                        setState(() => _selectedMealType = type);
+                        ref
+                            .read(mealLoggingProvider.notifier)
+                            .setMealType(type);
+                      }
+                    },
+                  );
+                }).toList(),
+              ),
+
+              const SizedBox(height: AppDimensions.spacingXl),
+              const Text(
                 'Serving Size (grams)',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
@@ -168,8 +202,6 @@ class _FoodDetailsScreenState extends ConsumerState<FoodDetailsScreen> {
                   onPressed: _isQuickLogging
                       ? null
                       : () async {
-                          final currentMealType =
-                              ref.read(mealLoggingProvider).mealType;
                           setState(() => _isQuickLogging = true);
                           try {
                             await ref
@@ -177,7 +209,7 @@ class _FoodDetailsScreenState extends ConsumerState<FoodDetailsScreen> {
                                 .quickLogSingleFood(
                                   food: widget.food,
                                   servingConsumedGrams: _servingGrams,
-                                  mealType: currentMealType,
+                                  mealType: _selectedMealType,
                                 );
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -189,8 +221,10 @@ class _FoodDetailsScreenState extends ConsumerState<FoodDetailsScreen> {
                                         color: Colors.white,
                                       ),
                                       const SizedBox(width: 8),
-                                      Text(
-                                        'Logged ${widget.food.name} to $currentMealType!',
+                                      Expanded(
+                                        child: Text(
+                                          'Logged ${widget.food.name} to $_selectedMealType!',
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -224,7 +258,7 @@ class _FoodDetailsScreenState extends ConsumerState<FoodDetailsScreen> {
                         )
                       : const Icon(Icons.check_circle_outline),
                   label: Text(
-                    'Log Now (${ref.watch(mealLoggingProvider).mealType})',
+                    'Log to $_selectedMealType Now',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

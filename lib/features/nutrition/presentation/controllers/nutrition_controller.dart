@@ -42,18 +42,27 @@ class NutritionController extends StateNotifier<AsyncValue<void>> {
             sodium: mealLog.totalSodium,
           );
 
-      // Gamification Hook
-      _ref.read(achievementEngineProvider).processNutritionEvent();
-      
-      // Analytics Hook
-      _ref.read(analyticsServiceProvider).logMealLogged(
-        mealType: mealLog.mealType,
-        calories: mealLog.totalCalories.toInt(),
-      );
+      // 3. Invalidate stream providers to immediately reflect across all screens
+      _ref.invalidate(dailyMealLogsStreamProvider);
+      _ref.invalidate(dailyNutritionSummaryStreamProvider);
+
+      // 4. Gamification Hook (safe)
+      try {
+        _ref.read(achievementEngineProvider).processNutritionEvent();
+      } catch (_) {}
+
+      // 5. Analytics Hook (safe)
+      try {
+        _ref.read(analyticsServiceProvider).logMealLogged(
+          mealType: mealLog.mealType,
+          calories: mealLog.totalCalories.toInt(),
+        );
+      } catch (_) {}
 
       state = const AsyncData(null);
     } catch (e, st) {
       state = AsyncError(e, st);
+      rethrow;
     }
   }
 
@@ -87,9 +96,14 @@ class NutritionController extends StateNotifier<AsyncValue<void>> {
             sodium: mealLog.totalSodium,
           );
 
+      // Invalidate stream providers to immediately update UI
+      _ref.invalidate(dailyMealLogsStreamProvider);
+      _ref.invalidate(dailyNutritionSummaryStreamProvider);
+
       state = const AsyncData(null);
     } catch (e, st) {
       state = AsyncError(e, st);
+      rethrow;
     }
   }
 

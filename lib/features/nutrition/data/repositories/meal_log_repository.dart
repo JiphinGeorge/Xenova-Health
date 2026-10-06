@@ -19,22 +19,50 @@ class MealLogRepository {
 
   Box<dynamic> get _mealBox => Hive.box<dynamic>(AppConstants.mealBox);
 
+  Map<String, dynamic> _deepCastMap(dynamic map) {
+    if (map is! Map) return {};
+    return map.map((key, value) {
+      if (value is Map) {
+        return MapEntry(key.toString(), _deepCastMap(value));
+      } else if (value is List) {
+        return MapEntry(
+          key.toString(),
+          value
+              .map((item) => item is Map ? _deepCastMap(item) : item)
+              .toList(),
+        );
+      }
+      return MapEntry(key.toString(), value);
+    });
+  }
+
   List<MealLogModel> _getMealsFromHive(String userId, DateTime date) {
     try {
       final allValues = _mealBox.values;
       final meals = <MealLogModel>[];
+      final targetDate = date.toLocal();
+
       for (final val in allValues) {
         if (val is Map) {
-          final m = MealLogModel.fromJson(Map<String, dynamic>.from(val));
-          final matchesUser = m.userId == userId ||
-              userId == 'guest_user' ||
-              m.userId == 'guest_user';
-          if (matchesUser) {
-            if (m.date.year == date.year &&
-                m.date.month == date.month &&
-                m.date.day == date.day) {
-              meals.add(m);
+          try {
+            final raw = _deepCastMap(val);
+            final m = MealLogModel.fromJson(raw);
+            final matchesUser = m.userId == userId ||
+                userId == 'guest_user' ||
+                m.userId == 'guest_user' ||
+                userId.isEmpty ||
+                m.userId.isEmpty;
+
+            if (matchesUser) {
+              final mDate = m.date.toLocal();
+              if (mDate.year == targetDate.year &&
+                  mDate.month == targetDate.month &&
+                  mDate.day == targetDate.day) {
+                meals.add(m);
+              }
             }
+          } catch (_) {
+            // Skip individually corrupted meal records without failing whole list
           }
         }
       }
@@ -114,10 +142,12 @@ class MealLogRepository {
 
     // 2. Best-effort write to Firestore
     try {
-      await _firestoreService.setDocument(
-        path: '${_mealLogsPath(mealLog.userId)}/${mealLog.id}',
-        data: mealLog.toJson(),
-      );
+      await _firestoreService
+          .setDocument(
+            path: '${_mealLogsPath(mealLog.userId)}/${mealLog.id}',
+            data: mealLog.toJson(),
+          )
+          .timeout(const Duration(seconds: 3));
     } catch (_) {
       // Offline fallback
     }
@@ -128,7 +158,9 @@ class MealLogRepository {
     await _mealBox.delete(mealId);
 
     try {
-      await _firestoreService.deleteDocument('${_mealLogsPath(userId)}/$mealId');
+      await _firestoreService
+          .deleteDocument('${_mealLogsPath(userId)}/$mealId')
+          .timeout(const Duration(seconds: 3));
     } catch (_) {}
   }
 }

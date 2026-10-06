@@ -21,17 +21,63 @@ class DailyNutritionRepository {
   Box<dynamic> get _summaryBox =>
       Hive.box<dynamic>(AppConstants.dailySummaryBox);
 
+  Map<String, dynamic> _deepCastMap(dynamic map) {
+    if (map is! Map) return {};
+    return map.map((key, value) {
+      if (value is Map) {
+        return MapEntry(key.toString(), _deepCastMap(value));
+      } else if (value is List) {
+        return MapEntry(
+          key.toString(),
+          value
+              .map((item) => item is Map ? _deepCastMap(item) : item)
+              .toList(),
+        );
+      }
+      return MapEntry(key.toString(), value);
+    });
+  }
+
+  DailyNutritionSummaryModel? _safeParseSummary(
+    dynamic val,
+    String userId,
+    String dateString,
+  ) {
+    if (val is! Map) return null;
+    try {
+      final raw = _deepCastMap(val);
+      raw['userId'] = raw['userId'] ?? userId;
+      raw['dateString'] = raw['dateString'] ?? dateString;
+      raw['totalCalories'] =
+          (raw['totalCalories'] as num?)?.toDouble() ?? 0.0;
+      raw['totalProtein'] =
+          (raw['totalProtein'] as num?)?.toDouble() ?? 0.0;
+      raw['totalCarbs'] =
+          (raw['totalCarbs'] as num?)?.toDouble() ?? 0.0;
+      raw['totalFat'] = (raw['totalFat'] as num?)?.toDouble() ?? 0.0;
+      raw['waterIntakeMl'] =
+          (raw['waterIntakeMl'] as num?)?.toInt() ?? 0;
+      raw['mealCount'] = (raw['mealCount'] as num?)?.toInt() ?? 0;
+      raw['targetCalories'] =
+          (raw['targetCalories'] as num?)?.toDouble() ?? 2000.0;
+      raw['lastUpdated'] =
+          raw['lastUpdated'] ?? DateTime.now().toIso8601String();
+      return DailyNutritionSummaryModel.fromJson(raw);
+    } catch (_) {
+      return null;
+    }
+  }
+
   DailyNutritionSummaryModel? _getFromHive(String userId, String dateString) {
     try {
       final key = '${userId}_$dateString';
-      final val = _summaryBox.get(key) ?? _summaryBox.get(dateString);
-      if (val is Map) {
-        return DailyNutritionSummaryModel.fromJson(
-          Map<String, dynamic>.from(val),
-        );
-      }
-    } catch (_) {}
-    return null;
+      final val = _summaryBox.get(key) ??
+          _summaryBox.get(dateString) ??
+          _summaryBox.get('guest_user_$dateString');
+      return _safeParseSummary(val, userId, dateString);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Watches the daily nutrition summary for a specific date.
@@ -67,9 +113,9 @@ class DailyNutritionRepository {
                 _summaryBox.put('${userId}_$dateString', data);
                 _summaryBox.put(dateString, data);
                 if (!controller.isClosed) {
-                  controller.add(
-                    DailyNutritionSummaryModel.fromJson(data),
-                  );
+                  final parsed =
+                      _safeParseSummary(data, userId, dateString);
+                  if (parsed != null) controller.add(parsed);
                 }
               }
             },
@@ -93,10 +139,12 @@ class DailyNutritionRepository {
     await _summaryBox.put(summary.dateString, summary.toJson());
 
     try {
-      await _firestoreService.setDocument(
-        path: _summaryPath(summary.userId, summary.dateString),
-        data: summary.toJson(),
-      );
+      await _firestoreService
+          .setDocument(
+            path: _summaryPath(summary.userId, summary.dateString),
+            data: summary.toJson(),
+          )
+          .timeout(const Duration(seconds: 3));
     } catch (_) {}
   }
 

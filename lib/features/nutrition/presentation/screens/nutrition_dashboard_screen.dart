@@ -48,7 +48,7 @@ class _NutritionDashboardScreenState
     double totalFat = summary?.totalFat ?? 0.0;
     int mealCount = summary?.mealCount ?? 0;
 
-    // Self-healing fallback: if summary is missing or 0 but meals were logged for this date
+    // Self-healing fallback: if summary is missing, 0, or lower than logged meals
     if (meals != null && meals.isNotEmpty) {
       final computedCals =
           meals.fold<double>(0, (sum, m) => sum + m.totalCalories);
@@ -61,9 +61,17 @@ class _NutritionDashboardScreenState
 
       if (totalCals == 0 || computedCals > totalCals) {
         totalCals = computedCals;
+      }
+      if (totalProtein == 0 || computedProtein > totalProtein) {
         totalProtein = computedProtein;
+      }
+      if (totalCarbs == 0 || computedCarbs > totalCarbs) {
         totalCarbs = computedCarbs;
+      }
+      if (totalFat == 0 || computedFat > totalFat) {
         totalFat = computedFat;
+      }
+      if (mealCount == 0 || meals.length > mealCount) {
         mealCount = meals.length;
       }
     }
@@ -200,7 +208,8 @@ class _NutritionDashboardScreenState
                       icon: Icons.breakfast_dining_outlined,
                       color: Colors.amber,
                       meals: meals
-                          .where((m) => m.mealType.toLowerCase() == 'breakfast')
+                          .where((m) =>
+                              m.mealType.trim().toLowerCase() == 'breakfast')
                           .toList(),
                     ),
                     const SizedBox(height: AppDimensions.spacingMd),
@@ -211,7 +220,8 @@ class _NutritionDashboardScreenState
                       icon: Icons.lunch_dining_outlined,
                       color: Colors.orange,
                       meals: meals
-                          .where((m) => m.mealType.toLowerCase() == 'lunch')
+                          .where((m) =>
+                              m.mealType.trim().toLowerCase() == 'lunch')
                           .toList(),
                     ),
                     const SizedBox(height: AppDimensions.spacingMd),
@@ -222,7 +232,8 @@ class _NutritionDashboardScreenState
                       icon: Icons.dinner_dining_outlined,
                       color: Colors.deepOrange,
                       meals: meals
-                          .where((m) => m.mealType.toLowerCase() == 'dinner')
+                          .where((m) =>
+                              m.mealType.trim().toLowerCase() == 'dinner')
                           .toList(),
                     ),
                     const SizedBox(height: AppDimensions.spacingMd),
@@ -235,8 +246,8 @@ class _NutritionDashboardScreenState
                       meals: meals
                           .where(
                             (m) =>
-                                m.mealType.toLowerCase().contains('snack') ||
-                                m.mealType.toLowerCase().contains('workout'),
+                                m.mealType.trim().toLowerCase().contains('snack') ||
+                                m.mealType.trim().toLowerCase().contains('workout'),
                           )
                           .toList(),
                     ),
