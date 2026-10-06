@@ -45,21 +45,51 @@ class ProfilePhotoPicker extends ConsumerWidget {
               ListTile(
                 leading: const Icon(Icons.camera_alt_outlined),
                 title: const Text('Take Photo'),
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  ref
+                  final success = await ref
                       .read(profilePhotoControllerProvider.notifier)
                       .pickAndUploadPhoto(ImageSource.camera);
+                  if (success && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.white),
+                            SizedBox(width: 8),
+                            Text('Profile picture updated successfully!'),
+                          ],
+                        ),
+                        backgroundColor: AppColors.success,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library_outlined),
                 title: const Text('Choose from Gallery'),
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  ref
+                  final success = await ref
                       .read(profilePhotoControllerProvider.notifier)
                       .pickAndUploadPhoto(ImageSource.gallery);
+                  if (success && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.white),
+                            SizedBox(width: 8),
+                            Text('Profile picture updated successfully!'),
+                          ],
+                        ),
+                        backgroundColor: AppColors.success,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
                 },
               ),
               if (hasPhoto)
@@ -72,11 +102,26 @@ class ProfilePhotoPicker extends ConsumerWidget {
                     'Remove Photo',
                     style: TextStyle(color: AppColors.error),
                   ),
-                  onTap: () {
+                  onTap: () async {
                     Navigator.pop(context);
-                    ref
+                    final success = await ref
                         .read(profilePhotoControllerProvider.notifier)
                         .deletePhoto();
+                    if (success && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Row(
+                            children: [
+                              Icon(Icons.info_outline, color: Colors.white),
+                              SizedBox(width: 8),
+                              Text('Profile picture removed successfully.'),
+                            ],
+                          ),
+                          backgroundColor: Colors.blueGrey,
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
                   },
                 ),
               const SizedBox(height: AppDimensions.spacingLg),

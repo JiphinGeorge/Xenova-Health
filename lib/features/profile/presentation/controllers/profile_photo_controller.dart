@@ -23,14 +23,14 @@ class ProfilePhotoController extends AsyncNotifier<void> {
   FutureOr<void> build() {}
 
   /// Picks an image, crops it to a square, uploads it, and updates the user profile.
-  Future<void> pickAndUploadPhoto(ImageSource source) async {
+  Future<bool> pickAndUploadPhoto(ImageSource source) async {
     state = const AsyncLoading();
     try {
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(source: source);
       if (pickedFile == null) {
         state = const AsyncData(null);
-        return;
+        return false;
       }
 
       // Crop image to a square
@@ -62,7 +62,7 @@ class ProfilePhotoController extends AsyncNotifier<void> {
       // If user deliberately cancelled cropping, don't upload
       if (croppedFile == null && !cropThrew) {
         state = const AsyncData(null);
-        return;
+        return false;
       }
 
       final file = croppedFile != null
@@ -95,40 +95,38 @@ class ProfilePhotoController extends AsyncNotifier<void> {
           const UploadState(status: UploadStatus.completed, progress: 1.0);
 
       state = const AsyncData(null);
+      return true;
     } on Exception catch (e, st) {
       ref.read(profilePhotoUploadStateProvider.notifier).state = 
           const UploadState(status: UploadStatus.failed, progress: 0.0);
       state = AsyncError(e, st);
+      return false;
     }
   }
 
   /// Deletes the current profile photo and updates the user profile.
-  Future<void> deletePhoto() async {
+  Future<bool> deletePhoto() async {
     state = const AsyncLoading();
     try {
       final user = ref.read(authControllerProvider).value;
       if (user == null || user.photoUrl == null) {
         state = const AsyncData(null);
-        return;
+        return false;
       }
 
       final storageRepo = ref.read(storageRepositoryProvider);
       await storageRepo.deleteFile(user.photoUrl!);
 
-      // We don't have copyWith with explicit null support for fields without default null
-      // Wait, userModel has String? photoUrl. So we can't easily pass null to copyWith
-      // unless Freezed handles it via nullable types or we rebuild.
-      // Freezed generates copyWith handling nulls if the field is nullable!
-      // But usually it's `photoUrl: null` to unset.
-      // Wait, Freezed 2.x `copyWith(photoUrl: null)` works if the field is nullable. Let's assume it works.
       final updatedUser = user.copyWith(photoUrl: null);
       await ref
           .read(authControllerProvider.notifier)
           .saveUserProfile(updatedUser);
 
       state = const AsyncData(null);
+      return true;
     } on Exception catch (e, st) {
       state = AsyncError(e, st);
+      return false;
     }
   }
 }

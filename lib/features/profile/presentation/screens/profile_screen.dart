@@ -267,6 +267,25 @@ class ProfileScreen extends ConsumerWidget {
           ),
           const Divider(height: 1),
           ListTile(
+            leading: const Icon(Icons.timer_outlined, color: Colors.purple),
+            title: const Text('Fasting Plan'),
+            subtitle: Text(user.fastingPlan?.displayName ?? 'Not set'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _showChangeFastingPlanModal(context, ref, user),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(
+              Icons.restaurant_menu_outlined,
+              color: Colors.green,
+            ),
+            title: const Text('Diet Type'),
+            subtitle: Text(user.preferredDiet?.label ?? 'Not set'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _showChangeDietTypeModal(context, ref, user),
+          ),
+          const Divider(height: 1),
+          ListTile(
             leading: const Icon(
               Icons.emoji_events_outlined,
               color: Colors.amber,
@@ -357,6 +376,237 @@ class ProfileScreen extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => _EditProfileBottomSheet(user: user, ref: ref),
+    );
+  }
+
+  void _showChangeFastingPlanModal(
+    BuildContext context,
+    WidgetRef ref,
+    UserModel user,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Change Fasting Plan',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(),
+                ...FastingPlan.values.map((plan) {
+                  final isSelected = user.fastingPlan == plan;
+                  return ListTile(
+                    leading: Icon(
+                      Icons.timer_outlined,
+                      color: isSelected ? AppColors.primary : Colors.grey,
+                    ),
+                    title: Text(
+                      plan.displayName,
+                      style: TextStyle(
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected ? AppColors.primary : null,
+                      ),
+                    ),
+                    subtitle: Text(
+                      plan.description,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: isSelected
+                        ? const Icon(
+                            Icons.check_circle,
+                            color: AppColors.primary,
+                          )
+                        : null,
+                    onTap: () async {
+                      Navigator.pop(ctx);
+                      try {
+                        final updated = user.copyWith(fastingPlan: plan);
+                        await ref
+                            .read(authControllerProvider.notifier)
+                            .saveUserProfile(updated);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.check_circle,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Fasting plan updated successfully to ${plan.displayName}!',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              backgroundColor: AppColors.success,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content:
+                                  Text('Failed to update fasting plan: $e'),
+                              backgroundColor: AppColors.error,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                  );
+                }),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showChangeDietTypeModal(
+    BuildContext context,
+    WidgetRef ref,
+    UserModel user,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Change Diet Type',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(),
+                ...DietType.values.map((diet) {
+                  final isSelected = user.preferredDiet == diet;
+                  return ListTile(
+                    leading: Icon(
+                      Icons.restaurant_menu,
+                      color: isSelected ? AppColors.primary : Colors.grey,
+                    ),
+                    title: Text(
+                      diet.label,
+                      style: TextStyle(
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected ? AppColors.primary : null,
+                      ),
+                    ),
+                    subtitle: Text(
+                      diet.description,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: isSelected
+                        ? const Icon(
+                            Icons.check_circle,
+                            color: AppColors.primary,
+                          )
+                        : null,
+                    onTap: () async {
+                      Navigator.pop(ctx);
+                      try {
+                        final updated = user.copyWith(preferredDiet: diet);
+                        await ref
+                            .read(authControllerProvider.notifier)
+                            .saveUserProfile(updated);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.check_circle,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Diet type updated successfully to ${diet.label}!',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              backgroundColor: AppColors.success,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to update diet type: $e'),
+                              backgroundColor: AppColors.error,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                  );
+                }),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -562,12 +812,70 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
           .read(authControllerProvider.notifier)
           .saveUserProfile(updatedUser);
 
+      // Determine what specifically changed to give a clear, informative toast
+      String message = 'Profile details updated successfully!';
+      final changes = <String>[];
+      if (widget.user.fastingPlan != updatedUser.fastingPlan &&
+          updatedUser.fastingPlan != null) {
+        changes.add('Fasting plan');
+      }
+      if (widget.user.preferredDiet != updatedUser.preferredDiet &&
+          updatedUser.preferredDiet != null) {
+        changes.add('Diet type');
+      }
+      if (widget.user.displayName != updatedUser.displayName &&
+          _nameController.text.trim().isNotEmpty) {
+        changes.add('Display name');
+      }
+      if (widget.user.currentWeightKg != updatedUser.currentWeightKg ||
+          widget.user.targetWeightKg != updatedUser.targetWeightKg) {
+        changes.add('Weight goals');
+      }
+      if (widget.user.heightCm != updatedUser.heightCm) {
+        changes.add('Height');
+      }
+      if (widget.user.dailyWaterGoalMl != updatedUser.dailyWaterGoalMl) {
+        changes.add('Water goal');
+      }
+      if (widget.user.primaryGoal != updatedUser.primaryGoal &&
+          updatedUser.primaryGoal != null) {
+        changes.add('Primary goal');
+      }
+      if (widget.user.activityLevel != updatedUser.activityLevel &&
+          updatedUser.activityLevel != null) {
+        changes.add('Activity level');
+      }
+
+      if (changes.length == 1) {
+        if (changes.first == 'Fasting plan') {
+          message =
+              'Fasting plan updated successfully to ${updatedUser.fastingPlan!.displayName}!';
+        } else if (changes.first == 'Diet type') {
+          message =
+              'Diet type updated successfully to ${updatedUser.preferredDiet!.label}!';
+        } else if (changes.first == 'Display name') {
+          message =
+              'Display name updated successfully to ${updatedUser.displayName}!';
+        } else {
+          message = '${changes.first} updated successfully!';
+        }
+      } else if (changes.isNotEmpty) {
+        message = '${changes.join(", ")} updated successfully!';
+      }
+
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile updated successfully!'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(child: Text(message)),
+              ],
+            ),
+            backgroundColor: AppColors.success,
+            duration: const Duration(seconds: 2),
           ),
         );
       }

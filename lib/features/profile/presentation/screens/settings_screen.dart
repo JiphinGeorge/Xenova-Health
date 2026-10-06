@@ -53,17 +53,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     super.dispose();
   }
 
-  Future<void> _updateProfileField(UserModel user, UserModel Function(UserModel) updater) async {
+  Future<void> _updateProfileField(
+    UserModel user,
+    UserModel Function(UserModel) updater, [
+    String? successMessage,
+  ]) async {
     try {
       final updated = updater(user);
       await ref.read(authControllerProvider.notifier).saveUserProfile(updated);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully.')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(successMessage ?? 'Profile updated successfully.'),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.success,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update profile: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update profile: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 
@@ -206,7 +229,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             prefixIcon: Icon(Icons.person_outline),
                           ),
                           onSubmitted: (val) {
-                            _updateProfileField(user, (u) => u.copyWith(displayName: val.trim()));
+                            _updateProfileField(
+                              user,
+                              (u) => u.copyWith(displayName: val.trim()),
+                              'Display name updated to "${val.trim()}" successfully!',
+                            );
                           },
                         ),
                         const SizedBox(height: AppDimensions.spacingMd),
@@ -223,7 +250,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           onSubmitted: (val) {
                             final weight = double.tryParse(val);
                             if (weight != null) {
-                              _updateProfileField(user, (u) => u.copyWith(targetWeightKg: weight));
+                              _updateProfileField(
+                                user,
+                                (u) => u.copyWith(targetWeightKg: weight),
+                                'Goal weight updated to $weight kg successfully!',
+                              );
                             }
                           },
                         ),
@@ -241,7 +272,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           onSubmitted: (val) {
                             final water = int.tryParse(val);
                             if (water != null) {
-                              _updateProfileField(user, (u) => u.copyWith(dailyWaterGoalMl: water));
+                              _updateProfileField(
+                                user,
+                                (u) => u.copyWith(dailyWaterGoalMl: water),
+                                'Daily water goal updated to $water ml successfully!',
+                              );
                             }
                           },
                         ),
@@ -263,7 +298,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           }).toList(),
                           onChanged: (level) {
                             if (level != null) {
-                              _updateProfileField(user, (u) => u.copyWith(activityLevel: level));
+                              _updateProfileField(
+                                user,
+                                (u) => u.copyWith(activityLevel: level),
+                                'Activity level updated to ${level.label} successfully!',
+                              );
                             }
                           },
                         ),
@@ -285,7 +324,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           }).toList(),
                           onChanged: (diet) {
                             if (diet != null) {
-                              _updateProfileField(user, (u) => u.copyWith(preferredDiet: diet));
+                              _updateProfileField(
+                                user,
+                                (u) => u.copyWith(preferredDiet: diet),
+                                'Diet type updated to ${diet.label} successfully!',
+                              );
                             }
                           },
                         ),
@@ -307,7 +350,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           }).toList(),
                           onChanged: (plan) {
                             if (plan != null) {
-                              _updateProfileField(user, (u) => u.copyWith(fastingPlan: plan));
+                              _updateProfileField(
+                                user,
+                                (u) => u.copyWith(fastingPlan: plan),
+                                'Fasting plan updated to ${plan.displayName} successfully!',
+                              );
                             }
                           },
                         ),
