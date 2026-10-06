@@ -83,8 +83,22 @@ class ReportExportService {
     final profile = _ref.read(authControllerProvider).value;
     final stats = await _statsRepo.getStats(userId);
     final latestReport = await _analyticsRepo.getLatestReport(userId);
+    final computedHealthScore = _ref.read(healthScoreProvider);
     
-    if (profile == null || stats == null) return null;
+    if (profile == null) return null;
+
+    final effectiveStats = (stats ??
+            DashboardStatsModel(
+              currentWeight: profile.currentWeightKg ?? 70.0,
+              weightLost: 0.0,
+              goalProgress: 0.0,
+              latestBMI: 22.0,
+              latestTDEE: 2000.0,
+              lastUpdated: DateTime.now(),
+            ))
+        .copyWith(
+      healthScore: stats?.healthScore ?? computedHealthScore,
+    );
 
     // Build AI Summary if we have a report
     String? aiSummary;
@@ -96,12 +110,13 @@ class ReportExportService {
         gender: profile.gender?.name,
         heightCm: profile.heightCm,
         goalType: profile.primaryGoal?.name,
-        healthScore: stats.healthScore?.overallHealthScore ?? 0.0,
+        healthScore: effectiveStats.healthScore?.overallHealthScore ??
+            computedHealthScore.overallHealthScore,
         consistencyScore: latestReport.consistencyScore,
         weightTrend: latestReport.averageWeeklyWeightChange,
         nutritionMetrics: const {},
         fastingMetrics: const {},
-        goalProgress: stats.goalProgress,
+        goalProgress: effectiveStats.goalProgress,
         proteinGoalMet: latestReport.averageDailyProtein > 100,
         waterGoalMet: latestReport.averageDailyWater > 2000,
         calorieTargetMet: true,
@@ -115,7 +130,7 @@ class ReportExportService {
 
     final pdfBytes = await _pdfGenerator.generateFullHealthReport(
       userProfile: profile,
-      dashboardStats: stats,
+      dashboardStats: effectiveStats,
       recentSnapshot: latestReport,
       aiSummary: aiSummary,
     );
