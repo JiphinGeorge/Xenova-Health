@@ -10,6 +10,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'app/app.dart';
 import 'core/firebase/crashlytics_service.dart';
 import 'core/services/hive_service.dart';
+import 'core/services/notification_service.dart';
 import 'firebase_options.dart' as prod_options;
 import 'firebase_options_dev.dart' as dev_options;
 import 'firebase_options_staging.dart' as staging_options;
@@ -51,6 +52,10 @@ Future<void> main() async {
   // ─── Initialize Hive ───
   final hiveService = HiveService();
   await hiveService.initialize();
+
+  // ─── Initialize Local Notifications ───
+  final notificationService = NotificationService();
+  await notificationService.initialize();
 
   // ─── System UI Configuration ───
   await SystemChrome.setPreferredOrientations([
