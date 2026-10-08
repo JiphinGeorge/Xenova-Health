@@ -154,7 +154,7 @@ abstract final class AppTextStyles {
         fontWeight: FontWeight.w500,
         letterSpacing: 0.2,
         height: 1.43,
-        color: color ?? AppColors.textSecondaryLight,
+        color: color,
       );
 
   static TextStyle chartLabel({Color? color}) =>
@@ -163,7 +163,7 @@ abstract final class AppTextStyles {
         fontWeight: FontWeight.w500,
         letterSpacing: 0.2,
         height: 1.2,
-        color: color ?? AppColors.textTertiaryLight,
+        color: color,
       );
 
   static TextStyle buttonText({Color? color}) =>

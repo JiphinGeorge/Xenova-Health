@@ -67,10 +67,10 @@ abstract final class AppColors {
   static const Color elevatedDark = Color(0xFF232E27);
   static const Color dividerDark = Color(0xFF2D3A31);
   static const Color borderDark = Color(0xFF2D3A31);
-  static const Color textPrimaryDark = Color(0xFFF3F0EB); // Warm Ivory
-  static const Color textSecondaryDark = Color(0xFF9EA49E);
-  static const Color textTertiaryDark = Color(0xFF6B736C);
-  static const Color textDisabledDark = Color(0xFF47554E);
+  static const Color textPrimaryDark = Color(0xFFFFFFFF); // Pure White
+  static const Color textSecondaryDark = Color(0xFFFFFFFF); // Pure White
+  static const Color textTertiaryDark = Color(0xFFEDEDED); // Near White
+  static const Color textDisabledDark = Color(0xFFB5B5B5);
 
   // ─── Gradient Presets ───
   static const LinearGradient primaryGradient = LinearGradient(
