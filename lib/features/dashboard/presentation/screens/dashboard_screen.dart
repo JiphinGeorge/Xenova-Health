@@ -40,6 +40,377 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
+  void _showQuickLogWater(BuildContext context, WidgetRef ref) {
+    final customController = TextEditingController();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            final summary =
+                ref.watch(dailyNutritionSummaryStreamProvider).value;
+            final waterGoal = summary?.waterGoalMl ?? 2500;
+            final waterIntake = summary?.waterIntakeMl ?? 0;
+            final pctWater = (waterIntake / waterGoal).clamp(0.0, 1.0);
+
+            return Container(
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.surfaceDark : Colors.white,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppDimensions.radiusXxl),
+                ),
+              ),
+              padding: EdgeInsets.only(
+                top: AppDimensions.spacingLg,
+                left: AppDimensions.spacingLg,
+                right: AppDimensions.spacingLg,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom +
+                    MediaQuery.of(ctx).padding.bottom +
+                    AppDimensions.spacingLg,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppDimensions.spacingLg),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.water_drop, color: Color(0xFF0284C7)),
+                            SizedBox(width: 8),
+                            Text(
+                              'Log Water Intake',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.of(ctx).pop(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppDimensions.spacingSm),
+                    Text(
+                      'Daily Target: $waterGoal ml (${(waterGoal / 1000).toStringAsFixed(1)} L)',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: AppDimensions.spacingMd),
+
+                    // Progress Card
+                    Container(
+                      padding: const EdgeInsets.all(AppDimensions.spacingMd),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0284C7).withValues(alpha: 0.08),
+                        borderRadius:
+                            BorderRadius.circular(AppDimensions.radiusMd),
+                        border: Border.all(
+                          color:
+                              const Color(0xFF0284C7).withValues(alpha: 0.25),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '$waterIntake / $waterGoal ml',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: LinearProgressIndicator(
+                                    value: pctWater,
+                                    minHeight: 8,
+                                    backgroundColor: const Color(0xFF0284C7)
+                                        .withValues(alpha: 0.2),
+                                    color: const Color(0xFF0284C7),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            '${(pctWater * 100).toInt()}%',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0284C7),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppDimensions.spacingLg),
+
+                    // Quick Presets
+                    const Text(
+                      'Quick Presets',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: AppDimensions.spacingSm),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _waterPresetButton(
+                            label: 'Cup',
+                            amount: 250,
+                            icon: Icons.local_cafe_outlined,
+                            onTap: () {
+                              ref
+                                  .read(nutritionControllerProvider.notifier)
+                                  .logWater(DateTime.now(), 250);
+                              Navigator.of(ctx).pop();
+                              ScaffoldMessenger.of(context)
+                                  .hideCurrentSnackBar();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Added 250 ml water 💧'),
+                                  duration: Duration(seconds: 1),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _waterPresetButton(
+                            label: 'Glass',
+                            amount: 350,
+                            icon: Icons.local_drink_outlined,
+                            onTap: () {
+                              ref
+                                  .read(nutritionControllerProvider.notifier)
+                                  .logWater(DateTime.now(), 350);
+                              Navigator.of(ctx).pop();
+                              ScaffoldMessenger.of(context)
+                                  .hideCurrentSnackBar();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Added 350 ml water 💧'),
+                                  duration: Duration(seconds: 1),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _waterPresetButton(
+                            label: 'Bottle',
+                            amount: 500,
+                            icon: Icons.water_drop_outlined,
+                            onTap: () {
+                              ref
+                                  .read(nutritionControllerProvider.notifier)
+                                  .logWater(DateTime.now(), 500);
+                              Navigator.of(ctx).pop();
+                              ScaffoldMessenger.of(context)
+                                  .hideCurrentSnackBar();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Added 500 ml water 💧'),
+                                  duration: Duration(seconds: 1),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _waterPresetButton(
+                            label: 'Flask',
+                            amount: 750,
+                            icon: Icons.sports_bar_outlined,
+                            onTap: () {
+                              ref
+                                  .read(nutritionControllerProvider.notifier)
+                                  .logWater(DateTime.now(), 750);
+                              Navigator.of(ctx).pop();
+                              ScaffoldMessenger.of(context)
+                                  .hideCurrentSnackBar();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Added 750 ml water 💧'),
+                                  duration: Duration(seconds: 1),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppDimensions.spacingLg),
+
+                    // Custom Amount
+                    const Text(
+                      'Custom Amount',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: AppDimensions.spacingSm),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: customController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              hintText: 'e.g. 300',
+                              suffixText: 'ml',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  AppDimensions.radiusMd,
+                                ),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        FilledButton(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF0284C7),
+                          ),
+                          onPressed: () {
+                            final val =
+                                int.tryParse(customController.text.trim());
+                            if (val != null && val > 0) {
+                              ref
+                                  .read(nutritionControllerProvider.notifier)
+                                  .logWater(DateTime.now(), val);
+                              Navigator.of(ctx).pop();
+                              ScaffoldMessenger.of(context)
+                                  .hideCurrentSnackBar();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Added $val ml water 💧'),
+                                  duration: const Duration(seconds: 1),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          },
+                          child: const Text('Add'),
+                        ),
+                      ],
+                    ),
+
+                    if (waterIntake > 0) ...[
+                      const SizedBox(height: AppDimensions.spacingLg),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          ref
+                              .read(nutritionControllerProvider.notifier)
+                              .logWater(DateTime.now(), -250);
+                          Navigator.of(ctx).pop();
+                          ScaffoldMessenger.of(context)
+                              .hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Removed 250 ml water'),
+                              duration: Duration(seconds: 1),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.remove_circle_outline, size: 16),
+                        label: const Text('Undo last 250 ml'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.redAccent,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _waterPresetButton({
+    required String label,
+    required int amount,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0284C7).withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+          border: Border.all(
+            color: const Color(0xFF0284C7).withValues(alpha: 0.2),
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: const Color(0xFF0284C7), size: 20),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              '+${amount}ml',
+              style: const TextStyle(fontSize: 10, color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Keep stats in sync
@@ -168,19 +539,25 @@ class DashboardScreen extends ConsumerWidget {
                     label: 'Weight',
                     onTap: () => _showAddWeight(context),
                   ),
-                  const SizedBox(width: AppDimensions.spacingSm),
+                  const SizedBox(width: AppDimensions.spacingXs),
                   _QuickActionBtn(
                     icon: Icons.restaurant_outlined,
                     label: 'Meal',
                     onTap: () => context.push('/nutrition'),
                   ),
-                  const SizedBox(width: AppDimensions.spacingSm),
+                  const SizedBox(width: AppDimensions.spacingXs),
                   _QuickActionBtn(
                     icon: Icons.timer_outlined,
                     label: 'Fast',
                     onTap: () => context.push('/fasting'),
                   ),
-                  const SizedBox(width: AppDimensions.spacingSm),
+                  const SizedBox(width: AppDimensions.spacingXs),
+                  _QuickActionBtn(
+                    icon: Icons.water_drop_outlined,
+                    label: 'Water',
+                    onTap: () => _showQuickLogWater(context, ref),
+                  ),
+                  const SizedBox(width: AppDimensions.spacingXs),
                   _QuickActionBtn(
                     icon: Icons.photo_camera_back_outlined,
                     label: 'Photo',
@@ -194,7 +571,11 @@ class DashboardScreen extends ConsumerWidget {
               _buildNutritionCard(context, ref),
               const SizedBox(height: AppDimensions.spacingXl),
 
-              // 4. Today's Progress (Live Dynamic Stats)
+              // 5. Water / Hydration Tracker Card
+              _buildWaterTrackerCard(context, ref),
+              const SizedBox(height: AppDimensions.spacingXl),
+
+              // 6. Today's Progress (Live Dynamic Stats)
               _buildTodaysProgress(context, ref),
               const SizedBox(height: AppDimensions.spacingXl),
 
@@ -921,6 +1302,215 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildWaterTrackerCard(BuildContext context, WidgetRef ref) {
+    final nutritionAsync = ref.watch(dailyNutritionSummaryStreamProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return nutritionAsync.when(
+      data: (summary) {
+        final waterGoal = summary?.waterGoalMl ?? 2500;
+        final waterIntake = summary?.waterIntakeMl ?? 0;
+        final pctWater = (waterIntake / waterGoal).clamp(0.0, 1.0);
+        final glasses = (waterIntake / 250).floor();
+        final goalGlasses = (waterGoal / 250).ceil();
+        final percentText = (pctWater * 100).toInt();
+        final isGoalMet = waterIntake >= waterGoal;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Hydration',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                TextButton.icon(
+                  onPressed: () => _showQuickLogWater(context, ref),
+                  icon: const Icon(Icons.add_circle_outline, size: 16),
+                  label: const Text('Quick Log'),
+                ),
+              ],
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.elevatedDark : AppColors.white,
+                borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(AppDimensions.spacingLg),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0284C7).withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.water_drop,
+                          color: Color(0xFF0284C7),
+                          size: 26,
+                        ),
+                      ),
+                      const SizedBox(width: AppDimensions.spacingMd),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  '${(waterIntake / 1000).toStringAsFixed(1)} / ${(waterGoal / 1000).toStringAsFixed(1)} L',
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(width: 8),
+                                if (isGoalMet)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.success.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Text(
+                                      'Goal Met 🎉',
+                                      style: TextStyle(
+                                        color: AppColors.success,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '$glasses of $goalGlasses glasses • $percentText% of daily goal',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppDimensions.spacingMd),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(
+                      value: pctWater,
+                      minHeight: 10,
+                      backgroundColor: isDark
+                          ? const Color(0xFF0284C7).withValues(alpha: 0.15)
+                          : const Color(0xFFE0F2FE),
+                      color: const Color(0xFF0284C7),
+                    ),
+                  ),
+                  const SizedBox(height: AppDimensions.spacingMd),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      if (waterIntake > 0) ...[
+                        IconButton.outlined(
+                          tooltip: 'Undo 250ml',
+                          onPressed: () {
+                            ref
+                                .read(nutritionControllerProvider.notifier)
+                                .logWater(DateTime.now(), -250);
+                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Removed 250 ml water'),
+                                duration: Duration(seconds: 1),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.remove, size: 16),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      FilledButton.tonalIcon(
+                        onPressed: () {
+                          ref
+                              .read(nutritionControllerProvider.notifier)
+                              .logWater(DateTime.now(), 250);
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Added 250 ml water 💧'),
+                              duration: Duration(seconds: 1),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.add, size: 16),
+                        label: const Text('+250 ml'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: isDark
+                              ? AppColors.elevatedDark
+                              : const Color(0xFFE0F2FE),
+                          foregroundColor: isDark
+                              ? const Color(0xFF7DD3FC)
+                              : const Color(0xFF0369A1),
+                          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton.icon(
+                        onPressed: () {
+                          ref
+                              .read(nutritionControllerProvider.notifier)
+                              .logWater(DateTime.now(), 500);
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Added 500 ml water 💧'),
+                              duration: Duration(seconds: 1),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.add, size: 16),
+                        label: const Text('+500 ml'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF0284C7),
+                          foregroundColor: Colors.white,
+                          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+
   Widget _buildTodaysProgress(BuildContext context, WidgetRef ref) {
     final nutritionAsync = ref.watch(dailyNutritionSummaryStreamProvider);
     final activeSessionAsync = ref.watch(activeFastingSessionProvider);
@@ -1003,7 +1593,7 @@ class DashboardScreen extends ConsumerWidget {
               ),
             ),
             GestureDetector(
-              onTap: () => context.push('/nutrition'),
+              onTap: () => _showQuickLogWater(context, ref),
               child: _ProgressCard(
                 title: 'Water',
                 subtitle:
