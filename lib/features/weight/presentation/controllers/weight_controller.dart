@@ -3,12 +3,14 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../core/analytics/analytics_service.dart';
+import '../../../../core/calculators/bmi_calculator.dart';
+import '../../../../core/calculators/tdee_calculator.dart';
 import '../../../../core/enums/enums.dart';
 import '../../../../features/dashboard/data/repositories/dashboard_stats_repository.dart';
 import '../../../../features/dashboard/domain/models/dashboard_stats_model.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../gamification/application/services/achievement_engine_service.dart';
-import '../../../../core/analytics/analytics_service.dart';
 import '../../data/repositories/weight_repository.dart';
 import '../../domain/models/weight_entry_model.dart';
 import '../../domain/models/weight_metrics.dart';
@@ -81,21 +83,20 @@ final weightMetricsProvider = Provider<WeightMetrics>((ref) {
   double? tdee;
 
   if (user.heightCm != null && user.age != null && user.gender != null) {
-    final heightM = user.heightCm! / 100;
-    bmi = currentWeight / (heightM * heightM);
-
-    if (user.gender == Gender.male) {
-      bmr =
-          (10 * currentWeight) + (6.25 * user.heightCm!) - (5 * user.age!) + 5;
-    } else {
-      bmr =
-          (10 * currentWeight) +
-          (6.25 * user.heightCm!) -
-          (5 * user.age!) -
-          161;
-    }
-
-    tdee = bmr * (user.activityLevel?.multiplier ?? 1.2);
+    bmi = BmiCalculator.calculate(
+      weightKg: currentWeight,
+      heightCm: user.heightCm!,
+    );
+    bmr = BmrCalculator.calculate(
+      weightKg: currentWeight,
+      heightCm: user.heightCm!,
+      age: user.age!,
+      gender: user.gender!,
+    );
+    tdee = TdeeCalculator.calculate(
+      bmr: bmr,
+      activityLevel: user.activityLevel ?? ActivityLevel.sedentary,
+    );
   }
 
   // Goal Progress (0.0 to 1.0)
