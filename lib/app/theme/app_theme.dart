@@ -357,6 +357,18 @@ abstract final class AppTheme {
         space: 1,
       ),
 
+      // ─── List Tile ───
+      listTileTheme: ListTileThemeData(
+        textColor: isDark ? AppColors.white : AppColors.textPrimaryLight,
+        titleTextStyle: AppTextStyles.bodyLarge(
+          color: isDark ? AppColors.white : AppColors.textPrimaryLight,
+        ),
+        subtitleTextStyle: AppTextStyles.bodyMedium(
+          color: isDark ? AppColors.white : AppColors.textSecondaryLight,
+        ),
+        iconColor: isDark ? AppColors.white : AppColors.primary,
+      ),
+
       // ─── Switch ───
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
