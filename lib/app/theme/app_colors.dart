@@ -48,6 +48,7 @@ abstract final class AppColors {
   static const Color white = Color(0xFFFFFFFF);
   static const Color backgroundLight = Color(0xFFFAF7F2); // Warm Parchment
   static const Color surfaceLight = Color(0xFFFFFFFF); // Pure Stone White
+  static const Color surfaceContainerLight = Color(0xFFF3EFEA); // Warm Oat
   static const Color cardLight = Color(0xFFFFFFFF);
   static const Color elevatedLight = Color(0xFFF3EFEA); // Warm Oat
   static const Color dividerLight = Color(0xFFECE6DC); // Light Clay Border
@@ -61,6 +62,7 @@ abstract final class AppColors {
   static const Color black = Color(0xFF000000);
   static const Color backgroundDark = Color(0xFF121A15); // Deep Moss Charcoal
   static const Color surfaceDark = Color(0xFF1A241E); // Elevated Deep Moss
+  static const Color surfaceContainerDark = Color(0xFF232E27);
   static const Color cardDark = Color(0xFF1A241E);
   static const Color elevatedDark = Color(0xFF232E27);
   static const Color dividerDark = Color(0xFF2D3A31);
