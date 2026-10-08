@@ -209,7 +209,7 @@ class _NutritionDashboardScreenState
                       ref,
                       title: 'Breakfast',
                       icon: Icons.breakfast_dining_outlined,
-                      color: Colors.amber,
+                      color: const Color(0xFFFFD600),
                       meals: meals
                           .where((m) =>
                               m.mealType.trim().toLowerCase() == 'breakfast')
@@ -221,7 +221,7 @@ class _NutritionDashboardScreenState
                       ref,
                       title: 'Lunch',
                       icon: Icons.lunch_dining_outlined,
-                      color: Colors.orange,
+                      color: const Color(0xFFFF9100),
                       meals: meals
                           .where((m) =>
                               m.mealType.trim().toLowerCase() == 'lunch')
@@ -233,7 +233,7 @@ class _NutritionDashboardScreenState
                       ref,
                       title: 'Dinner',
                       icon: Icons.dinner_dining_outlined,
-                      color: Colors.deepOrange,
+                      color: const Color(0xFFFF5252),
                       meals: meals
                           .where((m) =>
                               m.mealType.trim().toLowerCase() == 'dinner')
@@ -245,7 +245,7 @@ class _NutritionDashboardScreenState
                       ref,
                       title: 'Snack',
                       icon: Icons.apple_outlined,
-                      color: Colors.green,
+                      color: const Color(0xFF00E676),
                       meals: meals
                           .where(
                             (m) =>
