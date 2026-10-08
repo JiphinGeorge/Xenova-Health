@@ -222,18 +222,22 @@ class _WeightScreenState extends ConsumerState<WeightScreen> {
     minY -= 2;
     maxY += 2;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       height: 250,
       padding: const EdgeInsets.only(right: 16, top: 24, bottom: 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? AppColors.elevatedDark
-            : Colors.white,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        color: isDark ? AppColors.cardDark : AppColors.cardLight,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : AppColors.borderLight,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.25)
+                : const Color.fromRGBO(60, 48, 32, 0.04),
+            blurRadius: 16,
             offset: const Offset(0, 4),
           ),
         ],
@@ -550,13 +554,24 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(AppDimensions.spacingMd),
       decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        color: isDark ? AppColors.cardDark : AppColors.cardLight,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : AppColors.borderLight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.15)
+                : const Color.fromRGBO(60, 48, 32, 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -565,7 +580,9 @@ class _StatCard extends StatelessWidget {
           Text(
             title,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight,
             ),
           ),
           const SizedBox(height: 2),

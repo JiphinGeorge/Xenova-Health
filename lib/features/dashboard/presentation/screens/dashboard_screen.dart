@@ -605,12 +605,18 @@ class DashboardScreen extends ConsumerWidget {
       return Container(
         padding: const EdgeInsets.all(AppDimensions.spacingXl),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.elevatedDark : Colors.white,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
+          color: isDark ? AppColors.cardDark : AppColors.cardLight,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
+          border: Border.all(
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.25)
+                  : const Color.fromRGBO(60, 48, 32, 0.04),
+              blurRadius: 16,
               offset: const Offset(0, 4),
             ),
           ],
@@ -666,12 +672,18 @@ class DashboardScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(AppDimensions.spacingLg),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.elevatedDark : Colors.white,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
+        color: isDark ? AppColors.cardDark : AppColors.cardLight,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : AppColors.borderLight,
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.25)
+                : const Color.fromRGBO(60, 48, 32, 0.04),
+            blurRadius: 16,
             offset: const Offset(0, 4),
           ),
         ],
@@ -1227,12 +1239,18 @@ class DashboardScreen extends ConsumerWidget {
         ),
         Container(
           decoration: BoxDecoration(
-            color: isDark ? AppColors.elevatedDark : AppColors.white,
-            borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+            color: isDark ? AppColors.cardDark : AppColors.cardLight,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
+            border: Border.all(
+              color: isDark ? AppColors.borderDark : AppColors.borderLight,
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-                blurRadius: 10,
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.25)
+                    : const Color.fromRGBO(60, 48, 32, 0.04),
+                blurRadius: 16,
                 offset: const Offset(0, 4),
               ),
             ],
@@ -1337,12 +1355,18 @@ class DashboardScreen extends ConsumerWidget {
             ),
             Container(
               decoration: BoxDecoration(
-                color: isDark ? AppColors.elevatedDark : AppColors.white,
-                borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+                color: isDark ? AppColors.cardDark : AppColors.cardLight,
+                borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
+                border: Border.all(
+                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                  width: 1,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-                    blurRadius: 10,
+                    color: isDark
+                        ? Colors.black.withValues(alpha: 0.25)
+                        : const Color.fromRGBO(60, 48, 32, 0.04),
+                    blurRadius: 16,
                     offset: const Offset(0, 4),
                   ),
                 ],
@@ -1356,12 +1380,12 @@ class DashboardScreen extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0284C7).withValues(alpha: 0.12),
+                          color: AppColors.hydration.withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.water_drop,
-                          color: Color(0xFF0284C7),
+                          color: AppColors.hydration,
                           size: 26,
                         ),
                       ),
@@ -1419,9 +1443,9 @@ class DashboardScreen extends ConsumerWidget {
                       value: pctWater,
                       minHeight: 10,
                       backgroundColor: isDark
-                          ? const Color(0xFF0284C7).withValues(alpha: 0.15)
-                          : const Color(0xFFE0F2FE),
-                      color: const Color(0xFF0284C7),
+                          ? AppColors.hydration.withValues(alpha: 0.15)
+                          : AppColors.hydration.withValues(alpha: 0.1),
+                      color: AppColors.hydration,
                     ),
                   ),
                   const SizedBox(height: AppDimensions.spacingMd),
@@ -1468,11 +1492,14 @@ class DashboardScreen extends ConsumerWidget {
                         style: FilledButton.styleFrom(
                           backgroundColor: isDark
                               ? AppColors.elevatedDark
-                              : const Color(0xFFE0F2FE),
+                              : AppColors.hydration.withValues(alpha: 0.15),
                           foregroundColor: isDark
-                              ? const Color(0xFF7DD3FC)
-                              : const Color(0xFF0369A1),
+                              ? AppColors.hydration
+                              : AppColors.hydration,
                           textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -1493,9 +1520,12 @@ class DashboardScreen extends ConsumerWidget {
                         icon: const Icon(Icons.add, size: 16),
                         label: const Text('+500 ml'),
                         style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF0284C7),
+                          backgroundColor: AppColors.hydration,
                           foregroundColor: Colors.white,
                           textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+                          ),
                         ),
                       ),
                     ],
@@ -1657,9 +1687,21 @@ class DashboardScreen extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(AppDimensions.spacingLg),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.elevatedDark : Colors.white,
-                borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-                border: Border.all(color: AppColors.primarySurface),
+                color: isDark ? AppColors.cardDark : AppColors.cardLight,
+                borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
+                border: Border.all(
+                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: isDark
+                        ? Colors.black.withValues(alpha: 0.25)
+                        : const Color.fromRGBO(60, 48, 32, 0.04),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1712,9 +1754,21 @@ class DashboardScreen extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.all(AppDimensions.spacingLg),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.elevatedDark : Colors.white,
-              borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-              border: Border.all(color: AppColors.primarySurface),
+              color: isDark ? AppColors.cardDark : AppColors.cardLight,
+              borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
+              border: Border.all(
+                color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.25)
+                      : const Color.fromRGBO(60, 48, 32, 0.04),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1907,6 +1961,7 @@ class _QuickActionBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -1915,10 +1970,14 @@ class _QuickActionBtn extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppDimensions.spacingMd),
               decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                color: isDark
+                    ? AppColors.surfaceContainerDark
+                    : AppColors.surfaceContainerLight,
                 shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                  width: 1,
+                ),
               ),
               child: Icon(icon, color: AppColors.primary),
             ),
@@ -1951,13 +2010,25 @@ class _ProgressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(AppDimensions.spacingMd),
       decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        color: isDark ? AppColors.cardDark : AppColors.cardLight,
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : AppColors.borderLight,
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.15)
+                : const Color.fromRGBO(60, 48, 32, 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

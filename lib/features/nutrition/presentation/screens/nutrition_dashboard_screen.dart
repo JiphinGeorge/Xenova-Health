@@ -392,16 +392,18 @@ class _NutritionDashboardScreenState
     return Container(
       padding: const EdgeInsets.all(AppDimensions.spacingLg),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.elevatedDark : Colors.white,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
+        color: isDark ? AppColors.cardDark : AppColors.cardLight,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
         border: Border.all(
-          color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
+          color: isDark ? AppColors.borderDark : AppColors.borderLight,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-            blurRadius: 10,
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.25)
+                : const Color.fromRGBO(60, 48, 32, 0.04),
+            blurRadius: 16,
             offset: const Offset(0, 4),
           ),
         ],
@@ -424,8 +426,8 @@ class _NutritionDashboardScreenState
                         value: pctCals,
                         strokeWidth: 9,
                         backgroundColor: isDark
-                            ? AppColors.primaryDark.withValues(alpha: 0.3)
-                            : const Color(0xFFE2E8F0),
+                            ? AppColors.primaryLight.withValues(alpha: 0.2)
+                            : AppColors.dividerLight,
                         color: pctCals >= 1.0
                             ? AppColors.error
                             : AppColors.primary,
@@ -531,7 +533,7 @@ class _NutritionDashboardScreenState
                   consumed: totalPro,
                   target: targetPro,
                   pct: pctPro,
-                  color: const Color(0xFF2563EB),
+                  color: AppColors.protein,
                   isDark: isDark,
                 ),
               ),
@@ -542,7 +544,7 @@ class _NutritionDashboardScreenState
                   consumed: totalCarbs,
                   target: targetCarbs,
                   pct: pctCarbs,
-                  color: const Color(0xFF059669),
+                  color: AppColors.carbs,
                   isDark: isDark,
                 ),
               ),
@@ -553,7 +555,7 @@ class _NutritionDashboardScreenState
                   consumed: totalFat,
                   target: targetFat,
                   pct: pctFat,
-                  color: const Color(0xFFD97706),
+                  color: AppColors.lipids,
                   isDark: isDark,
                 ),
               ),
@@ -629,14 +631,19 @@ class _NutritionDashboardScreenState
     return Container(
       padding: const EdgeInsets.all(AppDimensions.spacingMd),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.elevatedDark : Colors.white,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-        border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
+        color: isDark ? AppColors.cardDark : AppColors.cardLight,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : AppColors.borderLight,
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.25)
+                : const Color.fromRGBO(60, 48, 32, 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -650,12 +657,12 @@ class _NutritionDashboardScreenState
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.12),
+                      color: AppColors.hydration.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.water_drop,
-                      color: Colors.blue,
+                      color: AppColors.hydration,
                       size: 20,
                     ),
                   ),
@@ -672,7 +679,7 @@ class _NutritionDashboardScreenState
                   style: TextStyle(
                     color: isDark
                         ? AppColors.textSecondaryDark
-                        : const Color(0xFF475569),
+                        : AppColors.textSecondaryLight,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),
@@ -688,9 +695,9 @@ class _NutritionDashboardScreenState
               value: pctWater,
               minHeight: 8,
               backgroundColor: isDark
-                  ? Colors.blue.withValues(alpha: 0.2)
-                  : const Color(0xFFE2E8F0),
-              color: Colors.blue,
+                  ? AppColors.hydration.withValues(alpha: 0.2)
+                  : AppColors.hydration.withValues(alpha: 0.12),
+              color: AppColors.hydration,
             ),
           ),
           const SizedBox(height: AppDimensions.spacingMd),
@@ -722,10 +729,8 @@ class _NutritionDashboardScreenState
                 style: FilledButton.styleFrom(
                   backgroundColor: isDark
                       ? AppColors.elevatedDark
-                      : const Color(0xFFE0F2FE),
-                  foregroundColor: isDark
-                      ? const Color(0xFF7DD3FC)
-                      : const Color(0xFF0369A1),
+                      : AppColors.hydration.withValues(alpha: 0.15),
+                  foregroundColor: AppColors.hydration,
                   textStyle: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
@@ -738,7 +743,7 @@ class _NutritionDashboardScreenState
                 icon: const Icon(Icons.add, size: 16),
                 label: const Text('+500 ml'),
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF0284C7),
+                  backgroundColor: AppColors.hydration,
                   foregroundColor: Colors.white,
                   textStyle: const TextStyle(fontWeight: FontWeight.w600),
                 ),
@@ -770,13 +775,21 @@ class _NutritionDashboardScreenState
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppColors.elevatedDark : Colors.white,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        color: isDark ? AppColors.cardDark : AppColors.cardLight,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
         border: Border.all(
-          color: Theme.of(
-            context,
-          ).colorScheme.outlineVariant.withValues(alpha: 0.4),
+          color: isDark ? AppColors.borderDark : AppColors.borderLight,
+          width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.2)
+                : const Color.fromRGBO(60, 48, 32, 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

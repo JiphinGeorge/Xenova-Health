@@ -1009,15 +1009,17 @@ class _FastingStatsGrid extends ConsumerWidget {
       return Container(
         padding: const EdgeInsets.all(AppDimensions.spacingMd),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.elevatedDark : Colors.white,
+          color: isDark ? AppColors.cardDark : AppColors.cardLight,
           borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
           border: Border.all(
-            color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.2)
+                  : const Color.fromRGBO(60, 48, 32, 0.03),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -1034,7 +1036,7 @@ class _FastingStatsGrid extends ConsumerWidget {
                 fontSize: 12,
                 color: isDark
                     ? AppColors.textSecondaryDark
-                    : const Color(0xFF64748B),
+                    : AppColors.textSecondaryLight,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -1046,7 +1048,7 @@ class _FastingStatsGrid extends ConsumerWidget {
                 fontWeight: FontWeight.bold,
                 color: isDark
                     ? AppColors.textPrimaryDark
-                    : const Color(0xFF0F172A),
+                    : AppColors.textPrimaryLight,
               ),
             ),
           ],
