@@ -537,30 +537,35 @@ class DashboardScreen extends ConsumerWidget {
                   _QuickActionBtn(
                     icon: Icons.monitor_weight_outlined,
                     label: 'Weight',
+                    color: const Color(0xFFFF7043),
                     onTap: () => _showAddWeight(context),
                   ),
                   const SizedBox(width: AppDimensions.spacingXs),
                   _QuickActionBtn(
                     icon: Icons.restaurant_outlined,
                     label: 'Meal',
+                    color: const Color(0xFF00E676),
                     onTap: () => context.push('/nutrition'),
                   ),
                   const SizedBox(width: AppDimensions.spacingXs),
                   _QuickActionBtn(
                     icon: Icons.timer_outlined,
                     label: 'Fast',
+                    color: const Color(0xFFE040FB),
                     onTap: () => context.push('/fasting'),
                   ),
                   const SizedBox(width: AppDimensions.spacingXs),
                   _QuickActionBtn(
                     icon: Icons.water_drop_outlined,
                     label: 'Water',
+                    color: const Color(0xFF00E5FF),
                     onTap: () => _showQuickLogWater(context, ref),
                   ),
                   const SizedBox(width: AppDimensions.spacingXs),
                   _QuickActionBtn(
                     icon: Icons.photo_camera_back_outlined,
                     label: 'Photo',
+                    color: const Color(0xFFFF4081),
                     onTap: () => _showAddPhoto(context),
                   ),
                 ],
@@ -660,13 +665,13 @@ class DashboardScreen extends ConsumerWidget {
     // Trend
     final change = metrics.changeSinceLast ?? 0.0;
     var trendIcon = Icons.trending_flat;
-    var trendColor = AppColors.primary;
+    var trendColor = isDark ? const Color(0xFF00E5FF) : AppColors.primary;
     if (change < 0) {
       trendIcon = Icons.trending_down;
-      trendColor = AppColors.success;
+      trendColor = const Color(0xFF00E676);
     } else if (change > 0) {
       trendIcon = Icons.trending_up;
-      trendColor = AppColors.error;
+      trendColor = const Color(0xFFFF5252);
     }
 
     return Container(
@@ -1380,12 +1385,12 @@ class DashboardScreen extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: AppColors.hydration.withValues(alpha: 0.12),
+                          color: (isDark ? const Color(0xFF00E5FF) : AppColors.hydration).withValues(alpha: isDark ? 0.2 : 0.12),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.water_drop,
-                          color: AppColors.hydration,
+                          color: isDark ? const Color(0xFF00E5FF) : AppColors.hydration,
                           size: 26,
                         ),
                       ),
@@ -1405,17 +1410,17 @@ class DashboardScreen extends ConsumerWidget {
                                 if (isGoalMet)
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
+                                      horizontal: 8,
+                                      vertical: 3,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: AppColors.success.withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(4),
+                                      color: (isDark ? const Color(0xFF00E676) : AppColors.success).withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(6),
                                     ),
-                                    child: const Text(
+                                    child: Text(
                                       'Goal Met 🎉',
                                       style: TextStyle(
-                                        color: AppColors.success,
+                                        color: isDark ? const Color(0xFF00E676) : AppColors.success,
                                         fontSize: 11,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -1443,9 +1448,9 @@ class DashboardScreen extends ConsumerWidget {
                       value: pctWater,
                       minHeight: 10,
                       backgroundColor: isDark
-                          ? AppColors.hydration.withValues(alpha: 0.15)
+                          ? const Color(0xFF00E5FF).withValues(alpha: 0.15)
                           : AppColors.hydration.withValues(alpha: 0.1),
-                      color: AppColors.hydration,
+                      color: isDark ? const Color(0xFF00E5FF) : AppColors.hydration,
                     ),
                   ),
                   const SizedBox(height: AppDimensions.spacingMd),
@@ -1598,7 +1603,7 @@ class DashboardScreen extends ConsumerWidget {
                     '${totalCals.toStringAsFixed(0)} / ${targetCals.toStringAsFixed(0)} kcal',
                 icon: Icons.local_fire_department,
                 progress: pctCals,
-                color: Colors.orange,
+                color: const Color(0xFFFF6D00),
               ),
             ),
             GestureDetector(
@@ -1609,7 +1614,7 @@ class DashboardScreen extends ConsumerWidget {
                     '${totalProtein.toStringAsFixed(0)} / ${targetProtein.toStringAsFixed(0)} g',
                 icon: Icons.fitness_center,
                 progress: pctProtein,
-                color: Colors.blue,
+                color: const Color(0xFF2979FF),
               ),
             ),
             GestureDetector(
@@ -1619,7 +1624,7 @@ class DashboardScreen extends ConsumerWidget {
                 subtitle: fastingSubtitle,
                 icon: Icons.timer,
                 progress: fastingProgress,
-                color: Colors.purple,
+                color: const Color(0xFFE040FB),
               ),
             ),
             GestureDetector(
@@ -1630,7 +1635,7 @@ class DashboardScreen extends ConsumerWidget {
                     '${(waterIntake / 1000).toStringAsFixed(1)} / ${(waterGoal / 1000).toStringAsFixed(1)} L',
                 icon: Icons.water_drop,
                 progress: pctWater,
-                color: Colors.cyan,
+                color: const Color(0xFF00E5FF),
               ),
             ),
           ],
@@ -1706,11 +1711,14 @@ class DashboardScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.timer_outlined, color: AppColors.primary),
-                      SizedBox(width: AppDimensions.spacingSm),
-                      Text(
+                      Icon(
+                        Icons.timer_outlined,
+                        color: isDark ? const Color(0xFFFFB300) : AppColors.primary,
+                      ),
+                      const SizedBox(width: AppDimensions.spacingSm),
+                      const Text(
                         'Intermittent Fasting',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
@@ -1776,11 +1784,14 @@ class DashboardScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Row(
+                    Row(
                       children: [
-                        Icon(Icons.timer_outlined, color: AppColors.primary),
-                        SizedBox(width: AppDimensions.spacingSm),
-                        Text(
+                        Icon(
+                          Icons.timer_outlined,
+                          color: isDark ? const Color(0xFFFFB300) : AppColors.primary,
+                        ),
+                        const SizedBox(width: AppDimensions.spacingSm),
+                        const Text(
                           'Current Fast',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
@@ -1793,8 +1804,8 @@ class DashboardScreen extends ConsumerWidget {
                       isGoalReached ? 'Goal Reached!' : 'Fasting',
                       style: TextStyle(
                         color: isGoalReached
-                            ? AppColors.success
-                            : AppColors.primary,
+                            ? const Color(0xFF00E676)
+                            : (isDark ? const Color(0xFFFFB300) : AppColors.primary),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1953,15 +1964,18 @@ class _QuickActionBtn extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
+    this.color,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final activeColor = color ?? (isDark ? const Color(0xFF00E5FF) : AppColors.primary);
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -1971,20 +1985,29 @@ class _QuickActionBtn extends StatelessWidget {
               padding: const EdgeInsets.all(AppDimensions.spacingMd),
               decoration: BoxDecoration(
                 color: isDark
-                    ? AppColors.surfaceContainerDark
-                    : AppColors.surfaceContainerLight,
+                    ? (color != null
+                        ? color!.withValues(alpha: 0.18)
+                        : AppColors.surfaceContainerDark)
+                    : (color != null
+                        ? color!.withValues(alpha: 0.12)
+                        : AppColors.surfaceContainerLight),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
-                  width: 1,
+                  color: isDark
+                      ? (color != null ? color!.withValues(alpha: 0.45) : AppColors.borderDark)
+                      : (color != null ? color!.withValues(alpha: 0.3) : AppColors.borderLight),
                 ),
               ),
-              child: Icon(icon, color: AppColors.primary),
+              child: Icon(icon, color: activeColor),
             ),
             const SizedBox(height: AppDimensions.spacingXs),
             Text(
               label,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white : AppColors.textPrimaryLight,
+              ),
             ),
           ],
         ),
@@ -2018,7 +2041,6 @@ class _ProgressCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
         border: Border.all(
           color: isDark ? AppColors.borderDark : AppColors.borderLight,
-          width: 1,
         ),
         boxShadow: [
           BoxShadow(
@@ -2040,14 +2062,22 @@ class _ProgressCard extends StatelessWidget {
               const SizedBox(width: AppDimensions.spacingXs),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
+                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
                 ),
               ),
             ],
           ),
-          Text(subtitle, style: const TextStyle(fontSize: 12)),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? Colors.white : AppColors.textSecondaryLight,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           LinearProgressIndicator(
             value: progress,
             color: color,
