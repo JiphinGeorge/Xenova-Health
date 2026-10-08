@@ -160,7 +160,7 @@ abstract final class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          minimumSize: const Size(double.infinity, AppDimensions.buttonHeight),
+          minimumSize: const Size(64, AppDimensions.buttonHeight),
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
           disabledBackgroundColor: isDark
@@ -183,7 +183,7 @@ abstract final class AppTheme {
       // ─── Filled Button ───
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size(double.infinity, AppDimensions.buttonHeight),
+          minimumSize: const Size(64, AppDimensions.buttonHeight),
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
           textStyle: AppTextStyles.buttonText(),
@@ -200,7 +200,7 @@ abstract final class AppTheme {
       // ─── Outlined Button ───
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size(double.infinity, AppDimensions.buttonHeight),
+          minimumSize: const Size(64, AppDimensions.buttonHeight),
           foregroundColor: AppColors.primary,
           side: const BorderSide(color: AppColors.primary, width: 1.5),
           textStyle: AppTextStyles.buttonText(color: AppColors.primary),
