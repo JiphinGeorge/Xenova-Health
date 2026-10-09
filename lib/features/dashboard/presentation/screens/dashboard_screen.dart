@@ -51,9 +51,10 @@ class DashboardScreen extends ConsumerWidget {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setModalState) {
+            final user = ref.watch(authControllerProvider).value;
             final summary =
                 ref.watch(dailyNutritionSummaryStreamProvider).value;
-            final waterGoal = summary?.waterGoalMl ?? 2500;
+            final waterGoal = user?.effectiveWaterGoalMl ?? summary?.waterGoalMl ?? 2500;
             final waterIntake = summary?.waterIntakeMl ?? 0;
             final pctWater = (waterIntake / waterGoal).clamp(0.0, 1.0);
 
@@ -423,8 +424,13 @@ class DashboardScreen extends ConsumerWidget {
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push(AppRoutes.aiCoach),
+        backgroundColor: AppColors.aiVitality,
+        foregroundColor: Colors.white,
         icon: const Icon(Icons.auto_awesome),
-        label: const Text('AI Coach'),
+        label: const Text(
+          'AI Coach',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -757,7 +763,7 @@ class DashboardScreen extends ConsumerWidget {
       statusIcon = Icons.verified_outlined;
     } else if (score >= 50) {
       status = "Good";
-      color = AppColors.primary;
+      color = AppColors.aiVitality;
       statusIcon = Icons.thumb_up_alt_outlined;
     }
 
@@ -879,7 +885,7 @@ class DashboardScreen extends ConsumerWidget {
       color = AppColors.success;
     } else if (score >= 50) {
       status = "Good";
-      color = AppColors.primary;
+      color = AppColors.aiVitality;
     }
 
     showModalBottomSheet<void>(
@@ -1269,7 +1275,8 @@ class DashboardScreen extends ConsumerWidget {
               final proteinGoal = summary?.targetProtein ?? 150.0;
               final totalProtein = summary?.totalProtein ?? 0.0;
               final pctProtein = (totalProtein / proteinGoal).clamp(0.0, 1.0);
-              final waterGoal = summary?.waterGoalMl ?? 2500;
+              final user = ref.watch(authControllerProvider).value;
+              final waterGoal = user?.effectiveWaterGoalMl ?? summary?.waterGoalMl ?? 2500;
               final waterIntake = summary?.waterIntakeMl ?? 0;
               final pctWater = (waterIntake / waterGoal).clamp(0.0, 1.0);
               final remaining = (targetCals - totalCals).clamp(0.0, double.infinity);
@@ -1326,12 +1333,13 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildWaterTrackerCard(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authControllerProvider).value;
     final nutritionAsync = ref.watch(dailyNutritionSummaryStreamProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return nutritionAsync.when(
       data: (summary) {
-        final waterGoal = summary?.waterGoalMl ?? 2500;
+        final waterGoal = user?.effectiveWaterGoalMl ?? summary?.waterGoalMl ?? 2500;
         final waterIntake = summary?.waterIntakeMl ?? 0;
         final pctWater = (waterIntake / waterGoal).clamp(0.0, 1.0);
         final glasses = (waterIntake / 250).floor();
@@ -1559,7 +1567,8 @@ class DashboardScreen extends ConsumerWidget {
     final totalProtein = summary?.totalProtein ?? 0.0;
     final pctProtein = (totalProtein / targetProtein).clamp(0.0, 1.0);
 
-    final waterGoal = summary?.waterGoalMl ?? 2500;
+    final user = ref.watch(authControllerProvider).value;
+    final waterGoal = user?.effectiveWaterGoalMl ?? summary?.waterGoalMl ?? 2500;
     final waterIntake = summary?.waterIntakeMl ?? 0;
     final pctWater = (waterIntake / waterGoal).clamp(0.0, 1.0);
 
@@ -1732,11 +1741,22 @@ class DashboardScreen extends ConsumerWidget {
                   const SizedBox(height: AppDimensions.spacingMd),
                   SizedBox(
                     width: double.infinity,
-                    child: FilledButton.tonal(
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.fasting,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+                        ),
+                      ),
                       onPressed: () {
                         context.push('/fasting');
                       },
-                      child: const Text('Start Fast'),
+                      child: const Text(
+                        'Start Fast',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
                     ),
                   ),
                   const SizedBox(height: AppDimensions.spacingLg),

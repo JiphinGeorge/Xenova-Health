@@ -155,7 +155,7 @@ class ProfileScreen extends ConsumerWidget {
     final weight = user.currentWeightKg;
     final targetWeight = user.targetWeightKg;
     final height = user.heightCm;
-    final waterGoal = user.dailyWaterGoalMl ?? 2000;
+    final waterGoal = user.effectiveWaterGoalMl;
 
     double? bmi;
     String bmiCategory = '';
@@ -777,7 +777,7 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
       text: u.targetWeightKg?.toString() ?? '',
     );
     _waterGoalController = TextEditingController(
-      text: (u.dailyWaterGoalMl ?? 2000).toString(),
+      text: u.effectiveWaterGoalMl.toString(),
     );
 
     _gender = u.gender;
@@ -811,7 +811,7 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
         currentWeightKg: double.tryParse(_weightController.text.trim()),
         targetWeightKg: double.tryParse(_targetWeightController.text.trim()),
         dailyWaterGoalMl:
-            int.tryParse(_waterGoalController.text.trim()) ?? 2000,
+            int.tryParse(_waterGoalController.text.trim()) ?? widget.user.effectiveWaterGoalMl,
         primaryGoal: _primaryGoal,
         activityLevel: _activityLevel,
         preferredDiet: _dietType,

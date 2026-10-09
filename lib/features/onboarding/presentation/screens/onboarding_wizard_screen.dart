@@ -558,25 +558,45 @@ class _StepWaterGoal extends ConsumerStatefulWidget {
 
 class _StepWaterGoalState extends ConsumerState<_StepWaterGoal> {
   late final TextEditingController _waterController;
+  int _calculatedRecommendedGoal = 2500;
+
+  int _computeRecommendedGoal(OnboardingState state) {
+    if (state.currentWeightKg != null && state.currentWeightKg! > 0) {
+      double base = state.currentWeightKg! * 35.0;
+      if (state.activityLevel == ActivityLevel.veryActive ||
+          state.activityLevel == ActivityLevel.extraActive) {
+        base += 500;
+      } else if (state.activityLevel == ActivityLevel.moderatelyActive) {
+        base += 250;
+      }
+      return ((base / 50).round() * 50).clamp(1500, 5000);
+    }
+    return 2500;
+  }
 
   @override
   void initState() {
     super.initState();
     final state = ref.read(onboardingControllerProvider);
+    _calculatedRecommendedGoal = _computeRecommendedGoal(state);
+
+    final initialGoal = state.dailyWaterGoalMl ?? _calculatedRecommendedGoal;
     _waterController = TextEditingController(
-      text: state.dailyWaterGoalMl?.toString() ?? '2500',
+      text: initialGoal.toString(),
     );
+
     // Initialize default if null
     if (state.dailyWaterGoalMl == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(onboardingControllerProvider.notifier).setWaterGoal(2500);
+        ref
+            .read(onboardingControllerProvider.notifier)
+            .setWaterGoal(initialGoal);
       });
     }
 
     _waterController.addListener(() {
-      ref
-          .read(onboardingControllerProvider.notifier)
-          .setWaterGoal(int.tryParse(_waterController.text));
+      final parsed = int.tryParse(_waterController.text);
+      ref.read(onboardingControllerProvider.notifier).setWaterGoal(parsed);
     });
   }
 
@@ -588,6 +608,20 @@ class _StepWaterGoalState extends ConsumerState<_StepWaterGoal> {
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(onboardingControllerProvider);
+    final currentWater =
+        int.tryParse(_waterController.text) ?? _calculatedRecommendedGoal;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final chips = <int>{
+      _calculatedRecommendedGoal,
+      2000,
+      2500,
+      3000,
+      3500,
+    }.toList()
+      ..sort();
+
     return Padding(
       padding: const EdgeInsets.all(AppDimensions.spacingXxl),
       child: Column(
@@ -599,17 +633,106 @@ class _StepWaterGoalState extends ConsumerState<_StepWaterGoal> {
           ),
           const SizedBox(height: AppDimensions.spacingXs),
           Text(
-            'Staying hydrated is key to your health journey.',
+            'Personalized hydration target calculated from your profile metrics.',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
-          const SizedBox(height: AppDimensions.spacingXl),
+          const SizedBox(height: AppDimensions.spacingLg),
+
+          // Recommendation card based on weight & activity
+          Container(
+            padding: const EdgeInsets.all(AppDimensions.spacingMd),
+            decoration: BoxDecoration(
+              color: AppColors.primarySurface,
+              borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.water_drop_rounded,
+                  color: AppColors.primary,
+                  size: 28,
+                ),
+                const SizedBox(width: AppDimensions.spacingMd),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Recommended for You: $_calculatedRecommendedGoal ml/day',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        state.currentWeightKg != null
+                            ? 'Based on your weight (${state.currentWeightKg!.toStringAsFixed(0)} kg) & activity'
+                            : 'Standard optimal baseline',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.white70 : AppColors.textSecondaryLight,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: AppDimensions.spacingLg),
+
           TextField(
             controller: _waterController,
             decoration: const InputDecoration(
-              labelText: 'Water Intake (ml)',
+              labelText: 'Water Intake Goal',
               suffixText: 'ml',
+              prefixIcon: Icon(Icons.local_drink_rounded),
             ),
             keyboardType: TextInputType.number,
+          ),
+
+          const SizedBox(height: AppDimensions.spacingMd),
+
+          Text(
+            'Quick Presets',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: AppDimensions.spacingSm),
+
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: chips.map((val) {
+              final isSelected = currentWater == val;
+              final isRecommended = val == _calculatedRecommendedGoal;
+              return ChoiceChip(
+                label: Text(
+                  isRecommended ? '$val ml ★' : '$val ml',
+                  style: TextStyle(
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected
+                        ? Colors.white
+                        : (isDark ? Colors.white : AppColors.textPrimaryLight),
+                  ),
+                ),
+                selected: isSelected,
+                selectedColor: AppColors.primary,
+                backgroundColor:
+                    isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                onSelected: (_) {
+                  _waterController.text = val.toString();
+                },
+              );
+            }).toList(),
           ),
         ],
       ),

@@ -89,7 +89,7 @@ class _NutritionDashboardScreenState
       totalCarbs: totalCarbs,
       totalFat: totalFat,
       waterIntakeMl: summary?.waterIntakeMl ?? 0,
-      waterGoalMl: summary?.waterGoalMl ?? 2500,
+      waterGoalMl: user?.effectiveWaterGoalMl ?? summary?.waterGoalMl ?? 2500,
       targetCalories: targetCals,
       targetProtein: targetProtein,
       targetCarbs: targetCarbs,
@@ -621,8 +621,9 @@ class _NutritionDashboardScreenState
     WidgetRef ref,
     DailyNutritionSummaryModel summary,
   ) {
+    final user = ref.watch(authControllerProvider).value;
     final waterIntake = summary.waterIntakeMl;
-    final waterGoal = summary.waterGoalMl ?? 2500;
+    final waterGoal = user?.effectiveWaterGoalMl ?? summary.waterGoalMl ?? 2500;
     final pctWater = (waterIntake / waterGoal).clamp(0.0, 1.0);
     final glasses = (waterIntake / 250).floor();
     final goalGlasses = (waterGoal / 250).ceil();

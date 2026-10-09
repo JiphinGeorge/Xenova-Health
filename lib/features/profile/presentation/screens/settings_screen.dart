@@ -40,7 +40,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (user != null) {
         _nameController.text = user.displayName ?? '';
         _goalWeightController.text = user.targetWeightKg?.toString() ?? '';
-        _waterGoalController.text = user.dailyWaterGoalMl?.toString() ?? '';
+        _waterGoalController.text =
+            (user.dailyWaterGoalMl ?? user.effectiveWaterGoalMl).toString();
       }
     });
   }

@@ -159,6 +159,7 @@ class DailyNutritionRepository {
     double? fiber,
     double? sugar,
     double? sodium,
+    int? waterGoalMl,
   }) async {
     final current = _getFromHive(userId, dateString);
 
@@ -188,6 +189,8 @@ class DailyNutritionRepository {
     final calMet = newCals >= (targetCalories - 100) && !calExceeded;
     final fiberMet = newFiber >= 30.0;
 
+    final effectiveWaterGoal = waterGoalMl ?? current?.waterGoalMl ?? 2500;
+
     final updated = DailyNutritionSummaryModel(
       userId: userId,
       dateString: dateString,
@@ -205,7 +208,7 @@ class DailyNutritionRepository {
       targetProtein: targetProtein,
       targetCarbs: current?.targetCarbs ?? 200.0,
       targetFat: current?.targetFat ?? 65.0,
-      waterGoalMl: current?.waterGoalMl ?? 2500,
+      waterGoalMl: effectiveWaterGoal,
       remainingCalories: (targetCalories - newCals).clamp(0.0, double.infinity),
       proteinTargetMet: proteinMet,
       calorieTargetExceeded: calExceeded,
@@ -229,6 +232,7 @@ class DailyNutritionRepository {
     double? fiber,
     double? sugar,
     double? sodium,
+    int? waterGoalMl,
   }) async {
     final current = _getFromHive(userId, dateString);
     if (current == null) return;
@@ -259,6 +263,8 @@ class DailyNutritionRepository {
     final calMet = newCals >= (targetCalories - 100) && !calExceeded;
     final fiberMet = newFiber >= 30.0;
 
+    final effectiveWaterGoal = waterGoalMl ?? current.waterGoalMl ?? 2500;
+
     final updated = DailyNutritionSummaryModel(
       userId: userId,
       dateString: dateString,
@@ -276,7 +282,7 @@ class DailyNutritionRepository {
       targetProtein: targetProtein,
       targetCarbs: current.targetCarbs ?? 200.0,
       targetFat: current.targetFat ?? 65.0,
-      waterGoalMl: current.waterGoalMl ?? 2500,
+      waterGoalMl: effectiveWaterGoal,
       remainingCalories: (targetCalories - newCals).clamp(0.0, double.infinity),
       proteinTargetMet: proteinMet,
       calorieTargetExceeded: calExceeded,
@@ -292,11 +298,12 @@ class DailyNutritionRepository {
   Future<void> updateWaterIntake(
     String userId,
     String dateString,
-    int amountMl,
-  ) async {
+    int amountMl, {
+    int? waterGoalMl,
+  }) async {
     final current = _getFromHive(userId, dateString);
     final currentWater = current?.waterIntakeMl ?? 0;
-    final waterGoal = current?.waterGoalMl ?? 2500;
+    final effectiveWaterGoal = waterGoalMl ?? current?.waterGoalMl ?? 2500;
     final newWater = (currentWater + amountMl).clamp(0, 10000);
 
     final updated = (current ??
@@ -308,12 +315,14 @@ class DailyNutritionRepository {
               totalCarbs: 0,
               totalFat: 0,
               waterIntakeMl: 0,
+              waterGoalMl: effectiveWaterGoal,
               targetCalories: 2000,
               lastUpdated: DateTime.now(),
             ))
         .copyWith(
       waterIntakeMl: newWater,
-      waterGoalMet: newWater >= waterGoal,
+      waterGoalMl: effectiveWaterGoal,
+      waterGoalMet: newWater >= effectiveWaterGoal,
       lastUpdated: DateTime.now(),
     );
 

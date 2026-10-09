@@ -62,11 +62,17 @@ class _BottomNavBar extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : AppColors.white,
+        border: Border(
+          top: BorderSide(
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
+            width: 1,
+          ),
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
+            color: AppColors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+            blurRadius: 16,
+            offset: const Offset(0, -2),
           ),
         ],
       ),

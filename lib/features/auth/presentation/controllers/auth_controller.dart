@@ -8,6 +8,8 @@ import '../../data/providers.dart';
 import '../../domain/models/user_model.dart';
 import '../../domain/repositories/auth_repository.dart';
 
+export '../../domain/models/user_model.dart';
+
 /// Controller managing the global authentication state.
 class AuthController extends AsyncNotifier<UserModel?> {
   AuthRepository get _repository => ref.read(authRepositoryProvider);

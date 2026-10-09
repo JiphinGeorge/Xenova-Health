@@ -40,6 +40,7 @@ class NutritionController extends StateNotifier<AsyncValue<void>> {
             fiber: mealLog.totalFiber,
             sugar: mealLog.totalSugar,
             sodium: mealLog.totalSodium,
+            waterGoalMl: user?.effectiveWaterGoalMl,
           );
 
       // 3. Invalidate stream providers to immediately reflect across all screens
@@ -94,6 +95,7 @@ class NutritionController extends StateNotifier<AsyncValue<void>> {
             fiber: mealLog.totalFiber,
             sugar: mealLog.totalSugar,
             sodium: mealLog.totalSodium,
+            waterGoalMl: user?.effectiveWaterGoalMl,
           );
 
       // Invalidate stream providers to immediately update UI
@@ -112,13 +114,14 @@ class NutritionController extends StateNotifier<AsyncValue<void>> {
     try {
       final user = _ref.read(authControllerProvider).value;
       final userId = user?.uid ?? 'guest_user';
+      final waterGoal = user?.effectiveWaterGoalMl;
 
       final dateString =
           '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
       await _ref
           .read(dailyNutritionRepositoryProvider)
-          .updateWaterIntake(userId, dateString, amountMl);
+          .updateWaterIntake(userId, dateString, amountMl, waterGoalMl: waterGoal);
     } catch (e) {
       // Silently fail or track analytics
     }

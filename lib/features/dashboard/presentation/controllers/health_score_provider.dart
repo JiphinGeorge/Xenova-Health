@@ -157,7 +157,7 @@ final healthScoreProvider = Provider<HealthScoreModel>((ref) {
   // ─────────────────────────────────────────────────────────────
   double waterScore = 55.0;
   final waterGoal =
-      nutritionSummary?.waterGoalMl ?? user?.dailyWaterGoalMl ?? 2500;
+      user?.effectiveWaterGoalMl ?? nutritionSummary?.waterGoalMl ?? 2500;
   final waterIntake = nutritionSummary?.waterIntakeMl ?? 0;
   if (waterGoal > 0) {
     final waterRatio = (waterIntake / waterGoal).clamp(0.0, 1.5);
