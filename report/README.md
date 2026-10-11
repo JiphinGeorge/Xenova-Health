@@ -8,10 +8,11 @@ This directory contains the complete LaTeX engineering and design project report
 - `images/` — Directory containing screenshots and brand assets:
   - `images/mace_logo.png` — Official Mar Athanasius College of Engineering logo.
   - `images/app_logo.png` — Official Xenova Health application logo.
-  - `images/dashboard.png` — Live native Android screenshot of the Main Health Dashboard featuring the Porcelain Clinical palette, Vitality Indigo Health Score Card (76/100), Weight Goal, Fasting tracker with Coral CTA, and Floating AI Coach Pill.
-  - `images/nutrition.png` — Live native Android screenshot of Today's Nutrition & Hydration Screen with macro ring, protein/carbs/fat progress bars, and dynamic fluid intake (3600 / 3500 ml).
-  - `images/profile.png` — Live native Android screenshot of the User Profile & Vitals screen showing personalized hydration goal (3500 ml / 14 glasses) computed from body metrics (85 kg, 184 cm).
-  - `images/ai_coach.png` — Native screenshot of the AI Health Coach overview and context capabilities.
+  - `images/dashboard.png` — Main Health Dashboard with Health Score (76/100), Weight Goal, and Fasting status.
+  - `images/weight.png` — Weight Analytics screen with longitudinal trajectory, BMI status, and goal tracking.
+  - `images/nutrition.png` — Today's Nutrition & Hydration Screen with macro ring, macronutrient bars, and water adherence.
+  - `images/fasting.png` — Circadian Intermittent Fasting Tracker with active timer and protocol presets.
+  - `images/profile.png` — User Profile & Vitals screen showing personalized hydration goal computed dynamically from vitals.
 
 ## How to Compile to PDF
 
