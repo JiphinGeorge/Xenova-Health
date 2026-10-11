@@ -56,7 +56,7 @@
 \fancyhead[L]{}
 
 % Footer Configuration (Left Bottom & Right Bottom)
-\fancyfoot[L]{\small Department of Computer Applications, MACE}
+\fancyfoot[L]{\small Department of Computer Applications}
 \fancyfoot[R]{\small \thepage}
 \fancyfoot[C]{}
 
@@ -164,24 +164,55 @@
 \begin{document}
 
 % -------------------- FRONTMATTER --------------------
-\pagenumbering{roman}
 \input{cover}
 \clearpage
 
-\thispagestyle{plain}
+% Roman numbering starting at Acknowledgement
+\pagenumbering{roman}
+\pagestyle{fancy}
 
-\begin{abstract}
+% --- Acknowledgement (Page i) ---
+\section*{Acknowledgement}
+\addcontentsline{toc}{section}{Acknowledgement}
+I express my profound gratitude to \textbf{Dr. Sonia Abraham}, Associate Professor and Project Guide, Department of Computer Applications, Mar Athanasius College of Engineering, Kothamangalam, for her exemplary guidance, invaluable advice, and constant encouragement throughout the formulation and implementation of \textbf{Xenova Health}.
+
+I extend my sincere thanks to the Head of the Department and the faculty members of the Department of Computer Applications for providing the requisite computing infrastructure and academic facilities. Finally, I sincerely thank my family and peers for their continuous support and motivation throughout this project.
+
+\vspace{1.5cm}
 \noindent
-\textbf{Xenova Health} is an enterprise-grade, mobile-first personal health and longevity platform developed using the Flutter framework and modern Cloud-Native architecture. Addressing the fragmented nature of modern digital health applications, Xenova Health unifies four foundational pillars of physiological wellness: \textbf{Targeted Nutrition \& Macronutrients}, \textbf{Circadian Intermittent Fasting}, \textbf{Longitudinal Body Composition \& Weight Metrics}, and \textbf{Metabolic Hydration Adherence}. These pillars feed continuously into a dynamic, algorithmic \textbf{Composite Health Score Engine} (0--100) that computes actionable wellness insights in real-time. This report details the technical architecture, offline-first data synchronization patterns using Hive and Cloud Firestore, state management orchestration via Riverpod, algorithmic formulations for personalized hydration and health scoring, the medical-grade \textbf{Porcelain Clinical} design system, and empirical verification captured from live device deployments.
-\end{abstract}
+\textbf{Jiphin George} \\
+Reg No: MAC25MCA-2033
+\clearpage
 
-\vspace{0.5cm}
+% --- Abstract (Page ii) ---
+\section*{Abstract}
+\addcontentsline{toc}{section}{Abstract}
+\noindent
+\textbf{Xenova Health} is an enterprise-grade, mobile-first personal health platform developed using the Flutter framework and modern Cloud-Native architecture. Addressing the fragmented nature of modern digital health applications, Xenova Health unifies four foundational pillars of physiological wellness: \textbf{Targeted Nutrition \& Macronutrients}, \textbf{Circadian Intermittent Fasting}, \textbf{Longitudinal Body Composition \& Weight Metrics}, and \textbf{Metabolic Hydration Adherence}. These pillars feed continuously into a dynamic, algorithmic \textbf{Composite Health Score Engine} (0--100) that computes actionable wellness insights in real-time. This report details the technical architecture, offline-first data synchronization patterns using Hive and Cloud Firestore, state management orchestration via Riverpod, algorithmic formulations for personalized hydration and health scoring, the medical-grade \textbf{Porcelain Clinical} design system, and empirical verification captured from live device deployments.
+\clearpage
+
+% --- Table of Contents (NO Page Number for Content Pages) ---
+\begingroup
+\pagestyle{empty}
+\addtocontents{toc}{\protect\thispagestyle{empty}}
 \tableofcontents
+\clearpage
+\endgroup
+
+% --- List of Figures & List of Tables (Roman Numbering Continued) ---
+\pagestyle{fancy}
+\addcontentsline{toc}{section}{List of Figures}
+\listoffigures
+\clearpage
+\addcontentsline{toc}{section}{List of Tables}
+\listoftables
+\clearpage
 
 % -------------------- MAIN BODY --------------------
 \clearpage
 \pagenumbering{arabic}
 \setstretch{1.5}
+\pagestyle{fancy}
 
 % -----------------------------------------------------------------------------
 \section{Introduction \& System Objectives}
