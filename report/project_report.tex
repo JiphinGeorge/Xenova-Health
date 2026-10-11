@@ -1,23 +1,118 @@
-\documentclass[11pt,a4paper]{article}
+\documentclass[12pt,a4paper]{article}
 
-% --- Packages ---
-\usepackage[utf8]{inputenc}
-\usepackage[margin=1in]{geometry}
+% Page Geometry & Margins (1.0 inch / 2.54 cm on all sides: top, bottom, left, right)
+\usepackage[top=1.0in, bottom=1.0in, left=1.0in, right=1.0in]{geometry}
+
+% Font Encoding & Times New Roman Setup
+\usepackage[T1]{fontenc}
+\usepackage{mathptmx}
+
+% Line Spacing (1.5 line spacing)
+\usepackage{setspace}
+\setstretch{1.5}
+
+% Text Alignment & Formatting
+\usepackage{ragged2e}
+\justifying
+
+% Packages for Graphics, Tables, and Float Control
 \usepackage{graphicx}
-\usepackage{xcolor}
-\usepackage{hyperref}
 \usepackage{booktabs}
-\usepackage{amsmath,amssymb}
-\usepackage{listings}
-\usepackage{fancyhdr}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{url}
+\usepackage{cite}
+\usepackage{caption}
 \usepackage{subcaption}
 \usepackage{float}
-\usepackage{tikz}
+\usepackage{placeins}
+\usepackage{xcolor}
+\usepackage{listings}
 \usepackage{enumitem}
-\usepackage{titlesec}
 \usepackage{microtype}
 
-% --- Color Definitions (Porcelain Clinical Theme) ---
+% Table Caption Below Table Setup
+\captionsetup[table]{position=below, skip=6pt, labelfont=bf, textfont=normalfont}
+\captionsetup[figure]{position=below, skip=6pt, labelfont=bf, textfont=normalfont}
+
+% TikZ & PGFPlots for Academic & Engineering Diagrams
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{shapes.geometric, arrows, positioning, calc, chains, shadows}
+
+% Header and Footer Setup (fancyhdr)
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\setlength{\headheight}{15pt}
+\fancyhf{} % Clear default header and footer
+
+% Header Configuration (Top Right)
+\fancyhead[R]{\small Xenova Health: Intelligent Multi-Pillar Preventive Health Platform}
+\fancyhead[L]{}
+
+% Footer Configuration (Left Bottom & Right Bottom)
+\fancyfoot[L]{\small Department of Computer Applications, MACE}
+\fancyfoot[R]{\small \thepage}
+\fancyfoot[C]{}
+
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% Section Heading Formatting
+\usepackage{titlesec}
+
+% Section Title (1. INTRODUCTION - 16pt Bold)
+\titleformat{\section}
+  {\normalfont\fontsize{16}{20}\bfseries}
+  {\thesection.}
+  {0.5em}
+  {}
+
+\titlespacing*{\section}{0pt}{14pt}{6pt}
+
+% Subsection Title (2.1 Literature Review - 14pt Bold)
+\titleformat{\subsection}
+  {\normalfont\fontsize{14}{18}\bfseries}
+  {\thesubsection}
+  {0.5em}
+  {}
+
+\titlespacing*{\subsection}{0pt}{10pt}{4pt}
+
+% Sub-subsection Title (3.1.1 About the dataset - 12pt Bold)
+\titleformat{\subsubsection}
+  {\normalfont\fontsize{12}{15}\bfseries}
+  {\thesubsubsection}
+  {0.5em}
+  {}
+
+\titlespacing*{\subsubsection}{0pt}{8pt}{3pt}
+
+% Paragraph Title (12pt Bold)
+\titleformat{\paragraph}[block]
+  {\normalfont\fontsize{12}{15}\bfseries}
+  {}
+  {0pt}
+  {}
+
+\titlespacing*{\paragraph}{0pt}{8pt}{3pt}
+
+% Paragraph Spacing
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0pt}
+
+% Table of Contents Depth Control
+\setcounter{tocdepth}{3}
+
+% Hyperlink Setup
+\usepackage[hidelinks]{hyperref}
+
+% --- Color Definitions (Porcelain Clinical Theme & Code Listing) ---
 \definecolor{clinicalPrimary}{HTML}{059669}   % Emerald Hero
 \definecolor{clinicalAIVitality}{HTML}{6366F1}% Indigo AI
 \definecolor{clinicalFasting}{HTML}{EA580C}   % Coral Orange
@@ -28,22 +123,6 @@
 \definecolor{clinicalTextDark}{HTML}{0F172A}  % Slate 900
 \definecolor{clinicalBorder}{HTML}{E2E8F0}    % Slate 200
 \definecolor{codeBg}{HTML}{F8FAFC}
-
-% --- Hyperref Setup ---
-\hypersetup{
-    colorlinks=true,
-    linkcolor=clinicalAIVitality,
-    filecolor=clinicalPrimary,      
-    urlcolor=clinicalHydration,
-    citecolor=clinicalFasting
-}
-
-% --- Header and Footer ---
-\pagestyle{fancy}
-\fancyhf{}
-\rhead{\textcolor{gray}{\small Xenova Health — Project Technical Report}}
-\lhead{\textcolor{gray}{\small Jiphin George}}
-\rfoot{\thepage}
 
 % --- Code Listing Setup ---
 \lstset{
@@ -65,36 +144,14 @@
     showstringspaces=false
 }
 
-% --- Section Formatting ---
-\titleformat{\section}{\Large\bfseries\color{clinicalTextDark}}{\thesection}{1em}{}[\titlerule]
-\titleformat{\subsection}{\large\bfseries\color{clinicalPrimary}}{\thesubsection}{1em}{}
-\titleformat{\subsubsection}{\normalsize\bfseries\color{clinicalAIVitality}}{\thesubsubsection}{1em}{}
-
-% --- Document Metadata ---
-\title{
-    \vspace{-1.5cm}
-    \begin{center}
-        \includegraphics[width=2.5cm]{images/app_logo.png} \\[0.5cm]
-    \end{center}
-    \textbf{\Huge Xenova Health} \\[0.3cm]
-    \Large Intelligent Multi-Pillar Preventive Health \& Longevity Mobile Architecture \\[0.2cm]
-    \normalsize Comprehensive Technical Engineering \& Design Report
-}
-\author{
-    \textbf{Jiphin George} \\
-    Lead Software Engineer \& Architect \\
-    \texttt{jiphingeorge80@gmail.com}
-}
-\date{\today}
-
 \begin{document}
 
-% --- Official College Cover Page ---
-\input{cover.tex}
-\newpage
+% -------------------- FRONTMATTER --------------------
+\pagenumbering{roman}
+\input{cover}
+\clearpage
 
-\maketitle
-\thispagestyle{empty}
+\thispagestyle{plain}
 
 \begin{abstract}
 \noindent
@@ -103,7 +160,11 @@
 
 \vspace{0.5cm}
 \tableofcontents
-\newpage
+
+% -------------------- MAIN BODY --------------------
+\clearpage
+\pagenumbering{arabic}
+\setstretch{1.5}
 
 % -----------------------------------------------------------------------------
 \section{Introduction \& System Objectives}
@@ -381,6 +442,20 @@ The application utilizes Gradle flavor dimensions to isolate staging, developmen
     \item \textbf{Computer Vision Body Composition}: On-device pose estimation and muscle definition tracking using TensorFlow Lite models.
     \item \textbf{LLM Health Coach Integration}: Direct bidirectional multi-turn conversational health coaching grounded in live biometric telemetry via Gemini 1.5 Pro.
     \item \textbf{Wearable Sensor Fusion}: Automated synchronization with Apple HealthKit and Android Health Connect for continuous glucose monitoring (CGM) and heart rate variability (HRV) metrics.
+\end{enumerate}
+
+% -----------------------------------------------------------------------------
+\clearpage
+\section*{References}
+\addcontentsline{toc}{section}{References}
+% -----------------------------------------------------------------------------
+\begin{enumerate}[label={[\arabic*]}, leftmargin=2em]
+    \item Flutter Architecture Team, ``Architectural Overview of Flutter,'' Google LLC, 2024. [Online]. Available: \url{https://docs.flutter.dev/resources/architectural-overview}.
+    \item R. Roussel, ``Riverpod: A Reactive Caching and State Management Framework for Dart \& Flutter,'' 2024. [Online]. Available: \url{https://riverpod.dev}.
+    \item World Health Organization (WHO), ``Physical Status: The Use and Interpretation of Anthropometry,'' \textit{WHO Technical Report Series 854}, Geneva, Switzerland, 1995.
+    \item S. Panda, \textit{The Circadian Code: Lose Weight, Supercharge Your Energy, and Transform Your Health}, Rodale Books, 2018.
+    \item National Academies of Sciences, Engineering, and Medicine, \textit{Dietary Reference Intakes for Water, Potassium, Sodium, Chloride, and Sulfate}, The National Academies Press, Washington, DC, 2005.
+    \item Google Firebase Engineering, ``Cloud Firestore: NoSQL Document Database Architecture,'' Google Cloud Platform Documentation, 2024. [Online]. Available: \url{https://firebase.google.com/docs/firestore}.
 \end{enumerate}
 
 \end{document}

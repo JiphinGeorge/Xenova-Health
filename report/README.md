@@ -4,7 +4,9 @@ This directory contains the complete LaTeX engineering and design project report
 
 ## Files
 - [`project_report.tex`](./project_report.tex) — Main LaTeX source code.
+- [`cover.tex`](./cover.tex) — Official MACE College Cover Page template.
 - `images/` — Directory containing screenshots and brand assets:
+  - `images/mace_logo.png` — Official Mar Athanasius College of Engineering logo.
   - `images/app_logo.png` — Official Xenova Health application logo.
   - `images/dashboard.png` — Live native Android screenshot of the Main Health Dashboard featuring the Porcelain Clinical palette, Vitality Indigo Health Score Card (76/100), Weight Goal, Fasting tracker with Coral CTA, and Floating AI Coach Pill.
   - `images/nutrition.png` — Live native Android screenshot of Today's Nutrition & Hydration Screen with macro ring, protein/carbs/fat progress bars, and dynamic fluid intake (3600 / 3500 ml).
