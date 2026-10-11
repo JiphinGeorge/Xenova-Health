@@ -52,7 +52,7 @@
 \fancyhf{} % Clear default header and footer
 
 % Header Configuration (Top Right)
-\fancyhead[R]{\small Xenova Health: Intelligent Multi-Pillar Preventive Health Platform}
+\fancyhead[R]{\small Xenova Health}
 \fancyhead[L]{}
 
 % Footer Configuration (Left Bottom & Right Bottom)
@@ -123,6 +123,23 @@
 \definecolor{clinicalTextDark}{HTML}{0F172A}  % Slate 900
 \definecolor{clinicalBorder}{HTML}{E2E8F0}    % Slate 200
 \definecolor{codeBg}{HTML}{F8FAFC}
+
+% --- Dart Language Definition for Listings ---
+\lstdefinelanguage{Dart}{
+  morekeywords={
+    abstract,as,assert,async,await,break,case,catch,class,const,continue,
+    covariant,default,deferred,do,dynamic,else,enum,export,extends,extension,
+    external,factory,false,final,finally,for,Function,get,hide,if,implements,
+    import,in,interface,is,late,library,mixin,new,null,on,operator,part,
+    rethrow,return,set,show,static,super,switch,sync,this,throw,true,try,
+    typedef,var,void,while,with,yield,int,double,String,bool,List,Map,Set,DateTime
+  },
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]',
+  morestring=[b]"
+}
 
 % --- Code Listing Setup ---
 \lstset{
@@ -208,19 +225,19 @@ The Xenova Health application follows \textbf{Feature-First Clean Architecture} 
 \begin{table}[H]
 \centering
 \small
-\begin{tabular}{@{}lll@{}}
+\begin{tabularx}{\textwidth}{@{}l p{4.2cm} X@{}}
 \toprule
 \textbf{Component} & \textbf{Technology / Library} & \textbf{Architectural Role} \\ \midrule
 Core Framework & Flutter SDK 3.x / Dart 3.x & Cross-platform native compilation \\
 State Management & Riverpod 2.x & Reactive, testable, compile-time safe state graph \\
 Local Storage & Hive (\& Hive Flutter) & Low-overhead NoSQL key-value persistence \\
 Cloud Backend & Firebase Firestore & Real-time cloud document synchronization \\
-Authentication & Firebase Auth & Secure email/password \& OAuth credential store \\
+Authentication & Firebase Auth & Secure credential and token management \\
 Model Generation & Freezed \& JsonSerializable & Immutable data modeling with union types \\
-Typography & Google Fonts & Editorial Display (Newsreader) \& UI (Plus Jakarta Sans) \\
-Build Pipeline & Android Gradle Plugin 8.11 / Kotlin 2.2 & Multi-flavor build automation (\texttt{dev}, \texttt{staging}, \texttt{prod}) \\
+Typography & Google Fonts & Editorial Display \& Modern Sans UI typography \\
+Build Pipeline & Android Gradle Plugin 8.11 & Multi-flavor automation (\texttt{dev}, \texttt{staging}, \texttt{prod}) \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \caption{Xenova Health Core Technology Stack.}
 \label{tab:tech_stack}
 \end{table}
@@ -318,7 +335,7 @@ To fulfill medical-grade presentation requirements and address user feedback reg
 \begin{table}[H]
 \centering
 \small
-\begin{tabular}{@{}llll@{}}
+\begin{tabularx}{\textwidth}{@{}l l p{3.8cm} X@{}}
 \toprule
 \textbf{Token Role} & \textbf{Hex Code} & \textbf{Color Swatch Description} & \textbf{Application Area} \\ \midrule
 Canvas Background & \texttt{\#F8FAFC} & Slate 50 (Crisp Porcelain) & Scaffold background, root viewport \\
@@ -334,7 +351,7 @@ Healthy Fats & \texttt{\#0D9488} & Teal 600 & Lipid progress indicators \\
 Fasting Accent & \texttt{\#EA580C} & Orange 600 & Start Fast button, active fast clock \\
 Hydration Accent & \texttt{\#0284C7} & Sky 600 & Hydration progress bar, fluid quick-log \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \caption{Porcelain Clinical Design Tokens and System Roles.}
 \label{tab:colors}
 \end{table}
