@@ -109,6 +109,31 @@
 % Table of Contents Depth Control
 \setcounter{tocdepth}{3}
 
+% --- Centered Bold Headings for Contents, Figures, and Tables ---
+\makeatletter
+\renewcommand\tableofcontents{%
+    \begin{center}%
+        \normalfont\fontsize{16}{20}\bfseries\contentsname\par
+    \end{center}%
+    \vspace{0.6cm}%
+    \@starttoc{toc}%
+}
+\renewcommand\listoffigures{%
+    \begin{center}%
+        \normalfont\fontsize{16}{20}\bfseries\listfigurename\par
+    \end{center}%
+    \vspace{0.6cm}%
+    \@starttoc{lof}%
+}
+\renewcommand\listoftables{%
+    \begin{center}%
+        \normalfont\fontsize{16}{20}\bfseries\listtablename\par
+    \end{center}%
+    \vspace{0.6cm}%
+    \@starttoc{lot}%
+}
+\makeatother
+
 % Hyperlink Setup
 \usepackage[hidelinks]{hyperref}
 
@@ -172,7 +197,10 @@
 \pagestyle{fancy}
 
 % --- Acknowledgement (Page i) ---
-\section*{Acknowledgement}
+\begin{center}
+    \normalfont\fontsize{16}{20}\bfseries Acknowledgement
+\end{center}
+\vspace{0.4cm}
 \addcontentsline{toc}{section}{Acknowledgement}
 I express my profound gratitude to \textbf{Dr. Sonia Abraham}, Associate Professor and Project Guide, Department of Computer Applications, Mar Athanasius College of Engineering, Kothamangalam, for her exemplary guidance, invaluable advice, and constant encouragement throughout the formulation and implementation of \textbf{Xenova Health}.
 
@@ -185,7 +213,10 @@ Reg No: MAC25MCA-2033
 \clearpage
 
 % --- Abstract (Page ii) ---
-\section*{Abstract}
+\begin{center}
+    \normalfont\fontsize{16}{20}\bfseries Abstract
+\end{center}
+\vspace{0.4cm}
 \addcontentsline{toc}{section}{Abstract}
 \noindent
 \textbf{Xenova Health} is an enterprise-grade, mobile-first personal health platform developed using the Flutter framework and modern Cloud-Native architecture. Addressing the fragmented nature of modern digital health applications, Xenova Health unifies four foundational pillars of physiological wellness: \textbf{Targeted Nutrition \& Macronutrients}, \textbf{Circadian Intermittent Fasting}, \textbf{Longitudinal Body Composition \& Weight Metrics}, and \textbf{Metabolic Hydration Adherence}. These pillars feed continuously into a dynamic, algorithmic \textbf{Composite Health Score Engine} (0--100) that computes actionable wellness insights in real-time. This report details the technical architecture, offline-first data synchronization patterns using Hive and Cloud Firestore, state management orchestration via Riverpod, algorithmic formulations for personalized hydration and health scoring, the medical-grade \textbf{Porcelain Clinical} design system, and empirical verification captured from live device deployments.
@@ -235,18 +266,51 @@ The Xenova Health application follows \textbf{Feature-First Clean Architecture} 
 
 \begin{figure}[H]
     \centering
-    \begin{tikzpicture}[node distance=1.5cm, auto]
-        \tikzstyle{block} = [rectangle, draw=clinicalBorder, fill=codeBg, text width=12em, text centered, rounded corners, minimum height=2.2em]
-        \tikzstyle{line} = [draw, -latex', thick, clinicalAIVitality]
+    \begin{tikzpicture}[
+        layer/.style={
+            rectangle,
+            rounded corners=6pt,
+            draw=clinicalBorder,
+            line width=0.8pt,
+            text width=11.5cm,
+            align=center,
+            inner sep=7pt,
+            font=\small
+        },
+        arrowline/.style={
+            draw=clinicalAIVitality,
+            line width=1.2pt,
+            ->,
+            >=stealth,
+            shorten <=2pt,
+            shorten >=2pt
+        }
+    ]
+        % Architecture Layer Blocks
+        \node [layer, fill=clinicalPrimary!12] (ui) {
+            \textbf{\normalsize Presentation Layer} \\[2pt]
+            \textcolor{clinicalTextDark}{Flutter UI Screens, Riverpod State Controllers, Responsive Widgets}
+        };
         
-        \node [block, fill=clinicalPrimary!15] (ui) {\textbf{Presentation Layer}\\UI Screens, Riverpod Controllers, Widgets};
-        \node [block, fill=clinicalAIVitality!15, below of=ui] (domain) {\textbf{Domain Layer}\\Entities, Value Objects, Use Cases};
-        \node [block, fill=clinicalHydration!15, below of=domain] (data) {\textbf{Data Layer}\\Repositories, DTOs, Serialization};
-        \node [block, fill=clinicalFasting!15, below of=data] (infra) {\textbf{Infrastructure Layer}\\Hive Boxes, Firestore, Firebase Auth};
+        \node [layer, fill=clinicalAIVitality!12, below=0.55cm of ui] (domain) {
+            \textbf{\normalsize Domain Layer} \\[2pt]
+            \textcolor{clinicalTextDark}{Core Business Entities, Use Cases, Value Objects, Domain Logic}
+        };
+        
+        \node [layer, fill=clinicalHydration!12, below=0.55cm of domain] (data) {
+            \textbf{\normalsize Data Layer} \\[2pt]
+            \textcolor{clinicalTextDark}{Repository Implementations, Data Sources, DTOs, Serializers}
+        };
+        
+        \node [layer, fill=clinicalFasting!12, below=0.55cm of data] (infra) {
+            \textbf{\normalsize Infrastructure \& External Services Layer} \\[2pt]
+            \textcolor{clinicalTextDark}{Hive Local Encrypted Boxes, Cloud Firestore, Firebase Authentication}
+        };
 
-        \path [line] (ui) -- (domain);
-        \path [line] (domain) -- (data);
-        \path [line] (data) -- (infra);
+        % Inter-layer Dependency Flow Connectors
+        \draw [arrowline] (ui.south) -- (domain.north);
+        \draw [arrowline] (domain.south) -- (data.north);
+        \draw [arrowline] (data.south) -- (infra.north);
     \end{tikzpicture}
     \caption{Layered Clean Architecture of Xenova Health.}
     \label{fig:architecture}
@@ -483,7 +547,7 @@ Analysis of live runtime logs via Android Debug Bridge (\texttt{adb logcat}) con
 \begin{itemize}[leftmargin=1.5em]
     \item \textbf{Memory \& Garbage Collection}: Stable memory profile with zero unhandled memory leaks.
     \item \textbf{Rendering Pipeline}: Main thread execution maintained at 60~FPS on target physical test hardware with zero UI thread deadlocks.
-    \item \textbf{Authentication Lifecycle}: Identity token listener properly attached to authenticated user UID (\texttt{m2ZxfyU3SuRPhk3pRAdHOhsYonD2}).
+    \item \textbf{Authentication Lifecycle}: Identity token listener properly attached to active authenticated user session (\nolinkurl{m2ZxfyU3SuRPhk3pRAdHOhsYonD2}).
 \end{itemize}
 
 % -----------------------------------------------------------------------------
@@ -491,9 +555,9 @@ Analysis of live runtime logs via Android Debug Bridge (\texttt{adb logcat}) con
 % -----------------------------------------------------------------------------
 The application utilizes Gradle flavor dimensions to isolate staging, development, and production infrastructure:
 \begin{itemize}[leftmargin=1.5em]
-    \item \textbf{\texttt{dev} Flavor}: Targets local emulation and rapid on-device debugging (\texttt{com.xenovahealth.xenova\_health.dev}), connected to development Firebase project instances.
-    \item \textbf{\texttt{staging} Flavor}: Builds staging artifacts for QA testing and beta distribution (\texttt{com.xenovahealth.xenova\_health.staging}).
-    \item \textbf{\texttt{prod} Flavor}: Stripped, obfuscated, release-signed production binaries with ProGuard/R8 optimization targeting Google Play Store and Apple App Store.
+    \item \textbf{Development Flavor (\texttt{dev})}: Targets local emulation and rapid on-device debugging with application ID \nolinkurl{com.xenovahealth.xenova_health.dev}, connected to development Firebase project instances.
+    \item \textbf{Staging Flavor (\texttt{staging})}: Builds staging artifacts for QA testing and beta distribution with application ID \nolinkurl{com.xenovahealth.xenova_health.staging}.
+    \item \textbf{Production Flavor (\texttt{prod})}: Stripped, obfuscated, release-signed production binaries with ProGuard/R8 optimization targeting Google Play Store and Apple App Store.
 \end{itemize}
 
 % -----------------------------------------------------------------------------
